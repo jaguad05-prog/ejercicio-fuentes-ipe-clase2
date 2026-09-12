@@ -206,7 +206,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v6</span></h1>
+  <h1>Estantería de entregas <span class="version">v7</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -827,13 +827,36 @@ function aplicarZoom(){
 
 function cambiarZoom(paso){
   if(ES_MEDIA(obras[vIdx].tipo)) return;
-  const niveles = [1, 1.25, 1.5, 2, 2.5, 3, 4];
-  let i = niveles.indexOf(zoom);
-  if(i < 0) i = 0;
-  i = Math.max(0, Math.min(niveles.length - 1, i + paso));
+  const niveles = [1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 6];
+  let i = paso > 0
+    ? niveles.findIndex(n => n > zoom + 0.01)
+    : [...niveles].reverse().findIndex(n => n < zoom - 0.01);
+  if(paso > 0) i = i < 0 ? niveles.length - 1 : i;
+  else i = i < 0 ? 0 : niveles.length - 1 - i;
   zoom = niveles[i];
   aplicarZoom();
 }
+
+// Rueda del ratón con Ctrl pulsado, como en un PDF
+$('lienzoZona').addEventListener('wheel', ev => {
+  if(!ev.ctrlKey && !ev.metaKey) return;
+  if(ES_MEDIA(obras[vIdx].tipo)) return;
+  ev.preventDefault();
+  const zona = $('lienzoZona');
+  if(!anchoAjustado) anchoAjustado = base.getBoundingClientRect().width || base.width;
+  const antes = zoom;
+  zoom = Math.min(6, Math.max(1, zoom * (ev.deltaY < 0 ? 1.12 : 1 / 1.12)));
+  if(Math.abs(zoom - 1) < 0.02) zoom = 1;
+  if(zoom === antes) return;
+  // Mantener bajo el cursor el mismo punto de la página
+  const r = base.getBoundingClientRect();
+  const fx = (ev.clientX - r.left) / (r.width || 1);
+  const fy = (ev.clientY - r.top) / (r.height || 1);
+  aplicarZoom();
+  const r2 = base.getBoundingClientRect();
+  zona.scrollLeft += (r2.width * fx) - (ev.clientX - r2.left);
+  zona.scrollTop += (r2.height * fy) - (ev.clientY - r2.top);
+}, {passive: false});
 
 $('zMas').addEventListener('click', () => cambiarZoom(1));
 $('zMenos').addEventListener('click', () => cambiarZoom(-1));
@@ -902,7 +925,7 @@ function empujarHistorial(){
 
 anot.addEventListener('pointerdown', ev => {
   if(herramienta === 'mano') return;
-  anot.setPointerCapture(ev.pointerId);
+  ev.preventDefault();
   const p = puntoEn(ev);
   empujarHistorial();
 
@@ -910,6 +933,7 @@ anot.addEventListener('pointerdown', ev => {
     ponerTexto(ev, p);
     return;
   }
+  anot.setPointerCapture(ev.pointerId);
   pintando = true; x0 = p.x; y0 = p.y;
   if(herramienta === 'tapar'){
     instantanea = ctxA.getImageData(0, 0, anot.width, anot.height);
@@ -950,32 +974,47 @@ anot.addEventListener('pointerup', () => {
 });
 
 function ponerTexto(ev, p){
+  // Un solo cuadro abierto a la vez
+  const previo = $('apilado').querySelector('.entrada-texto');
+  if(previo) previo.remove();
+
   const caja = document.createElement('input');
   caja.className = 'entrada-texto';
   const r = anot.getBoundingClientRect();
   const zona = $('apilado').getBoundingClientRect();
-  caja.style.left = (ev.clientX - zona.left) + 'px';
-  caja.style.top = (ev.clientY - zona.top - 14) + 'px';
+  caja.style.left = Math.max(0, ev.clientX - zona.left) + 'px';
+  caja.style.top = Math.max(0, ev.clientY - zona.top - 16) + 'px';
   caja.placeholder = 'Escribe y pulsa Enter';
   $('apilado').appendChild(caja);
-  caja.focus();
+
+  // El foco se pone en el siguiente fotograma, si no el propio clic lo roba
+  setTimeout(() => { caja.focus(); caja.select(); }, 0);
+
+  let cerrado = false;
   const estampar = () => {
+    if(cerrado) return;
+    cerrado = true;
     const txt = caja.value.trim();
     caja.remove();
     if(!txt) return;
-    const escala = anot.width / r.width;
+    const escala = anot.width / (r.width || anot.width);
     ctxA.globalAlpha = 1;
+    ctxA.globalCompositeOperation = 'source-over';
     ctxA.fillStyle = '#C8452F';
-    ctxA.font = '700 ' + Math.round(17 * escala) + 'px "Bricolage Grotesque", sans-serif';
+    ctxA.font = '700 ' + Math.round(18 * escala) + 'px "Bricolage Grotesque", Arial, sans-serif';
     ctxA.textBaseline = 'top';
     ctxA.fillText(txt, p.x, p.y);
     guardarAnotacion();
   };
+  const cancelar = () => { if(!cerrado){ cerrado = true; caja.remove(); } };
+
   caja.addEventListener('keydown', e => {
-    if(e.key === 'Enter') estampar();
-    if(e.key === 'Escape') caja.remove();
+    e.stopPropagation();
+    if(e.key === 'Enter'){ e.preventDefault(); estampar(); }
+    if(e.key === 'Escape'){ e.preventDefault(); cancelar(); }
   });
-  caja.addEventListener('blur', estampar);
+  // El cierre por perder el foco se activa más tarde, para que no salte al abrirse
+  setTimeout(() => caja.addEventListener('blur', estampar), 400);
 }
 
 /* ------------------------------------------------ botones */
