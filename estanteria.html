@@ -162,11 +162,13 @@
   .zoom button{padding:7px 12px;font-size:15px;line-height:1}
   .zoom #zAjustar{font-size:12.5px;padding:8px 12px}
   .lienzo-zona{position:relative;overflow:auto;display:flex;padding:14px}
-  .apilado{position:relative;line-height:0;margin:auto;box-shadow:0 8px 30px rgba(0,0,0,.5)}
-  .apilado{max-width:100%}
-  #capaBase{display:block;max-width:100%;max-height:calc(100vh - 190px);background:#fff}
-  .lienzo-zona.ampliada .apilado{max-width:none;margin:0}
-  .lienzo-zona.ampliada #capaBase{max-width:none;max-height:none}
+  .apilado{
+    position:relative;line-height:0;margin:auto;
+    flex:0 0 auto;align-self:center;
+    box-shadow:0 8px 30px rgba(0,0,0,.5);
+  }
+  #capaBase{display:block;background:#fff}
+  .lienzo-zona.ampliada .apilado{margin:0}
   #capaAnot{position:absolute;left:0;top:0;width:100%;height:100%;
     background:transparent;touch-action:none;cursor:crosshair}
   .flecha{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:62px;border-radius:8px;background:rgba(242,237,227,.16);color:var(--papel);font-size:20px}
@@ -228,7 +230,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v9</span></h1>
+  <h1>Estantería de entregas <span class="version">v10</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -822,37 +824,40 @@ async function dibujarPagina(){
     await pag.render({canvasContext: ctxB, viewport: vp}).promise;
   }
   anot.width = base.width; anot.height = base.height;
-  anot.style.width = base.style.width = '';
   $('vPos').textContent = vTotalPag > 1 ? 'Página ' + vPag + ' de ' + vTotalPag : '';
   $('vAnt').style.display = $('vSig').style.display =
     (vTotalPag > 1 || obras.length > 1) ? '' : 'none';
   historial = [];
+  notaSel = null;
   await restaurarAnotacion();
-  pintarTextos();
   $('zoomCaja').style.display = '';
-  requestAnimationFrame(() => { anchoAjustado = 0; aplicarZoom(); refrescarTextos(); });
+  aplicarZoom();
+  pintarTextos();
 }
 
 /* ---------------------------------------- zoom
-   El nivel 1 es "ajustado a la pantalla". A partir de ahí se multiplica
-   sobre el ancho ajustado, y las anotaciones acompañan porque la capa
-   de marcas mide siempre el 100 % del lienzo. */
+   El lienzo se dimensiona en píxeles exactos en ancho y alto, de modo
+   que la capa de marcas y la de notas, que miden el 100 %, caigan
+   justo encima de la página y las coordenadas coincidan. */
 let zoom = 1, anchoAjustado = 0;
 
-function aplicarZoom(){
+function anchoFit(){
   const zona = $('lienzoZona');
-  if(zoom === 1){
-    zona.classList.remove('ampliada');
-    base.style.width = '';
-    $('zNivel').textContent = 'Ajustado';
-    anchoAjustado = base.getBoundingClientRect().width || base.width;
-    refrescarTextos();
-    return;
-  }
-  if(!anchoAjustado) anchoAjustado = base.getBoundingClientRect().width || base.width;
-  zona.classList.add('ampliada');
-  base.style.width = Math.round(anchoAjustado * zoom) + 'px';
-  $('zNivel').textContent = Math.round(zoom * 100) + ' %';
+  if(!base.width || !base.height) return 0;
+  const hueco = Math.max(120, zona.clientWidth - 30);
+  const alto = Math.max(120, zona.clientHeight - 30);
+  return Math.max(90, Math.min(base.width, hueco, alto * base.width / base.height));
+}
+
+function aplicarZoom(){
+  if(!base.width) return;
+  anchoAjustado = anchoFit();
+  const ancho = Math.round(anchoAjustado * zoom);
+  const alto = Math.round(ancho * base.height / base.width);
+  base.style.width = ancho + 'px';
+  base.style.height = alto + 'px';
+  $('lienzoZona').classList.toggle('ampliada', zoom !== 1);
+  $('zNivel').textContent = zoom === 1 ? 'Ajustado' : Math.round(zoom * 100) + ' %';
   refrescarTextos();
 }
 
@@ -874,24 +879,26 @@ $('lienzoZona').addEventListener('wheel', ev => {
   if(ES_MEDIA(obras[vIdx].tipo)) return;
   ev.preventDefault();
   const zona = $('lienzoZona');
-  if(!anchoAjustado) anchoAjustado = base.getBoundingClientRect().width || base.width;
+  const r = base.getBoundingClientRect();
+  const fx = (ev.clientX - r.left) / (r.width || 1);
+  const fy = (ev.clientY - r.top) / (r.height || 1);
   const antes = zoom;
   zoom = Math.min(6, Math.max(1, zoom * (ev.deltaY < 0 ? 1.12 : 1 / 1.12)));
   if(Math.abs(zoom - 1) < 0.02) zoom = 1;
   if(zoom === antes) return;
-  // Mantener bajo el cursor el mismo punto de la página
-  const r = base.getBoundingClientRect();
-  const fx = (ev.clientX - r.left) / (r.width || 1);
-  const fy = (ev.clientY - r.top) / (r.height || 1);
   aplicarZoom();
   const r2 = base.getBoundingClientRect();
-  zona.scrollLeft += (r2.width * fx) - (ev.clientX - r2.left);
-  zona.scrollTop += (r2.height * fy) - (ev.clientY - r2.top);
+  zona.scrollLeft += (r2.left + r2.width * fx) - ev.clientX;
+  zona.scrollTop += (r2.top + r2.height * fy) - ev.clientY;
 }, {passive: false});
 
 $('zMas').addEventListener('click', () => cambiarZoom(1));
 $('zMenos').addEventListener('click', () => cambiarZoom(-1));
 $('zAjustar').addEventListener('click', () => { zoom = 1; aplicarZoom(); });
+
+window.addEventListener('resize', () => {
+  if($('visor').classList.contains('abierto')) aplicarZoom();
+});
 
 function claveAnot(){ return obras[vIdx].clave + ':' + vPag; }
 
@@ -1038,15 +1045,21 @@ function escalaVista(){
   return (r.width || anot.width) / anot.width;
 }
 
-function seleccionar(nota){
+function nodoDe(dato){
+  return [...capaT.children].find(n => n._dato === dato) || null;
+}
+
+function seleccionar(dato){
   capaT.querySelectorAll('.nota.sel').forEach(n => n.classList.remove('sel'));
-  notaSel = nota || null;
-  if(nota) nota.classList.add('sel');
+  notaSel = dato || null;
+  const n = dato && nodoDe(dato);
+  if(n) n.classList.add('sel');
 }
 
 function refrescarTextos(){
+  if(!capaT.children.length) return;
   const esc = escalaVista();
-  capaT.querySelectorAll('.nota').forEach(n => {
+  [...capaT.children].forEach(n => {
     const d = n._dato;
     n.style.left = (d.x * esc) + 'px';
     n.style.top = (d.y * esc) + 'px';
@@ -1054,31 +1067,39 @@ function refrescarTextos(){
   });
 }
 
-function crearNota(dato, editar){
+function borrarNota(dato){
+  const l = listaTextos();
+  const i = l.indexOf(dato);
+  if(i >= 0) l.splice(i, 1);
+  if(notaSel === dato) notaSel = null;
+  pintarTextos();
+  persistirMarcas(obras[vIdx]);
+}
+
+// Construye el nodo de una nota. La lista de datos es la única fuente
+// de verdad: cualquier cambio estructural vuelve a pintar toda la capa.
+function crearNodo(dato){
   const n = document.createElement('div');
   n.className = 'nota';
   n._dato = dato;
   n.textContent = dato.txt;
-  n.appendChild(Object.assign(document.createElement('span'), {className: 'quitar'}));
-  n.appendChild(Object.assign(document.createElement('span'), {className: 'tirador'}));
-  capaT.appendChild(n);
+  const quitar = document.createElement('span');
+  quitar.className = 'quitar';
+  const tirador = document.createElement('span');
+  tirador.className = 'tirador';
+  n.appendChild(quitar);
+  n.appendChild(tirador);
 
-  // ---- borrar
-  n.querySelector('.quitar').addEventListener('pointerdown', ev => {
+  quitar.addEventListener('pointerdown', ev => {
     ev.stopPropagation(); ev.preventDefault();
-    const l = listaTextos();
-    const i = l.indexOf(dato);
-    if(i >= 0) l.splice(i, 1);
-    n.remove(); notaSel = null;
-    persistirMarcas(obras[vIdx]);
+    borrarNota(dato);
   });
 
-  // ---- estirar para cambiar el tamaño de la letra
-  n.querySelector('.tirador').addEventListener('pointerdown', ev => {
+  tirador.addEventListener('pointerdown', ev => {
     ev.stopPropagation(); ev.preventDefault();
     const esc = escalaVista(), y0 = ev.clientY, tam0 = dato.tam;
     const mover = e => {
-      dato.tam = Math.max(9, Math.min(140, tam0 + (e.clientY - y0) / esc * 1.6));
+      dato.tam = Math.max(9, Math.min(160, tam0 + (e.clientY - y0) / esc * 1.6));
       n.style.fontSize = Math.max(7, dato.tam * esc) + 'px';
     };
     const soltar = () => {
@@ -1090,18 +1111,17 @@ function crearNota(dato, editar){
     window.addEventListener('pointerup', soltar);
   });
 
-  // ---- arrastrar para mover
   n.addEventListener('pointerdown', ev => {
     if(n.getAttribute('contenteditable') === 'true') return;
     ev.stopPropagation(); ev.preventDefault();
-    seleccionar(n);
+    seleccionar(dato);
     const esc = escalaVista();
     const cx = ev.clientX, cy = ev.clientY, ox = dato.x, oy = dato.y;
     let movido = false;
     const mover = e => {
       movido = true;
-      dato.x = Math.max(0, Math.min(anot.width, ox + (e.clientX - cx) / esc));
-      dato.y = Math.max(0, Math.min(anot.height, oy + (e.clientY - cy) / esc));
+      dato.x = Math.max(0, Math.min(anot.width - 4, ox + (e.clientX - cx) / esc));
+      dato.y = Math.max(0, Math.min(anot.height - 4, oy + (e.clientY - cy) / esc));
       n.style.left = (dato.x * esc) + 'px';
       n.style.top = (dato.y * esc) + 'px';
     };
@@ -1114,17 +1134,24 @@ function crearNota(dato, editar){
     window.addEventListener('pointerup', soltar);
   });
 
-  // ---- doble clic para reescribir
-  n.addEventListener('dblclick', ev => { ev.stopPropagation(); editarNota(n); });
-
-  if(editar) setTimeout(() => editarNota(n, true), 0);
+  n.addEventListener('dblclick', ev => { ev.stopPropagation(); editarNota(dato); });
   return n;
 }
 
-function editarNota(n, esNueva){
-  const dato = n._dato;
-  seleccionar(n);
+function pintarTextos(){
+  capaT.innerHTML = '';
+  if(!obras[vIdx] || ES_MEDIA(obras[vIdx].tipo)) return;
+  listaTextos().forEach(d => capaT.appendChild(crearNodo(d)));
+  refrescarTextos();
+  if(notaSel) seleccionar(notaSel);
+}
+
+function editarNota(dato, esNueva){
+  const n = nodoDe(dato);
+  if(!n) return;
+  seleccionar(dato);
   n.setAttribute('contenteditable', 'true');
+  n.textContent = dato.txt;          // sin los botones mientras se escribe
   n.focus();
   const rango = document.createRange();
   rango.selectNodeContents(n);
@@ -1132,19 +1159,14 @@ function editarNota(n, esNueva){
   sel.removeAllRanges(); sel.addRange(rango);
   if(!esNueva) sel.collapseToEnd();
 
+  let cerrado = false;
   const cerrar = () => {
+    if(cerrado) return;
+    cerrado = true;
     n.removeAttribute('contenteditable');
     dato.txt = n.textContent.replace(/\u00a0/g, ' ').trim();
-    const l = listaTextos();
-    n.remove();
-    notaSel = null;
-    if(!dato.txt){
-      const i = l.indexOf(dato);
-      if(i >= 0) l.splice(i, 1);
-    }else{
-      seleccionar(crearNota(dato, false));
-      refrescarTextos();
-    }
+    if(!dato.txt){ borrarNota(dato); return; }
+    pintarTextos();
     persistirMarcas(obras[vIdx]);
   };
   n.addEventListener('blur', cerrar, {once: true});
@@ -1155,20 +1177,16 @@ function editarNota(n, esNueva){
   });
 }
 
-function pintarTextos(){
-  capaT.innerHTML = '';
-  notaSel = null;
-  if(ES_MEDIA(obras[vIdx].tipo)) return;
-  listaTextos().forEach(d => crearNota(d, false));
-  refrescarTextos();
-}
-
 function ponerTexto(ev, p){
-  const dato = {x: Math.round(p.x), y: Math.round(p.y), tam: Math.max(16, Math.round(anot.width / 46)), txt: 'Nota'};
+  const dato = {
+    x: Math.round(p.x), y: Math.round(p.y),
+    tam: Math.max(16, Math.round(anot.width / 46)),
+    txt: 'Nota'
+  };
   listaTextos().push(dato);
-  const n = crearNota(dato, true);
-  refrescarTextos();
-  seleccionar(n);
+  notaSel = dato;
+  pintarTextos();
+  setTimeout(() => editarNota(dato, true), 0);
 }
 
 // Dibuja las notas sobre un lienzo, para la imagen que se guarda
@@ -1194,6 +1212,7 @@ document.querySelectorAll('[data-tool]').forEach(b => {
     $('apilado').classList.toggle('editable',
       herramienta === 'mano' || herramienta === 'texto');
     if(herramienta !== 'mano' && herramienta !== 'texto') seleccionar(null);
+    if(herramienta === 'texto') $('zNivel').title = 'Pincha en la página para poner una nota';
   });
 });
 
@@ -1386,10 +1405,12 @@ document.addEventListener('keydown', e => {
   if(e.key === '+' || e.key === '=') cambiarZoom(1);
   if(e.key === '-') cambiarZoom(-1);
   if(e.key === '0'){ zoom = 1; aplicarZoom(); }
-  if((e.key === 'Delete' || e.key === 'Backspace') && notaSel &&
-     notaSel.getAttribute('contenteditable') !== 'true'){
-    e.preventDefault();
-    notaSel.querySelector('.quitar').dispatchEvent(new PointerEvent('pointerdown'));
+  if((e.key === 'Delete' || e.key === 'Backspace') && notaSel){
+    const n = nodoDe(notaSel);
+    if(n && n.getAttribute('contenteditable') !== 'true'){
+      e.preventDefault();
+      borrarNota(notaSel);
+    }
   }
 });
 
