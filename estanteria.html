@@ -206,7 +206,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v5</span></h1>
+  <h1>Estantería de entregas <span class="version">v6</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -215,6 +215,7 @@
     <button class="btn" id="btnZipFijo" hidden>Abrir zip y recordarlo</button>
     <label class="btn fantasma" for="inCarpeta">Abrir carpeta</label>
     <input type="file" id="inCarpeta" webkitdirectory directory multiple>
+    <button class="fantasma" id="btnDestino" hidden>Carpeta de guardado</button>
     <button class="fantasma" id="btnNombres">Ocultar nombres</button>
     <button class="fantasma" id="btnVaciar">Vaciar</button>
   </div>
@@ -284,6 +285,7 @@
     <button class="fantasma" id="tLimpiar">Quitar marcas</button>
     <span class="sep"></span>
     <button id="tGuardar">Guardar corregida</button>
+    <button class="fantasma" id="tGuardarTodas">Guardar todas</button>
     <button class="fantasma" id="tVisto">Marcar como vista</button>
   </div>
 </div>
@@ -797,7 +799,7 @@ async function dibujarPagina(){
   $('vAnt').style.display = $('vSig').style.display =
     (vTotalPag > 1 || obras.length > 1) ? '' : 'none';
   historial = [];
-  restaurarAnotacion();
+  await restaurarAnotacion();
   $('zoomCaja').style.display = '';
   requestAnimationFrame(() => { anchoAjustado = 0; aplicarZoom(); });
 }
@@ -853,10 +855,13 @@ function persistirMarcas(o){
 function restaurarAnotacion(){
   ctxA.clearRect(0, 0, anot.width, anot.height);
   const d = anotaciones.get(claveAnot());
-  if(!d) return;
-  const im = new Image();
-  im.onload = () => ctxA.drawImage(im, 0, 0, anot.width, anot.height);
-  im.src = d;
+  if(!d) return Promise.resolve();
+  return new Promise(res => {
+    const im = new Image();
+    im.onload = () => { ctxA.drawImage(im, 0, 0, anot.width, anot.height); res(); };
+    im.onerror = res;
+    im.src = d;
+  });
 }
 
 function guardarAnotacion(){
@@ -1003,23 +1008,124 @@ $('tLimpiar').addEventListener('click', () => {
   persistirMarcas(obras[vIdx]);
 });
 
-$('tGuardar').addEventListener('click', () => {
+/* ---------------------------------------- guardar las corregidas
+   Si eliges una carpeta de guardado, los PNG van a una subcarpeta
+   llamada "trabajos clase". Sin carpeta elegida caen en Descargas. */
+const CARPETA_SALIDA = 'trabajos clase';
+let handleDestino = null;
+
+async function carpetaSalida(pedirPermiso){
+  if(!handleDestino) return null;
+  try{
+    let per = await handleDestino.queryPermission({mode: 'readwrite'});
+    if(per !== 'granted' && pedirPermiso){
+      per = await handleDestino.requestPermission({mode: 'readwrite'});
+    }
+    if(per !== 'granted') return null;
+    return await handleDestino.getDirectoryHandle(CARPETA_SALIDA, {create: true});
+  }catch(err){ return null; }
+}
+
+async function elegirDestino(){
+  try{
+    handleDestino = await window.showDirectoryPicker({mode: 'readwrite'});
+  }catch(err){ return; }
+  try{ await guardarEn('config', 'destino', handleDestino); }catch(err){}
+  pintarDestino();
+  const dir = await carpetaSalida(true);
+  if(dir) alert('Las corregidas se guardarán en «' + handleDestino.name + ' › ' + CARPETA_SALIDA + '».');
+}
+
+function pintarDestino(){
+  $('btnDestino').textContent = handleDestino
+    ? 'Guardar en: ' + handleDestino.name + ' › ' + CARPETA_SALIDA
+    : 'Carpeta de guardado';
+  $('btnDestino').classList.toggle('activo', !!handleDestino);
+}
+
+function nombreSalida(o, idx, pag, total){
+  const base = ocultos
+    ? 'entrega_' + (idx + 1)
+    : o.alumno.replace(/[^\w\sáéíóúñÁÉÍÓÚÑ-]/g, '').trim();
+  return (base + (total > 1 ? '_pag' + pag : '') + '_corregida.png').replace(/\s+/g, '_');
+}
+
+function componer(){
   const c = document.createElement('canvas');
   c.width = base.width; c.height = base.height;
   const g = c.getContext('2d');
   g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
   g.drawImage(base, 0, 0);
   g.drawImage(anot, 0, 0);
+  return new Promise(res => c.toBlob(res, 'image/png'));
+}
+
+async function escribirEn(dir, nombre, blob){
+  const fh = await dir.getFileHandle(nombre, {create: true});
+  const w = await fh.createWritable();
+  await w.write(blob);
+  await w.close();
+}
+
+function bajarSuelta(nombre, blob){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nombre;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+$('btnDestino').addEventListener('click', elegirDestino);
+
+$('tGuardar').addEventListener('click', async () => {
   const o = obras[vIdx];
-  const nombre = (ocultos ? 'entrega_' + (vIdx + 1) : o.alumno.replace(/[^\w\sáéíóúñÁÉÍÓÚÑ-]/g, '').trim())
-                 + (vTotalPag > 1 ? '_pag' + vPag : '') + '_corregida.png';
-  c.toBlob(b => {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(b);
-    a.download = nombre.replace(/\s+/g, '_');
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-  }, 'image/png');
+  const blob = await componer();
+  const nombre = nombreSalida(o, vIdx, vPag, vTotalPag);
+  const dir = await carpetaSalida(true);
+  if(dir){
+    try{
+      await escribirEn(dir, nombre, blob);
+      $('vPos').textContent = 'Guardada en ' + CARPETA_SALIDA;
+      return;
+    }catch(err){}
+  }
+  bajarSuelta(nombre, blob);
+});
+
+$('tGuardarTodas').addEventListener('click', async () => {
+  const conMarcas = obras
+    .map((o, i) => ({o, i}))
+    .filter(({o}) => [...anotaciones.keys()].some(k => k.startsWith(o.clave + ':')));
+  if(!conMarcas.length){
+    alert('Todavía no has corregido ninguna entrega.');
+    return;
+  }
+  const dir = await carpetaSalida(true);
+  if(!dir && !confirm(conMarcas.length + ' entregas corregidas. Sin carpeta elegida se bajarán una a una a Descargas. ¿Sigo?')) return;
+
+  const guardaIdx = vIdx, guardaPag = vPag;
+  let hechas = 0;
+  for(const {o, i} of conMarcas){
+    const paginas = [...anotaciones.keys()]
+      .filter(k => k.startsWith(o.clave + ':'))
+      .map(k => +k.slice(o.clave.length + 1))
+      .sort((a, b) => a - b);
+    for(const pag of paginas){
+      vIdx = i; vPag = pag;
+      await dibujarPagina();
+      const blob = await componer();
+      const nombre = nombreSalida(o, i, pag, paginas.length > 1 ? 2 : 1);
+      if(dir) await escribirEn(dir, nombre, blob);
+      else bajarSuelta(nombre, blob);
+      hechas++;
+      mostrarProgreso('Guardando corregidas · ' + hechas, hechas, conMarcas.length);
+    }
+  }
+  vIdx = guardaIdx; vPag = guardaPag;
+  await dibujarPagina();
+  progEl.hidden = true;
+  alert(hechas + (hechas === 1 ? ' corregida guardada' : ' corregidas guardadas') +
+        (dir ? ' en «' + handleDestino.name + ' › ' + CARPETA_SALIDA + '».' : ' en Descargas.'));
 });
 
 $('tVisto').addEventListener('click', () => {
@@ -1201,6 +1307,14 @@ async function arrancar(){
   try{
     marcas = await leerTodo('marcas');
   }catch(err){ marcas = new Map(); }
+  if(SOPORTA_RECORDAR && typeof window.showDirectoryPicker === 'function'){
+    $('btnDestino').hidden = false;
+    try{
+      const d = await leerDe('config', 'destino');
+      if(d && d.kind === 'directory') handleDestino = d;
+    }catch(err){}
+    pintarDestino();
+  }
   if(SOPORTA_RECORDAR){
     $('btnZipFijo').hidden = false;
     try{
