@@ -161,12 +161,11 @@
   .zoom b{font-size:12.5px;font-weight:700;min-width:74px;text-align:center;opacity:.9}
   .zoom button{padding:7px 12px;font-size:15px;line-height:1}
   .zoom #zAjustar{font-size:12.5px;padding:8px 12px}
-  .lienzo-zona{position:relative;overflow:auto;display:flex;align-items:center;justify-content:center;padding:14px}
-  .apilado{position:relative;line-height:0;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  .lienzo-zona{position:relative;overflow:auto;display:flex;padding:14px}
+  .apilado{position:relative;line-height:0;margin:auto;box-shadow:0 8px 30px rgba(0,0,0,.5)}
   .apilado{max-width:100%}
   #capaBase{display:block;max-width:100%;max-height:calc(100vh - 190px);background:#fff}
-  .lienzo-zona.ampliada{align-items:flex-start;justify-content:flex-start}
-  .lienzo-zona.ampliada .apilado{max-width:none}
+  .lienzo-zona.ampliada .apilado{max-width:none;margin:0}
   .lienzo-zona.ampliada #capaBase{max-width:none;max-height:none}
   #capaAnot{position:absolute;left:0;top:0;width:100%;height:100%;
     background:transparent;touch-action:none;cursor:crosshair}
@@ -192,7 +191,30 @@
 
   .herramientas{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding:11px clamp(12px,3vw,24px);border-top:1px solid rgba(242,237,227,.16)}
   .herramientas .sep{width:1px;height:22px;background:rgba(242,237,227,.2);margin:0 4px}
-  .entrada-texto{position:absolute;font-family:inherit;font-size:16px;padding:3px 6px;border:2px solid var(--rojo);border-radius:4px;background:#fff;color:#111;z-index:5}
+  #capaTexto{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:4}
+  .nota{
+    position:absolute;pointer-events:none;
+    font-family:"Bricolage Grotesque",Arial,sans-serif;font-weight:700;
+    color:var(--rojo);line-height:1.25;white-space:pre-wrap;
+    padding:1px 3px;border-radius:3px;max-width:80%;
+    outline:1.5px dashed transparent;cursor:move;
+  }
+  .apilado.editable .nota{pointer-events:auto}
+  .apilado.editable .nota:hover{outline-color:rgba(200,69,47,.55);background:rgba(255,255,255,.5)}
+  .nota.sel{outline:1.5px solid var(--rojo);background:rgba(255,255,255,.72)}
+  .nota[contenteditable="true"]{outline:2px solid var(--rojo);background:#fff;cursor:text}
+  .nota .tirador,.nota .quitar{
+    position:absolute;width:15px;height:15px;border-radius:50%;
+    background:var(--rojo);border:1.5px solid #fff;display:none;
+    box-shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  .nota.sel .tirador,.nota.sel .quitar{display:block}
+  .nota .tirador{right:-8px;bottom:-8px;cursor:nwse-resize}
+  .nota .quitar{right:-8px;top:-8px;cursor:pointer;background:#111}
+  .nota .quitar::after{
+    content:"×";position:absolute;inset:0;color:#fff;font-size:12px;
+    line-height:12px;text-align:center;font-weight:700;
+  }
 
   @media (prefers-reduced-motion:reduce){*{transition:none!important}.libro:hover .tapa{transform:none}}
   @media (max-width:560px){
@@ -206,7 +228,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v7</span></h1>
+  <h1>Estantería de entregas <span class="version">v9</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -264,6 +286,7 @@
     <div class="apilado" id="apilado">
       <canvas id="capaBase"></canvas>
       <canvas id="capaAnot"></canvas>
+      <div id="capaTexto"></div>
     </div>
     <div class="reproductor" id="reproductor" hidden>
       <div class="onda" id="ondaFondo"></div>
@@ -278,8 +301,8 @@
     <button class="fantasma activo" data-tool="mano">Mover</button>
     <button class="fantasma" data-tool="lapiz">Lápiz</button>
     <button class="fantasma" data-tool="subrayar">Subrayar</button>
-    <button class="fantasma" data-tool="tapar">Tapar nombre</button>
-    <button class="fantasma" data-tool="texto">Texto</button>
+    <button class="fantasma" data-tool="tapar" title="Arrastra sobre el nombre para taparlo, o pincha encima para poner una banda">Tapar nombre</button>
+    <button class="fantasma" data-tool="texto" title="Pincha donde quieras escribir, teclea y pulsa Enter">Texto</button>
     <span class="sep"></span>
     <button class="fantasma" id="tDeshacer">Deshacer</button>
     <button class="fantasma" id="tLimpiar">Quitar marcas</button>
@@ -325,7 +348,9 @@ function reloj(seg){
 const LOMOS = ['#7A4B3A','#3C5A6E','#6B5B8E','#4E6B4A','#8A5A2B','#5A5F6B','#7D3F51','#3F6B63'];
 
 let obras = [];          // {alumno, archivo, tipo, blob, url, thumb, paginas, visto}
-let marcas = new Map();  // clave estable -> {visto, anot:{pagina:dataURL}}
+let marcas = new Map();  // clave estable -> {visto, anot:{pagina:dataURL}, textos:{pagina:[...]}}
+let textos = new Map();  // "clave:pagina" -> [{x, y, tam, txt}]
+let notaSel = null;
 let filtro = '';
 let ocultos = false;
 let vIdx = -1, vPag = 1, vTotalPag = 1, pdfActual = null;
@@ -479,6 +504,9 @@ function nuevaObra(alumno, archivo, blob){
   };
   if(guardada && guardada.anot){
     Object.keys(guardada.anot).forEach(pag => anotaciones.set(clave + ':' + pag, guardada.anot[pag]));
+  }
+  if(guardada && guardada.textos){
+    Object.keys(guardada.textos).forEach(pag => textos.set(clave + ':' + pag, guardada.textos[pag]));
   }
   return o;
 }
@@ -800,8 +828,9 @@ async function dibujarPagina(){
     (vTotalPag > 1 || obras.length > 1) ? '' : 'none';
   historial = [];
   await restaurarAnotacion();
+  pintarTextos();
   $('zoomCaja').style.display = '';
-  requestAnimationFrame(() => { anchoAjustado = 0; aplicarZoom(); });
+  requestAnimationFrame(() => { anchoAjustado = 0; aplicarZoom(); refrescarTextos(); });
 }
 
 /* ---------------------------------------- zoom
@@ -817,12 +846,14 @@ function aplicarZoom(){
     base.style.width = '';
     $('zNivel').textContent = 'Ajustado';
     anchoAjustado = base.getBoundingClientRect().width || base.width;
+    refrescarTextos();
     return;
   }
   if(!anchoAjustado) anchoAjustado = base.getBoundingClientRect().width || base.width;
   zona.classList.add('ampliada');
   base.style.width = Math.round(anchoAjustado * zoom) + 'px';
   $('zNivel').textContent = Math.round(zoom * 100) + ' %';
+  refrescarTextos();
 }
 
 function cambiarZoom(paso){
@@ -870,7 +901,11 @@ function persistirMarcas(o){
   anotaciones.forEach((v, k) => {
     if(k.startsWith(o.clave + ':')) anot[k.slice(o.clave.length + 1)] = v;
   });
-  const registro = {visto: o.visto, anot};
+  const txs = {};
+  textos.forEach((v, k) => {
+    if(k.startsWith(o.clave + ':') && v.length) txs[k.slice(o.clave.length + 1)] = v;
+  });
+  const registro = {visto: o.visto, anot, textos: txs};
   marcas.set(o.clave, registro);
   guardarEn('marcas', o.clave, registro).catch(() => {});
 }
@@ -966,55 +1001,186 @@ anot.addEventListener('pointermove', ev => {
   }
 });
 
-anot.addEventListener('pointerup', () => {
+anot.addEventListener('pointerup', ev => {
   if(!pintando) return;
   pintando = false;
   ctxA.globalAlpha = 1;
+  // Con la herramienta de tapar, un clic sin arrastrar pone una banda por defecto
+  if(herramienta === 'tapar'){
+    const p = puntoEn(ev);
+    if(Math.abs(p.x - x0) < 8 && Math.abs(p.y - y0) < 8){
+      if(instantanea) ctxA.putImageData(instantanea, 0, 0);
+      const ancho = Math.max(150, anot.width * 0.3);
+      const alto = Math.max(22, anot.height * 0.028);
+      ctxA.fillStyle = '#111';
+      ctxA.fillRect(x0 - 6, y0 - alto / 2, ancho, alto);
+    }
+  }
   guardarAnotacion();
 });
 
-function ponerTexto(ev, p){
-  // Un solo cuadro abierto a la vez
-  const previo = $('apilado').querySelector('.entrada-texto');
-  if(previo) previo.remove();
+/* ------------------------------------------------ notas de texto
+   Cada nota es un objeto que se puede mover, redimensionar, reescribir
+   y borrar. Vive encima del lienzo y solo se estampa en la imagen al
+   guardar la corregida. */
+const capaT = $('capaTexto');
 
-  const caja = document.createElement('input');
-  caja.className = 'entrada-texto';
-  const r = anot.getBoundingClientRect();
-  const zona = $('apilado').getBoundingClientRect();
-  caja.style.left = Math.max(0, ev.clientX - zona.left) + 'px';
-  caja.style.top = Math.max(0, ev.clientY - zona.top - 16) + 'px';
-  caja.placeholder = 'Escribe y pulsa Enter';
-  $('apilado').appendChild(caja);
+function claveTxt(){ return obras[vIdx].clave + ':' + vPag; }
 
-  // El foco se pone en el siguiente fotograma, si no el propio clic lo roba
-  setTimeout(() => { caja.focus(); caja.select(); }, 0);
+function listaTextos(){
+  const k = claveTxt();
+  if(!textos.has(k)) textos.set(k, []);
+  return textos.get(k);
+}
 
-  let cerrado = false;
-  const estampar = () => {
-    if(cerrado) return;
-    cerrado = true;
-    const txt = caja.value.trim();
-    caja.remove();
-    if(!txt) return;
-    const escala = anot.width / (r.width || anot.width);
-    ctxA.globalAlpha = 1;
-    ctxA.globalCompositeOperation = 'source-over';
-    ctxA.fillStyle = '#C8452F';
-    ctxA.font = '700 ' + Math.round(18 * escala) + 'px "Bricolage Grotesque", Arial, sans-serif';
-    ctxA.textBaseline = 'top';
-    ctxA.fillText(txt, p.x, p.y);
-    guardarAnotacion();
-  };
-  const cancelar = () => { if(!cerrado){ cerrado = true; caja.remove(); } };
+function escalaVista(){
+  const r = base.getBoundingClientRect();
+  return (r.width || anot.width) / anot.width;
+}
 
-  caja.addEventListener('keydown', e => {
-    e.stopPropagation();
-    if(e.key === 'Enter'){ e.preventDefault(); estampar(); }
-    if(e.key === 'Escape'){ e.preventDefault(); cancelar(); }
+function seleccionar(nota){
+  capaT.querySelectorAll('.nota.sel').forEach(n => n.classList.remove('sel'));
+  notaSel = nota || null;
+  if(nota) nota.classList.add('sel');
+}
+
+function refrescarTextos(){
+  const esc = escalaVista();
+  capaT.querySelectorAll('.nota').forEach(n => {
+    const d = n._dato;
+    n.style.left = (d.x * esc) + 'px';
+    n.style.top = (d.y * esc) + 'px';
+    n.style.fontSize = Math.max(7, d.tam * esc) + 'px';
   });
-  // El cierre por perder el foco se activa más tarde, para que no salte al abrirse
-  setTimeout(() => caja.addEventListener('blur', estampar), 400);
+}
+
+function crearNota(dato, editar){
+  const n = document.createElement('div');
+  n.className = 'nota';
+  n._dato = dato;
+  n.textContent = dato.txt;
+  n.appendChild(Object.assign(document.createElement('span'), {className: 'quitar'}));
+  n.appendChild(Object.assign(document.createElement('span'), {className: 'tirador'}));
+  capaT.appendChild(n);
+
+  // ---- borrar
+  n.querySelector('.quitar').addEventListener('pointerdown', ev => {
+    ev.stopPropagation(); ev.preventDefault();
+    const l = listaTextos();
+    const i = l.indexOf(dato);
+    if(i >= 0) l.splice(i, 1);
+    n.remove(); notaSel = null;
+    persistirMarcas(obras[vIdx]);
+  });
+
+  // ---- estirar para cambiar el tamaño de la letra
+  n.querySelector('.tirador').addEventListener('pointerdown', ev => {
+    ev.stopPropagation(); ev.preventDefault();
+    const esc = escalaVista(), y0 = ev.clientY, tam0 = dato.tam;
+    const mover = e => {
+      dato.tam = Math.max(9, Math.min(140, tam0 + (e.clientY - y0) / esc * 1.6));
+      n.style.fontSize = Math.max(7, dato.tam * esc) + 'px';
+    };
+    const soltar = () => {
+      window.removeEventListener('pointermove', mover);
+      window.removeEventListener('pointerup', soltar);
+      persistirMarcas(obras[vIdx]);
+    };
+    window.addEventListener('pointermove', mover);
+    window.addEventListener('pointerup', soltar);
+  });
+
+  // ---- arrastrar para mover
+  n.addEventListener('pointerdown', ev => {
+    if(n.getAttribute('contenteditable') === 'true') return;
+    ev.stopPropagation(); ev.preventDefault();
+    seleccionar(n);
+    const esc = escalaVista();
+    const cx = ev.clientX, cy = ev.clientY, ox = dato.x, oy = dato.y;
+    let movido = false;
+    const mover = e => {
+      movido = true;
+      dato.x = Math.max(0, Math.min(anot.width, ox + (e.clientX - cx) / esc));
+      dato.y = Math.max(0, Math.min(anot.height, oy + (e.clientY - cy) / esc));
+      n.style.left = (dato.x * esc) + 'px';
+      n.style.top = (dato.y * esc) + 'px';
+    };
+    const soltar = () => {
+      window.removeEventListener('pointermove', mover);
+      window.removeEventListener('pointerup', soltar);
+      if(movido) persistirMarcas(obras[vIdx]);
+    };
+    window.addEventListener('pointermove', mover);
+    window.addEventListener('pointerup', soltar);
+  });
+
+  // ---- doble clic para reescribir
+  n.addEventListener('dblclick', ev => { ev.stopPropagation(); editarNota(n); });
+
+  if(editar) setTimeout(() => editarNota(n, true), 0);
+  return n;
+}
+
+function editarNota(n, esNueva){
+  const dato = n._dato;
+  seleccionar(n);
+  n.setAttribute('contenteditable', 'true');
+  n.focus();
+  const rango = document.createRange();
+  rango.selectNodeContents(n);
+  const sel = window.getSelection();
+  sel.removeAllRanges(); sel.addRange(rango);
+  if(!esNueva) sel.collapseToEnd();
+
+  const cerrar = () => {
+    n.removeAttribute('contenteditable');
+    dato.txt = n.textContent.replace(/\u00a0/g, ' ').trim();
+    const l = listaTextos();
+    n.remove();
+    notaSel = null;
+    if(!dato.txt){
+      const i = l.indexOf(dato);
+      if(i >= 0) l.splice(i, 1);
+    }else{
+      seleccionar(crearNota(dato, false));
+      refrescarTextos();
+    }
+    persistirMarcas(obras[vIdx]);
+  };
+  n.addEventListener('blur', cerrar, {once: true});
+  n.addEventListener('keydown', e => {
+    e.stopPropagation();
+    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); n.blur(); }
+    if(e.key === 'Escape'){ e.preventDefault(); n.blur(); }
+  });
+}
+
+function pintarTextos(){
+  capaT.innerHTML = '';
+  notaSel = null;
+  if(ES_MEDIA(obras[vIdx].tipo)) return;
+  listaTextos().forEach(d => crearNota(d, false));
+  refrescarTextos();
+}
+
+function ponerTexto(ev, p){
+  const dato = {x: Math.round(p.x), y: Math.round(p.y), tam: Math.max(16, Math.round(anot.width / 46)), txt: 'Nota'};
+  listaTextos().push(dato);
+  const n = crearNota(dato, true);
+  refrescarTextos();
+  seleccionar(n);
+}
+
+// Dibuja las notas sobre un lienzo, para la imagen que se guarda
+function estamparTextos(g){
+  listaTextos().forEach(d => {
+    g.fillStyle = '#C8452F';
+    g.font = '700 ' + d.tam + 'px "Bricolage Grotesque", Arial, sans-serif';
+    g.textBaseline = 'top';
+    d.txt.split('\n').forEach((linea, i) => {
+      g.fillText(linea, d.x + 2, d.y + 1 + i * d.tam * 1.25);
+    });
+  });
 }
 
 /* ------------------------------------------------ botones */
@@ -1025,6 +1191,9 @@ document.querySelectorAll('[data-tool]').forEach(b => {
     b.classList.add('activo');
     anot.style.cursor = herramienta === 'mano' ? 'default' : 'crosshair';
     anot.style.pointerEvents = herramienta === 'mano' ? 'none' : 'auto';
+    $('apilado').classList.toggle('editable',
+      herramienta === 'mano' || herramienta === 'texto');
+    if(herramienta !== 'mano' && herramienta !== 'texto') seleccionar(null);
   });
 });
 
@@ -1044,6 +1213,8 @@ $('tLimpiar').addEventListener('click', () => {
   empujarHistorial();
   ctxA.clearRect(0, 0, anot.width, anot.height);
   anotaciones.delete(claveAnot());
+  textos.set(claveTxt(), []);
+  pintarTextos();
   persistirMarcas(obras[vIdx]);
 });
 
@@ -1072,7 +1243,13 @@ async function elegirDestino(){
   try{ await guardarEn('config', 'destino', handleDestino); }catch(err){}
   pintarDestino();
   const dir = await carpetaSalida(true);
-  if(dir) alert('Las corregidas se guardarán en «' + handleDestino.name + ' › ' + CARPETA_SALIDA + '».');
+  if(dir){
+    $('btnDestino').classList.add('activo');
+  }else{
+    alert('Hace falta dar permiso de escritura en esa carpeta. Vuelve a elegirla y acepta.');
+    handleDestino = null;
+    pintarDestino();
+  }
 }
 
 function pintarDestino(){
@@ -1096,6 +1273,7 @@ function componer(){
   g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
   g.drawImage(base, 0, 0);
   g.drawImage(anot, 0, 0);
+  estamparTextos(g);
   return new Promise(res => c.toBlob(res, 'image/png'));
 }
 
@@ -1118,15 +1296,26 @@ $('btnDestino').addEventListener('click', elegirDestino);
 
 $('tGuardar').addEventListener('click', async () => {
   const o = obras[vIdx];
-  const blob = await componer();
   const nombre = nombreSalida(o, vIdx, vPag, vTotalPag);
+
+  // El permiso se pide primero, antes de generar la imagen: si media una
+  // espera, el navegador da por consumido el clic y deniega la escritura.
+  if(!handleDestino && typeof window.showDirectoryPicker === 'function'){
+    if(confirm('No has elegido carpeta de guardado. ¿La eliges ahora? Si no, la corregida irá a Descargas.')){
+      await elegirDestino();
+    }
+  }
   const dir = await carpetaSalida(true);
+  const blob = await componer();
+
   if(dir){
     try{
       await escribirEn(dir, nombre, blob);
-      $('vPos').textContent = 'Guardada en ' + CARPETA_SALIDA;
+      $('vPos').textContent = 'Guardada en ' + handleDestino.name + ' › ' + CARPETA_SALIDA;
       return;
-    }catch(err){}
+    }catch(err){
+      alert('No he podido escribir en la carpeta elegida, así que va a Descargas.\n\n' + (err.message || ''));
+    }
   }
   bajarSuelta(nombre, blob);
 });
@@ -1138,6 +1327,9 @@ $('tGuardarTodas').addEventListener('click', async () => {
   if(!conMarcas.length){
     alert('Todavía no has corregido ninguna entrega.');
     return;
+  }
+  if(!handleDestino && typeof window.showDirectoryPicker === 'function'){
+    if(confirm('No has elegido carpeta de guardado. ¿La eliges ahora?')) await elegirDestino();
   }
   const dir = await carpetaSalida(true);
   if(!dir && !confirm(conMarcas.length + ' entregas corregidas. Sin carpeta elegida se bajarán una a una a Descargas. ¿Sigo?')) return;
@@ -1152,6 +1344,7 @@ $('tGuardarTodas').addEventListener('click', async () => {
     for(const pag of paginas){
       vIdx = i; vPag = pag;
       await dibujarPagina();
+      pintarTextos();
       const blob = await componer();
       const nombre = nombreSalida(o, i, pag, paginas.length > 1 ? 2 : 1);
       if(dir) await escribirEn(dir, nombre, blob);
@@ -1193,6 +1386,11 @@ document.addEventListener('keydown', e => {
   if(e.key === '+' || e.key === '=') cambiarZoom(1);
   if(e.key === '-') cambiarZoom(-1);
   if(e.key === '0'){ zoom = 1; aplicarZoom(); }
+  if((e.key === 'Delete' || e.key === 'Backspace') && notaSel &&
+     notaSel.getAttribute('contenteditable') !== 'true'){
+    e.preventDefault();
+    notaSel.querySelector('.quitar').dispatchEvent(new PointerEvent('pointerdown'));
+  }
 });
 
 $('inZip').addEventListener('change', e => {
@@ -1215,7 +1413,7 @@ $('btnNombres').addEventListener('click', () => {
 });
 $('btnVaciar').addEventListener('click', () => {
   obras.forEach(o => URL.revokeObjectURL(o.url));
-  obras = []; anotaciones.clear();
+  obras = []; anotaciones.clear(); textos.clear();
   descartados = []; fallidos = [];
   $('avisos').hidden = true;
   pintarEstantes();
