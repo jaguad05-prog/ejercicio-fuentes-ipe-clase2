@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estantería de entregas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  :root{
+    --pared:#1F3A34;
+    --pared-alta:#274841;
+    --madera:#C99A5B;
+    --madera-canto:#A97C43;
+    --tinta:#17201D;
+    --papel:#F2EDE3;
+    --mostaza:#E4A11B;
+    --rojo:#C8452F;
+    --alto-libro:228px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--pared);color:var(--papel);
+    font-family:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+    font-weight:500;-webkit-font-smoothing:antialiased;
+  }
+
+  header{
+    position:sticky;top:0;z-index:20;
+    background:linear-gradient(var(--pared) 80%,rgba(31,58,52,0));
+    padding:22px clamp(16px,4vw,40px) 16px;
+    display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;
+  }
+  h1{font-size:clamp(24px,3.2vw,36px);font-weight:800;letter-spacing:-.02em;margin:0;line-height:1}
+  .cuenta{font-size:14px;font-weight:300;opacity:.75}
+  .controles{margin-left:auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+  button,.btn{
+    font-family:inherit;font-size:13.5px;font-weight:700;
+    background:var(--mostaza);color:var(--tinta);
+    border:0;border-radius:7px;padding:9px 15px;cursor:pointer;
+  }
+  button:hover,.btn:hover{filter:brightness(1.07)}
+  button:focus-visible,.btn:focus-visible,input:focus-visible{outline:2px solid var(--papel);outline-offset:2px}
+  .fantasma{background:transparent;color:var(--papel);box-shadow:inset 0 0 0 1.5px rgba(242,237,227,.35)}
+  .fantasma.activo{background:var(--papel);color:var(--tinta);box-shadow:none}
+  input[type=search]{
+    font-family:inherit;font-size:13.5px;color:var(--papel);
+    background:rgba(242,237,227,.10);border:1.5px solid rgba(242,237,227,.25);
+    border-radius:7px;padding:9px 12px;width:190px;
+  }
+  input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+
+  main{padding:0 clamp(16px,4vw,40px) 60px}
+
+  .soltar{
+    border:2px dashed rgba(242,237,227,.3);border-radius:14px;
+    padding:44px 26px;text-align:center;max-width:720px;margin:14px auto 0;
+  }
+  .soltar h2{font-size:22px;font-weight:700;margin:0 0 10px}
+  .soltar p{font-size:15px;font-weight:300;line-height:1.55;margin:0 auto;max-width:52ch;opacity:.85}
+  .soltar .btn{margin-top:20px;display:inline-block}
+  body.arrastrando .soltar{border-color:var(--mostaza);background:rgba(228,161,27,.10)}
+
+  .recordada{
+    max-width:760px;margin:16px auto 0;
+    border:1.5px solid rgba(242,237,227,.3);border-radius:11px;
+    background:rgba(242,237,227,.07);padding:13px 16px;
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+    font-size:14px;font-weight:300;
+  }
+  .recordada[hidden]{display:none}
+  .recordada span{flex:1;min-width:180px}
+  .recordada b{font-weight:700}
+
+  .avisos{
+    position:relative;max-width:760px;margin:16px auto 4px;
+    border:1.5px solid var(--mostaza);border-radius:11px;
+    background:rgba(228,161,27,.10);padding:16px 42px 15px 18px;
+  }
+  .avisos h3{margin:0 0 9px;font-size:15.5px;font-weight:700}
+  .avisos ul{margin:0;padding-left:19px;font-size:13.5px;font-weight:300;line-height:1.55}
+  .avisos li{margin-bottom:3px}
+  .avisos li b{font-weight:700}
+  .avisos p{margin:11px 0 0;font-size:13px;font-weight:300;opacity:.85;line-height:1.5}
+  .cerrar-aviso{
+    position:absolute;top:9px;right:10px;
+    background:transparent;color:var(--papel);font-size:19px;
+    padding:2px 8px;line-height:1;box-shadow:none;
+  }
+
+  .progreso{max-width:720px;margin:18px auto 0;font-size:14px;font-weight:300;text-align:center}
+  .barra-carga{height:5px;border-radius:3px;background:rgba(242,237,227,.16);margin-top:9px;overflow:hidden}
+  .barra-carga i{display:block;height:100%;background:var(--mostaza);width:0;transition:width .2s}
+
+  .estante{
+    --tabla:13px;
+    --hueco:26px;
+    --pie-alto:34px;
+    --fila:calc(var(--alto-libro) + var(--tabla) + var(--pie-alto) + 8px);
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    grid-auto-rows:var(--fila);
+    column-gap:18px;row-gap:var(--hueco);
+    padding:10px 4px 20px;
+    background-image:linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent var(--alto-libro),
+      var(--madera) var(--alto-libro),
+      var(--madera) calc(var(--alto-libro) + 10px),
+      var(--madera-canto) calc(var(--alto-libro) + 10px),
+      var(--madera-canto) calc(var(--alto-libro) + var(--tabla)),
+      transparent calc(var(--alto-libro) + var(--tabla)),
+      transparent 100%);
+    background-size:100% calc(var(--fila) + var(--hueco));
+    background-position:0 10px;
+    background-repeat:repeat-y;
+  }
+
+  .libro{
+    background:none;border:0;padding:0;cursor:pointer;text-align:left;
+    display:flex;flex-direction:column;height:var(--fila);
+  }
+  .tapa{
+    height:var(--alto-libro);align-self:end;border-radius:3px 6px 6px 3px;
+    background:var(--col,#7A4B3A);
+    box-shadow:inset 9px 0 0 rgba(0,0,0,.22),0 5px 14px rgba(0,0,0,.35);
+    overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;
+    transition:transform .18s;
+  }
+  .libro:hover .tapa,.libro:focus-visible .tapa{transform:translateY(-5px)}
+  .tapa img{width:100%;height:100%;object-fit:cover;object-position:top}
+  .tapa .cargando{font-size:12px;font-weight:300;opacity:.75;color:#fff}
+  .tapa .marca{
+    position:absolute;top:7px;right:7px;
+    background:var(--mostaza);color:var(--tinta);
+    font-size:10.5px;font-weight:800;border-radius:4px;padding:2px 6px;
+  }
+  .libro.visto .tapa{outline:2.5px solid var(--mostaza);outline-offset:2px}
+  .pie{
+    font-size:12.5px;line-height:1.25;
+    margin-top:calc(var(--tabla) + 7px);
+    height:var(--pie-alto);overflow:hidden;
+  }
+  .pie b{display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pie span{display:block;font-weight:300;opacity:.6;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* ------------------------------------------------ visor */
+  .visor{position:fixed;inset:0;background:rgba(12,22,20,.97);z-index:50;display:none;grid-template-rows:auto 1fr auto}
+  .visor.abierto{display:grid}
+  .barra{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:11px clamp(12px,3vw,24px);border-bottom:1px solid rgba(242,237,227,.16)}
+  .barra .titulo{flex:1;min-width:150px;font-size:15px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .barra .pos{font-size:13px;font-weight:300;opacity:.7}
+  .lienzo-zona{position:relative;overflow:auto;display:flex;align-items:center;justify-content:center;padding:14px}
+  .apilado{position:relative;line-height:0;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  .apilado canvas{display:block;max-width:100%;background:#fff}
+  #capaAnot{position:absolute;inset:0;touch-action:none;cursor:crosshair}
+  .flecha{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:62px;border-radius:8px;background:rgba(242,237,227,.16);color:var(--papel);font-size:20px}
+  .flecha.izq{left:8px}
+  .flecha.der{right:8px}
+  .reproductor{
+    width:min(760px,100%);text-align:center;
+    background:rgba(20,33,31,.9);border:1px solid rgba(242,237,227,.18);
+    border-radius:14px;padding:26px 22px 22px;
+  }
+  .reproductor[hidden]{display:none}
+  .onda{height:104px;margin:0 0 18px;border-radius:8px;
+    background:repeating-linear-gradient(90deg,var(--mostaza) 0 5px,transparent 5px 13px);
+    opacity:.5;
+    -webkit-mask-image:radial-gradient(ellipse 70% 100% at 50% 50%,#000 30%,transparent 100%);
+    mask-image:radial-gradient(ellipse 70% 100% at 50% 50%,#000 30%,transparent 100%)}
+  .onda[hidden]{display:none}
+  .reproductor audio{width:100%;display:block}
+  .reproductor video{width:100%;max-height:62vh;display:block;border-radius:8px;background:#000}
+  .reproductor audio[hidden],.reproductor video[hidden]{display:none}
+  .pista{margin:16px 0 0;font-size:13.5px;font-weight:300;opacity:.8;line-height:1.5}
+
+  .herramientas{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding:11px clamp(12px,3vw,24px);border-top:1px solid rgba(242,237,227,.16)}
+  .herramientas .sep{width:1px;height:22px;background:rgba(242,237,227,.2);margin:0 4px}
+  .entrada-texto{position:absolute;font-family:inherit;font-size:16px;padding:3px 6px;border:2px solid var(--rojo);border-radius:4px;background:#fff;color:#111;z-index:5}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}.libro:hover .tapa{transform:none}}
+  @media (max-width:560px){
+    :root{--alto-libro:178px}
+    .estante{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+    input[type=search]{width:100%}
+    .controles{width:100%}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Estantería de entregas</h1>
+  <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
+  <div class="controles">
+    <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
+    <label class="btn" for="inZip">Abrir zip de Moodle</label>
+    <input type="file" id="inZip" accept=".zip">
+    <button class="btn" id="btnCarpetaFija" hidden>Abrir carpeta y recordarla</button>
+    <label class="btn fantasma" for="inCarpeta">Abrir carpeta</label>
+    <input type="file" id="inCarpeta" webkitdirectory directory multiple>
+    <button class="fantasma" id="btnNombres">Ocultar nombres</button>
+    <button class="fantasma" id="btnVaciar">Vaciar</button>
+  </div>
+</header>
+
+<main>
+  <div class="soltar" id="soltar">
+    <h2>Suelta aquí el zip de Moodle</h2>
+    <p>Descárgate las entregas desde la tarea y arrastra el zip tal cual, sin descomprimirlo
+       y sin moverlo de Descargas. Se abre aquí dentro y los archivos no salen de tu ordenador.</p>
+    <label class="btn" for="inZip">Elegir el zip</label>
+  </div>
+  <div class="recordada" id="recordada" hidden>
+    <span id="recordadaTxt"></span>
+    <button id="btnRecordada">Volver a abrirla</button>
+    <button class="fantasma" id="btnOlvidar">Olvidarla</button>
+  </div>
+  <div class="avisos" id="avisos" hidden>
+    <button class="cerrar-aviso" id="cerrarAviso" aria-label="Cerrar aviso">×</button>
+    <h3 id="avisoTitulo"></h3>
+    <ul id="avisoLista"></ul>
+    <p id="avisoPie"></p>
+  </div>
+  <div class="progreso" id="progreso" hidden>
+    <span id="progresoTxt">Abriendo el zip</span>
+    <div class="barra-carga"><i id="progresoBarra"></i></div>
+  </div>
+  <div id="estantes"></div>
+</main>
+
+<div class="visor" id="visor" role="dialog" aria-modal="true" aria-label="Visor de entregas">
+  <div class="barra">
+    <div class="titulo" id="vTitulo">—</div>
+    <span class="pos" id="vPos"></span>
+    <button class="fantasma" id="vDescargar">Descargar original</button>
+    <button class="fantasma" id="vCerrar">Cerrar</button>
+  </div>
+  <div class="lienzo-zona" id="lienzoZona">
+    <div class="apilado" id="apilado">
+      <canvas id="capaBase"></canvas>
+      <canvas id="capaAnot"></canvas>
+    </div>
+    <div class="reproductor" id="reproductor" hidden>
+      <div class="onda" id="ondaFondo"></div>
+      <audio id="repAudio" controls preload="metadata"></audio>
+      <video id="repVideo" controls preload="metadata" playsinline hidden></video>
+      <p class="pista" id="repPista"></p>
+    </div>
+    <button class="flecha izq" id="vAnt" aria-label="Anterior">‹</button>
+    <button class="flecha der" id="vSig" aria-label="Siguiente">›</button>
+  </div>
+  <div class="herramientas">
+    <button class="fantasma activo" data-tool="mano">Mover</button>
+    <button class="fantasma" data-tool="lapiz">Lápiz</button>
+    <button class="fantasma" data-tool="subrayar">Subrayar</button>
+    <button class="fantasma" data-tool="tapar">Tapar nombre</button>
+    <button class="fantasma" data-tool="texto">Texto</button>
+    <span class="sep"></span>
+    <button class="fantasma" id="tDeshacer">Deshacer</button>
+    <button class="fantasma" id="tLimpiar">Quitar marcas</button>
+    <span class="sep"></span>
+    <button id="tGuardar">Guardar corregida</button>
+    <button class="fantasma" id="tVisto">Marcar como vista</button>
+  </div>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const EXT_IMG = ['jpg','jpeg','png','webp','gif','bmp'];
+const EXT_AUD = ['wav','mp3','m4a','ogg','oga','opus','aac','flac','weba'];
+const EXT_VID = ['mp4','webm','mov','m4v','ogv'];
+const TIPOS = {
+  pdf:'application/pdf', jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png',
+  webp:'image/webp', gif:'image/gif', bmp:'image/bmp',
+  wav:'audio/wav', mp3:'audio/mpeg', m4a:'audio/mp4', ogg:'audio/ogg',
+  oga:'audio/ogg', opus:'audio/ogg', aac:'audio/aac', flac:'audio/flac',
+  weba:'audio/webm',
+  mp4:'video/mp4', webm:'video/webm', mov:'video/quicktime',
+  m4v:'video/mp4', ogv:'video/ogg'
+};
+
+function tipoDe(nombre){
+  const e = extension(nombre);
+  if(e === 'pdf') return 'pdf';
+  if(EXT_IMG.includes(e)) return 'img';
+  if(EXT_AUD.includes(e)) return 'audio';
+  if(EXT_VID.includes(e)) return 'video';
+  return null;
+}
+const ES_MEDIA = t => t === 'audio' || t === 'video';
+
+function reloj(seg){
+  if(!isFinite(seg) || seg <= 0) return '';
+  const m = Math.floor(seg / 60), r = Math.round(seg % 60);
+  return m + ':' + String(r).padStart(2, '0');
+}
+const LOMOS = ['#7A4B3A','#3C5A6E','#6B5B8E','#4E6B4A','#8A5A2B','#5A5F6B','#7D3F51','#3F6B63'];
+
+let obras = [];          // {alumno, archivo, tipo, blob, url, thumb, paginas, visto}
+let marcas = new Map();  // clave estable -> {visto, anot:{pagina:dataURL}}
+let handleCarpeta = null;
+let filtro = '';
+let ocultos = false;
+let vIdx = -1, vPag = 1, vTotalPag = 1, pdfActual = null;
+let descartados = [], fallidos = [];
+let herramienta = 'mano';
+let anotaciones = new Map();   // "idx:pag" -> dataURL
+let historial = [];
+let pintando = false, x0 = 0, y0 = 0, instantanea = null;
+
+/* ---------------------------------------- almacén del navegador
+   Guarda las marcas de corrección y el permiso de la carpeta, de modo
+   que al volver a abrir la página siga todo donde lo dejaste. */
+function abrirBase(){
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('estanteria', 1);
+    r.onupgradeneeded = () => {
+      const d = r.result;
+      if(!d.objectStoreNames.contains('config')) d.createObjectStore('config');
+      if(!d.objectStoreNames.contains('marcas')) d.createObjectStore('marcas');
+    };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function guardarEn(almacen, clave, valor){
+  const d = await abrirBase();
+  return new Promise((res, rej) => {
+    const t = d.transaction(almacen, 'readwrite');
+    t.objectStore(almacen).put(valor, clave);
+    t.oncomplete = res; t.onerror = () => rej(t.error);
+  });
+}
+async function borrarDe(almacen, clave){
+  const d = await abrirBase();
+  return new Promise((res, rej) => {
+    const t = d.transaction(almacen, 'readwrite');
+    t.objectStore(almacen).delete(clave);
+    t.oncomplete = res; t.onerror = () => rej(t.error);
+  });
+}
+async function leerDe(almacen, clave){
+  const d = await abrirBase();
+  return new Promise((res, rej) => {
+    const pet = d.transaction(almacen, 'readonly').objectStore(almacen).get(clave);
+    pet.onsuccess = () => res(pet.result);
+    pet.onerror = () => rej(pet.error);
+  });
+}
+async function leerTodo(almacen){
+  const d = await abrirBase();
+  return new Promise((res, rej) => {
+    const st = d.transaction(almacen, 'readonly').objectStore(almacen);
+    const k = st.getAllKeys(), v = st.getAll();
+    const m = new Map();
+    v.onsuccess = () => { k.result.forEach((c, i) => m.set(c, v.result[i])); res(m); };
+    v.onerror = () => rej(v.error);
+  });
+}
+
+const $ = id => document.getElementById(id);
+const cuentaEl = $('cuenta'), estantesEl = $('estantes'), soltarEl = $('soltar');
+const progEl = $('progreso'), progTxt = $('progresoTxt'), progBar = $('progresoBarra');
+const base = $('capaBase'), anot = $('capaAnot');
+const ctxB = base.getContext('2d'), ctxA = anot.getContext('2d');
+
+/* ------------------------------------------------ utilidades */
+const extension = n => (n.split('.').pop() || '').toLowerCase();
+
+function esUtil(nombre){
+  return tipoDe(nombre) !== null;
+}
+
+// Moodle nombra las carpetas "Nombre Apellido_123456_assignsubmission_file"
+function alumnoDesdeRuta(ruta, nombreArchivo){
+  const trozos = ruta.split('/').filter(Boolean);
+  let bruto = trozos.length > 1 ? trozos[0] : nombreArchivo.replace(/\.[^.]+$/,'');
+  bruto = bruto.replace(/_\d+_assignsubmission_file_?/i,'')
+               .replace(/_assignsubmission_file_?/i,'')
+               .replace(/_+$/,'')
+               .replace(/_/g,' ')
+               .trim();
+  return bruto || 'Sin nombre';
+}
+
+function mostrarProgreso(texto, hecho, total){
+  progEl.hidden = false;
+  progTxt.textContent = texto;
+  progBar.style.width = total ? Math.round(hecho / total * 100) + '%' : '0%';
+}
+
+function pausa(){ return new Promise(r => setTimeout(r, 0)); }
+
+/* ------------------------------------------------ carga */
+async function cargarZip(file){
+  try{
+    mostrarProgreso('Abriendo ' + file.name, 0, 1);
+    const zip = await JSZip.loadAsync(file);
+    const entradas = [];
+    zip.forEach((ruta, e) => {
+      if(e.dir) return;
+      const nombre = ruta.split('/').pop();
+      if(!nombre || nombre.startsWith('.') || nombre.startsWith('__MACOSX')) return;
+      if(esUtil(nombre)) entradas.push({ruta, e});
+      else descartados.push({alumno: alumnoDesdeRuta(ruta, nombre), archivo: nombre});
+    });
+    if(!entradas.length){
+      progEl.hidden = true;
+      pintarAvisos();
+      if(!descartados.length){
+        alert('En ese zip no hay ningún archivo. Comprueba que la descarga de Moodle terminó bien.');
+      }
+      return;
+    }
+    const nuevas = [];
+    for(let i = 0; i < entradas.length; i++){
+      const {ruta, e} = entradas[i];
+      mostrarProgreso('Leyendo entregas · ' + (i+1) + ' de ' + entradas.length, i+1, entradas.length);
+      const nombreArchivo = ruta.split('/').pop();
+      try{
+        const datos = await e.async('uint8array');
+        if(!datos || !datos.length) throw new Error('archivo vacío');
+        const blob = new Blob([datos], {type: TIPOS[extension(nombreArchivo)] || 'application/octet-stream'});
+        nuevas.push(nuevaObra(alumnoDesdeRuta(ruta, nombreArchivo), nombreArchivo, blob));
+      }catch(err){
+        fallidos.push({alumno: alumnoDesdeRuta(ruta, nombreArchivo), archivo: nombreArchivo,
+                       motivo: err.message || 'no se ha podido leer'});
+      }
+      if(i % 4 === 0) await pausa();
+    }
+    añadir(nuevas);
+  }catch(err){
+    progEl.hidden = true;
+    alert('No se ha podido abrir el zip. Si lo descargaste a medias, vuelve a bajarlo de Moodle.\n\n' + err.message);
+  }
+}
+
+function nuevaObra(alumno, archivo, blob){
+  const e = extension(archivo);
+  const tipoMime = TIPOS[e] || 'application/octet-stream';
+  if(!blob.type || blob.type === 'application/octet-stream'){
+    blob = new Blob([blob], {type: tipoMime});
+  }
+  const clave = alumno + '|' + archivo + '|' + (blob.size || 0);
+  const guardada = marcas.get(clave);
+  const o = {
+    alumno, archivo, blob, clave,
+    tipo: tipoDe(archivo) || 'img',
+    url: URL.createObjectURL(blob),
+    thumb: null, paginas: 1, duracion: 0,
+    visto: !!(guardada && guardada.visto)
+  };
+  if(guardada && guardada.anot){
+    Object.keys(guardada.anot).forEach(pag => anotaciones.set(clave + ':' + pag, guardada.anot[pag]));
+  }
+  return o;
+}
+
+function cargarSueltos(lista){
+  const nuevas = [];
+  for(const f of lista){
+    if(f.name.startsWith('.')) continue;
+    if(!esUtil(f.name)){
+      descartados.push({alumno: alumnoDesdeRuta(f.webkitRelativePath || f.name, f.name),
+                        archivo: f.name});
+      continue;
+    }
+    const ruta = f.webkitRelativePath || f.name;
+    const trozos = ruta.split('/').filter(Boolean);
+    const carpeta = trozos.length > 1 ? trozos.slice(0,-1).join('/') + '/' : '';
+    nuevas.push(nuevaObra(alumnoDesdeRuta(carpeta + f.name, f.name), f.name, f));
+  }
+  if(!nuevas.length){
+    pintarAvisos();
+    if(!descartados.length) alert('Ahí no hay ningún archivo que se pueda abrir.');
+    return;
+  }
+  añadir(nuevas);
+}
+
+async function añadir(nuevas){
+  obras = obras.concat(nuevas);
+  pintarEstantes();
+  for(let i = 0; i < nuevas.length; i++){
+    mostrarProgreso('Dibujando portadas · ' + (i+1) + ' de ' + nuevas.length, i+1, nuevas.length);
+    await portada(nuevas[i]);
+    pintarEstantes();
+    await pausa();
+  }
+  progEl.hidden = true;
+  pintarAvisos();
+}
+
+function pintarAvisos(){
+  const total = descartados.length + fallidos.length;
+  if(!total){ $('avisos').hidden = true; return; }
+
+  const partes = [];
+  if(fallidos.length) partes.push(fallidos.length + (fallidos.length === 1 ? ' archivo que no se abre' : ' archivos que no se abren'));
+  if(descartados.length) partes.push(descartados.length + (descartados.length === 1 ? ' en un formato que no se puede ver aquí' : ' en formatos que no se pueden ver aquí'));
+  $('avisoTitulo').textContent = 'Atención, ' + partes.join(' y ');
+
+  const ul = $('avisoLista');
+  ul.innerHTML = '';
+  [...fallidos, ...descartados].slice(0, 30).forEach(f => {
+    const li = document.createElement('li');
+    const b = document.createElement('b');
+    b.textContent = f.alumno;
+    li.appendChild(b);
+    li.appendChild(document.createTextNode(' · ' + f.archivo +
+      (f.motivo ? ' (' + f.motivo + ')' : '')));
+    ul.appendChild(li);
+  });
+  if(total > 30){
+    const li = document.createElement('li');
+    li.textContent = 'y ' + (total - 30) + ' más';
+    ul.appendChild(li);
+  }
+
+  $('avisoPie').textContent = descartados.length
+    ? 'Los de Word, Excel, ODT o texto plano no se abren aquí, míralos aparte o pide que te los reenvíen en pdf.'
+    : 'Pide a esos alumnos que vuelvan a subir el archivo.';
+  $('avisos').hidden = false;
+}
+
+// Onda dibujada a partir del nombre, para que cada crónica tenga su propia silueta
+function ondaSonora(semilla, etiqueta){
+  const c = document.createElement('canvas');
+  c.width = 300; c.height = 390;
+  const g = c.getContext('2d');
+  g.fillStyle = '#14211F'; g.fillRect(0, 0, 300, 390);
+  let n = 0;
+  for(let i = 0; i < semilla.length; i++) n = (n * 31 + semilla.charCodeAt(i)) % 99991;
+  const rnd = () => { n = (n * 1103515245 + 12345) % 2147483648; return n / 2147483648; };
+  const barras = 34, ancho = 5, hueco = (300 - 30) / barras;
+  g.fillStyle = '#E4A11B';
+  for(let i = 0; i < barras; i++){
+    const env = Math.sin(Math.PI * (i + 0.5) / barras);
+    const alto = (14 + rnd() * 120) * (0.45 + env * 0.85);
+    g.fillRect(15 + i * hueco, 195 - alto / 2, ancho, alto);
+  }
+  g.fillStyle = 'rgba(242,237,227,.9)';
+  g.font = '700 20px "Bricolage Grotesque", sans-serif';
+  g.textAlign = 'center';
+  g.fillText(etiqueta, 150, 330);
+  return c.toDataURL('image/jpeg', 0.85);
+}
+
+function metadatosMedia(o){
+  return new Promise(res => {
+    const el = document.createElement(o.tipo === 'video' ? 'video' : 'audio');
+    let cerrado = false;
+    const fin = () => { if(cerrado) return; cerrado = true; clearTimeout(tope); res(); };
+    const tope = setTimeout(fin, 6000);
+    el.preload = 'metadata';
+    el.muted = true;
+    el.onloadedmetadata = () => {
+      o.duracion = el.duration || 0;
+      if(o.tipo !== 'video') return fin();
+      try{ el.currentTime = Math.min(1, (el.duration || 2) / 3); }catch(err){ fin(); }
+    };
+    el.onseeked = () => {
+      try{
+        const c = document.createElement('canvas');
+        const esc = 300 / (el.videoWidth || 300);
+        c.width = 300; c.height = Math.round((el.videoHeight || 200) * esc);
+        c.getContext('2d').drawImage(el, 0, 0, c.width, c.height);
+        o.thumb = c.toDataURL('image/jpeg', 0.8);
+      }catch(err){}
+      fin();
+    };
+    el.onerror = fin;
+    el.src = o.url;
+  });
+}
+
+async function portada(o){
+  try{
+    if(o.tipo === 'img'){
+      o.thumb = o.url;
+      return;
+    }
+    if(ES_MEDIA(o.tipo)){
+      await metadatosMedia(o);
+      if(!o.thumb){
+        o.thumb = ondaSonora(o.archivo, o.tipo === 'video' ? 'vídeo' : 'audio');
+      }
+      return;
+    }
+    const buf = await o.blob.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+    o.paginas = pdf.numPages;
+    const pag = await pdf.getPage(1);
+    const vp0 = pag.getViewport({scale: 1});
+    const c = document.createElement('canvas');
+    const esc = 300 / vp0.width;
+    const vp = pag.getViewport({scale: esc});
+    c.width = vp.width; c.height = vp.height;
+    await pag.render({canvasContext: c.getContext('2d'), viewport: vp}).promise;
+    o.thumb = c.toDataURL('image/jpeg', 0.8);
+    pdf.destroy();
+  }catch(err){
+    o.thumb = null;
+    o.roto = true;
+    fallidos.push({alumno: o.alumno, archivo: o.archivo,
+                   motivo: 'el pdf está dañado o protegido'});
+  }
+}
+
+/* ------------------------------------------------ estantes */
+function etiqueta(o, i){
+  return ocultos ? 'Entrega ' + (i + 1) : o.alumno;
+}
+
+function pintarEstantes(){
+  const visibles = obras
+    .map((o, i) => ({o, i}))
+    .filter(({o}) => !filtro || o.alumno.toLowerCase().includes(filtro) ||
+                     o.archivo.toLowerCase().includes(filtro));
+
+  soltarEl.hidden = obras.length > 0;
+  const vistos = obras.filter(o => o.visto).length;
+  cuentaEl.textContent = obras.length
+    ? obras.length + ' entregas de ' + new Set(obras.map(o => o.alumno)).size +
+      ' alumnos · ' + vistos + ' vistas'
+    : 'Todavía no has cargado nada';
+
+  if(!visibles.length){
+    estantesEl.innerHTML = obras.length
+      ? '<p style="opacity:.7;font-weight:300;padding:20px 10px">Ningún nombre coincide con la búsqueda.</p>'
+      : '';
+    return;
+  }
+
+  // Todos los libros juntos, en filas con su tabla de madera debajo
+  estantesEl.innerHTML = '';
+  const est = document.createElement('div');
+  est.className = 'estante';
+
+  visibles.forEach(({o, i}) => {
+    const nombre = etiqueta(o, i);
+    const b = document.createElement('button');
+    b.className = 'libro' + (o.visto ? ' visto' : '');
+    b.style.setProperty('--col', LOMOS[i % LOMOS.length]);
+    b.title = nombre + (ocultos ? '' : ' · ' + o.archivo);
+
+    const tapa = document.createElement('div');
+    tapa.className = 'tapa';
+    if(o.thumb){
+      const im = document.createElement('img');
+      im.src = o.thumb; im.alt = '';
+      im.addEventListener('error', () => {
+        im.remove();
+        tapa.innerHTML = '<span class="cargando">no se abre</span>';
+      });
+      tapa.appendChild(im);
+    }else{
+      tapa.innerHTML = '<span class="cargando">' +
+        ({pdf:'PDF', img:'imagen', audio:'audio', video:'vídeo'}[o.tipo] || '') + '</span>';
+    }
+    const insignia = o.tipo === 'pdf' && o.paginas > 1
+      ? o.paginas + ' pág.'
+      : (ES_MEDIA(o.tipo) ? (reloj(o.duracion) || (o.tipo === 'video' ? 'vídeo' : 'audio')) : '');
+    if(insignia){
+      const m = document.createElement('span');
+      m.className = 'marca';
+      m.textContent = insignia;
+      tapa.appendChild(m);
+    }
+
+    const pie = document.createElement('div');
+    pie.className = 'pie';
+    pie.innerHTML = '<b></b><span></span>';
+    pie.querySelector('b').textContent = nombre;
+    pie.querySelector('span').textContent = ocultos ? '' : o.archivo;
+
+    b.appendChild(tapa); b.appendChild(pie);
+    b.addEventListener('click', () => abrir(i));
+    est.appendChild(b);
+  });
+  estantesEl.appendChild(est);
+}
+
+/* ------------------------------------------------ visor */
+async function abrir(i){
+  vIdx = i; vPag = 1;
+  $('visor').classList.add('abierto');
+  await dibujarPagina();
+}
+
+function modoMedia(activo){
+  $('reproductor').hidden = !activo;
+  $('apilado').style.display = activo ? 'none' : '';
+  document.querySelectorAll('[data-tool],#tDeshacer,#tLimpiar,#tGuardar')
+    .forEach(b => { b.disabled = activo; b.style.opacity = activo ? .35 : 1; });
+}
+
+async function dibujarPagina(){
+  const o = obras[vIdx];
+  $('vTitulo').textContent = (ocultos ? 'Entrega ' + (vIdx + 1) : o.alumno) +
+                             (ocultos ? '' : ' · ' + o.archivo);
+
+  const au = $('repAudio'), vi = $('repVideo');
+  au.pause(); vi.pause();
+  $('tVisto').textContent = o.visto ? 'Quitar la marca' : 'Marcar como vista';
+
+  if(ES_MEDIA(o.tipo)){
+    modoMedia(true);
+    vTotalPag = 1; vPag = 1;
+    const esVideo = o.tipo === 'video';
+    au.hidden = esVideo; vi.hidden = !esVideo;
+    $('ondaFondo').hidden = esVideo;
+    (esVideo ? vi : au).src = o.url;
+    $('repPista').textContent =
+      'Si no suena, descarga el original y ábrelo con el reproductor del ordenador.';
+    $('vPos').textContent = reloj(o.duracion);
+    $('vAnt').style.display = $('vSig').style.display = obras.length > 1 ? '' : 'none';
+    return;
+  }
+  modoMedia(false);
+  au.removeAttribute('src'); vi.removeAttribute('src');
+
+  if(o.tipo === 'img'){
+    vTotalPag = 1;
+    await new Promise(res => {
+      const im = new Image();
+      im.onload = () => {
+        const esc = Math.min(1400 / im.width, 1);
+        base.width = Math.round(im.width * esc);
+        base.height = Math.round(im.height * esc);
+        ctxB.drawImage(im, 0, 0, base.width, base.height);
+        res();
+      };
+      im.onerror = () => {
+        base.width = 760; base.height = 300;
+        ctxB.fillStyle = '#fff'; ctxB.fillRect(0, 0, 760, 300);
+        ctxB.fillStyle = '#8A2A1A';
+        ctxB.font = '700 19px "Bricolage Grotesque", sans-serif';
+        ctxB.textAlign = 'center';
+        ctxB.fillText('El navegador no ha podido abrir esta imagen', 380, 130);
+        ctxB.font = '300 15px "Bricolage Grotesque", sans-serif';
+        ctxB.fillText(o.archivo, 380, 165);
+        ctxB.textAlign = 'start';
+        res();
+      };
+      im.src = o.url;
+    });
+  }else{
+    if(!pdfActual || pdfActual._obra !== vIdx){
+      if(pdfActual) pdfActual.destroy();
+      const buf = await o.blob.arrayBuffer();
+      pdfActual = await pdfjsLib.getDocument({data: buf}).promise;
+      pdfActual._obra = vIdx;
+    }
+    vTotalPag = pdfActual.numPages;
+    const pag = await pdfActual.getPage(vPag);
+    const vp0 = pag.getViewport({scale: 1});
+    const esc = Math.min(1300 / vp0.width, 2);
+    const vp = pag.getViewport({scale: esc});
+    base.width = Math.round(vp.width);
+    base.height = Math.round(vp.height);
+    ctxB.fillStyle = '#fff'; ctxB.fillRect(0, 0, base.width, base.height);
+    await pag.render({canvasContext: ctxB, viewport: vp}).promise;
+  }
+  anot.width = base.width; anot.height = base.height;
+  anot.style.width = base.style.width = '';
+  $('vPos').textContent = vTotalPag > 1 ? 'Página ' + vPag + ' de ' + vTotalPag : '';
+  $('vAnt').style.display = $('vSig').style.display =
+    (vTotalPag > 1 || obras.length > 1) ? '' : 'none';
+  historial = [];
+  restaurarAnotacion();
+}
+
+function claveAnot(){ return obras[vIdx].clave + ':' + vPag; }
+
+// Vuelca a disco las marcas de una entrega
+function persistirMarcas(o){
+  const anot = {};
+  anotaciones.forEach((v, k) => {
+    if(k.startsWith(o.clave + ':')) anot[k.slice(o.clave.length + 1)] = v;
+  });
+  const registro = {visto: o.visto, anot};
+  marcas.set(o.clave, registro);
+  guardarEn('marcas', o.clave, registro).catch(() => {});
+}
+
+function restaurarAnotacion(){
+  ctxA.clearRect(0, 0, anot.width, anot.height);
+  const d = anotaciones.get(claveAnot());
+  if(!d) return;
+  const im = new Image();
+  im.onload = () => ctxA.drawImage(im, 0, 0, anot.width, anot.height);
+  im.src = d;
+}
+
+function guardarAnotacion(){
+  anotaciones.set(claveAnot(), anot.toDataURL('image/png'));
+  persistirMarcas(obras[vIdx]);
+}
+
+function cerrar(){
+  $('visor').classList.remove('abierto');
+  $('repAudio').pause(); $('repVideo').pause();
+  $('repAudio').removeAttribute('src'); $('repVideo').removeAttribute('src');
+  if(pdfActual){ pdfActual.destroy(); pdfActual = null; }
+}
+
+async function saltar(paso){
+  if(vTotalPag > 1){
+    const p = vPag + paso;
+    if(p >= 1 && p <= vTotalPag){ vPag = p; await dibujarPagina(); return; }
+  }
+  const n = (vIdx + paso + obras.length) % obras.length;
+  vIdx = n; vPag = 1;
+  await dibujarPagina();
+}
+
+/* ------------------------------------------------ anotar */
+function puntoEn(ev){
+  const r = anot.getBoundingClientRect();
+  return {
+    x: (ev.clientX - r.left) * (anot.width / r.width),
+    y: (ev.clientY - r.top) * (anot.height / r.height)
+  };
+}
+
+function empujarHistorial(){
+  historial.push(anot.toDataURL('image/png'));
+  if(historial.length > 12) historial.shift();
+}
+
+anot.addEventListener('pointerdown', ev => {
+  if(herramienta === 'mano') return;
+  anot.setPointerCapture(ev.pointerId);
+  const p = puntoEn(ev);
+  empujarHistorial();
+
+  if(herramienta === 'texto'){
+    ponerTexto(ev, p);
+    return;
+  }
+  pintando = true; x0 = p.x; y0 = p.y;
+  if(herramienta === 'tapar'){
+    instantanea = ctxA.getImageData(0, 0, anot.width, anot.height);
+  }else{
+    ctxA.beginPath();
+    ctxA.moveTo(p.x, p.y);
+    ctxA.lineCap = 'round'; ctxA.lineJoin = 'round';
+    if(herramienta === 'lapiz'){
+      ctxA.strokeStyle = '#C8452F'; ctxA.lineWidth = 3.2;
+      ctxA.globalAlpha = 1; ctxA.globalCompositeOperation = 'source-over';
+    }else{
+      ctxA.strokeStyle = '#F2D024'; ctxA.lineWidth = 20;
+      ctxA.globalAlpha = .38; ctxA.globalCompositeOperation = 'source-over';
+    }
+  }
+});
+
+anot.addEventListener('pointermove', ev => {
+  if(!pintando) return;
+  const p = puntoEn(ev);
+  if(herramienta === 'tapar'){
+    ctxA.putImageData(instantanea, 0, 0);
+    ctxA.globalAlpha = 1;
+    ctxA.fillStyle = '#111';
+    ctxA.fillRect(Math.min(x0, p.x), Math.min(y0, p.y),
+                  Math.abs(p.x - x0), Math.abs(p.y - y0));
+  }else{
+    ctxA.lineTo(p.x, p.y);
+    ctxA.stroke();
+  }
+});
+
+anot.addEventListener('pointerup', () => {
+  if(!pintando) return;
+  pintando = false;
+  ctxA.globalAlpha = 1;
+  guardarAnotacion();
+});
+
+function ponerTexto(ev, p){
+  const caja = document.createElement('input');
+  caja.className = 'entrada-texto';
+  const r = anot.getBoundingClientRect();
+  const zona = $('apilado').getBoundingClientRect();
+  caja.style.left = (ev.clientX - zona.left) + 'px';
+  caja.style.top = (ev.clientY - zona.top - 14) + 'px';
+  caja.placeholder = 'Escribe y pulsa Enter';
+  $('apilado').appendChild(caja);
+  caja.focus();
+  const estampar = () => {
+    const txt = caja.value.trim();
+    caja.remove();
+    if(!txt) return;
+    const escala = anot.width / r.width;
+    ctxA.globalAlpha = 1;
+    ctxA.fillStyle = '#C8452F';
+    ctxA.font = '700 ' + Math.round(17 * escala) + 'px "Bricolage Grotesque", sans-serif';
+    ctxA.textBaseline = 'top';
+    ctxA.fillText(txt, p.x, p.y);
+    guardarAnotacion();
+  };
+  caja.addEventListener('keydown', e => {
+    if(e.key === 'Enter') estampar();
+    if(e.key === 'Escape') caja.remove();
+  });
+  caja.addEventListener('blur', estampar);
+}
+
+/* ------------------------------------------------ botones */
+document.querySelectorAll('[data-tool]').forEach(b => {
+  b.addEventListener('click', () => {
+    herramienta = b.dataset.tool;
+    document.querySelectorAll('[data-tool]').forEach(x => x.classList.remove('activo'));
+    b.classList.add('activo');
+    anot.style.cursor = herramienta === 'mano' ? 'default' : 'crosshair';
+    anot.style.pointerEvents = herramienta === 'mano' ? 'none' : 'auto';
+  });
+});
+
+$('tDeshacer').addEventListener('click', () => {
+  const d = historial.pop();
+  ctxA.clearRect(0, 0, anot.width, anot.height);
+  if(d){
+    const im = new Image();
+    im.onload = () => { ctxA.drawImage(im, 0, 0); guardarAnotacion(); };
+    im.src = d;
+  }else{
+    anotaciones.delete(claveAnot());
+  }
+});
+
+$('tLimpiar').addEventListener('click', () => {
+  empujarHistorial();
+  ctxA.clearRect(0, 0, anot.width, anot.height);
+  anotaciones.delete(claveAnot());
+  persistirMarcas(obras[vIdx]);
+});
+
+$('tGuardar').addEventListener('click', () => {
+  const c = document.createElement('canvas');
+  c.width = base.width; c.height = base.height;
+  const g = c.getContext('2d');
+  g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+  g.drawImage(base, 0, 0);
+  g.drawImage(anot, 0, 0);
+  const o = obras[vIdx];
+  const nombre = (ocultos ? 'entrega_' + (vIdx + 1) : o.alumno.replace(/[^\w\sáéíóúñÁÉÍÓÚÑ-]/g, '').trim())
+                 + (vTotalPag > 1 ? '_pag' + vPag : '') + '_corregida.png';
+  c.toBlob(b => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(b);
+    a.download = nombre.replace(/\s+/g, '_');
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }, 'image/png');
+});
+
+$('tVisto').addEventListener('click', () => {
+  obras[vIdx].visto = !obras[vIdx].visto;
+  $('tVisto').textContent = obras[vIdx].visto ? 'Quitar la marca' : 'Marcar como vista';
+  persistirMarcas(obras[vIdx]);
+  pintarEstantes();
+});
+
+$('vDescargar').addEventListener('click', () => {
+  const o = obras[vIdx];
+  const a = document.createElement('a');
+  a.href = o.url; a.download = o.archivo; a.click();
+});
+
+$('vCerrar').addEventListener('click', cerrar);
+$('vAnt').addEventListener('click', () => saltar(-1));
+$('vSig').addEventListener('click', () => saltar(1));
+
+document.addEventListener('keydown', e => {
+  if(!$('visor').classList.contains('abierto')) return;
+  if(document.activeElement && document.activeElement.tagName === 'INPUT') return;
+  if(e.key === 'Escape') cerrar();
+  if(e.key === 'ArrowLeft' && !ES_MEDIA(obras[vIdx].tipo)) saltar(-1);
+  if(e.key === 'ArrowRight' && !ES_MEDIA(obras[vIdx].tipo)) saltar(1);
+});
+
+$('inZip').addEventListener('change', e => {
+  if(e.target.files[0]) cargarZip(e.target.files[0]);
+  e.target.value = '';
+});
+$('inCarpeta').addEventListener('change', e => {
+  cargarSueltos(e.target.files);
+  e.target.value = '';
+});
+$('buscar').addEventListener('input', e => {
+  filtro = e.target.value.trim().toLowerCase();
+  pintarEstantes();
+});
+$('btnNombres').addEventListener('click', () => {
+  ocultos = !ocultos;
+  $('btnNombres').textContent = ocultos ? 'Mostrar nombres' : 'Ocultar nombres';
+  $('btnNombres').classList.toggle('activo', ocultos);
+  pintarEstantes();
+});
+$('btnVaciar').addEventListener('click', () => {
+  obras.forEach(o => URL.revokeObjectURL(o.url));
+  obras = []; anotaciones.clear();
+  descartados = []; fallidos = [];
+  $('avisos').hidden = true;
+  pintarEstantes();
+});
+$('cerrarAviso').addEventListener('click', () => { $('avisos').hidden = true; });
+
+/* ------------------------------------------------ arrastrar */
+['dragenter','dragover'].forEach(ev =>
+  document.addEventListener(ev, e => {
+    e.preventDefault();
+    document.body.classList.add('arrastrando');
+  }));
+['dragleave','drop'].forEach(ev =>
+  document.addEventListener(ev, e => {
+    e.preventDefault();
+    if(ev === 'dragleave' && e.relatedTarget) return;
+    document.body.classList.remove('arrastrando');
+  }));
+
+document.addEventListener('drop', async e => {
+  e.preventDefault();
+  const dt = e.dataTransfer;
+  if(!dt) return;
+
+  // Zip suelto: el camino corto
+  const zip = [...(dt.files || [])].find(f => extension(f.name) === 'zip');
+  if(zip){ cargarZip(zip); return; }
+
+  // Carpetas arrastradas
+  const raices = [...(dt.items || [])]
+    .map(it => it.webkitGetAsEntry && it.webkitGetAsEntry())
+    .filter(Boolean);
+  if(raices.length && raices.some(r => r.isDirectory)){
+    mostrarProgreso('Recorriendo carpetas', 0, 1);
+    const encontrados = [];
+    for(const r of raices) await recorrer(r, '', encontrados);
+    progEl.hidden = true;
+    if(!encontrados.length){ alert('En esas carpetas no hay pdf ni imágenes.'); return; }
+    añadir(encontrados);
+    return;
+  }
+
+  if(dt.files && dt.files.length) cargarSueltos(dt.files);
+});
+
+function recorrer(entry, ruta, salida){
+  return new Promise(res => {
+    if(entry.isFile){
+      if(!esUtil(entry.name) || entry.name.startsWith('.')) return res();
+      entry.file(f => {
+        salida.push(nuevaObra(alumnoDesdeRuta(ruta + entry.name, entry.name), entry.name, f));
+        res();
+      }, res);
+      return;
+    }
+    const lector = entry.createReader();
+    const todo = [];
+    const leer = () => lector.readEntries(async lote => {
+      if(!lote.length){
+        for(const h of todo) await recorrer(h, ruta + entry.name + '/', salida);
+        return res();
+      }
+      todo.push(...lote);
+      leer();
+    }, res);
+    leer();
+  });
+}
+
+/* ---------------------------------------- carpeta recordada */
+const SOPORTA_CARPETA = typeof window.showDirectoryPicker === 'function';
+
+async function leerHandle(handle, ruta, salida){
+  for await (const [nombre, h] of handle.entries()){
+    if(nombre.startsWith('.')) continue;
+    if(h.kind === 'directory'){
+      await leerHandle(h, ruta + nombre + '/', salida);
+      continue;
+    }
+    if(!esUtil(nombre)){
+      descartados.push({alumno: alumnoDesdeRuta(ruta + nombre, nombre), archivo: nombre});
+      continue;
+    }
+    try{
+      const f = await h.getFile();
+      salida.push(nuevaObra(alumnoDesdeRuta(ruta + nombre, nombre), nombre, f));
+    }catch(err){
+      fallidos.push({alumno: alumnoDesdeRuta(ruta + nombre, nombre), archivo: nombre,
+                     motivo: 'no se ha podido leer del disco'});
+    }
+  }
+}
+
+async function cargarDesdeHandle(){
+  mostrarProgreso('Leyendo la carpeta', 0, 1);
+  const encontrados = [];
+  try{
+    await leerHandle(handleCarpeta, '', encontrados);
+  }catch(err){
+    progEl.hidden = true;
+    alert('No se ha podido leer la carpeta. Si la has movido o renombrado, vuelve a elegirla.');
+    return;
+  }
+  progEl.hidden = true;
+  if(!encontrados.length){
+    pintarAvisos();
+    alert('En esa carpeta no hay nada que se pueda abrir.');
+    return;
+  }
+  añadir(encontrados);
+}
+
+function pintarRecordada(){
+  if(!handleCarpeta){ $('recordada').hidden = true; return; }
+  $('recordadaTxt').innerHTML = 'Última carpeta usada: <b></b>. Los navegadores piden confirmación cada vez que abres la página.';
+  $('recordadaTxt').querySelector('b').textContent = handleCarpeta.name;
+  $('recordada').hidden = false;
+}
+
+async function elegirCarpeta(){
+  try{
+    handleCarpeta = await window.showDirectoryPicker({mode: 'read'});
+  }catch(err){ return; }            // el usuario ha cancelado
+  try{ await guardarEn('config', 'carpeta', handleCarpeta); }catch(err){}
+  pintarRecordada();
+  await cargarDesdeHandle();
+}
+
+async function reabrirCarpeta(){
+  let permiso = await handleCarpeta.queryPermission({mode: 'read'});
+  if(permiso !== 'granted') permiso = await handleCarpeta.requestPermission({mode: 'read'});
+  if(permiso !== 'granted'){
+    alert('Sin permiso no se puede leer la carpeta. Pulsa de nuevo y acepta.');
+    return;
+  }
+  await cargarDesdeHandle();
+}
+
+$('btnCarpetaFija').addEventListener('click', elegirCarpeta);
+$('btnRecordada').addEventListener('click', reabrirCarpeta);
+$('btnOlvidar').addEventListener('click', async () => {
+  handleCarpeta = null;
+  try{ await borrarDe('config', 'carpeta'); }catch(err){}
+  pintarRecordada();
+});
+
+async function arrancar(){
+  try{
+    marcas = await leerTodo('marcas');
+  }catch(err){ marcas = new Map(); }
+  if(SOPORTA_CARPETA){
+    $('btnCarpetaFija').hidden = false;
+    try{ handleCarpeta = await leerDe('config', 'carpeta') || null; }catch(err){}
+    pintarRecordada();
+  }
+  if(marcas.size){
+    $('cuenta').textContent = 'Guardadas las correcciones de ' + marcas.size +
+      (marcas.size === 1 ? ' entrega' : ' entregas');
+  }
+  pintarEstantes();
+}
+
+anot.style.pointerEvents = 'none';
+arrancar();
+</script>
+</body>
+</html>
