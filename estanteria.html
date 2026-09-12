@@ -36,6 +36,7 @@
     display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;
   }
   h1{font-size:clamp(24px,3.2vw,36px);font-weight:800;letter-spacing:-.02em;margin:0;line-height:1}
+  .version{font-size:13px;font-weight:500;color:var(--mostaza);vertical-align:super}
   .cuenta{font-size:14px;font-weight:300;opacity:.75}
   .controles{margin-left:auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 
@@ -158,8 +159,10 @@
   .barra .pos{font-size:13px;font-weight:300;opacity:.7}
   .lienzo-zona{position:relative;overflow:auto;display:flex;align-items:center;justify-content:center;padding:14px}
   .apilado{position:relative;line-height:0;box-shadow:0 8px 30px rgba(0,0,0,.5)}
-  .apilado canvas{display:block;max-width:100%;background:#fff}
-  #capaAnot{position:absolute;inset:0;background:transparent;touch-action:none;cursor:crosshair}
+  .apilado{max-width:100%}
+  #capaBase{display:block;max-width:100%;max-height:calc(100vh - 190px);background:#fff}
+  #capaAnot{position:absolute;left:0;top:0;width:100%;height:100%;
+    background:transparent;touch-action:none;cursor:crosshair}
   .flecha{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:62px;border-radius:8px;background:rgba(242,237,227,.16);color:var(--papel);font-size:20px}
   .flecha.izq{left:8px}
   .flecha.der{right:8px}
@@ -196,7 +199,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas</h1>
+  <h1>Estantería de entregas <span class="version">v4</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -735,9 +738,12 @@ async function dibujarPagina(){
       const im = new Image();
       im.onload = () => {
         const esc = Math.min(1400 / im.width, 1);
-        base.width = Math.round(im.width * esc);
-        base.height = Math.round(im.height * esc);
+        base.width = Math.round(im.width * esc) || 10;
+        base.height = Math.round(im.height * esc) || 10;
+        ctxB.fillStyle = '#fff';
+        ctxB.fillRect(0, 0, base.width, base.height);
         ctxB.drawImage(im, 0, 0, base.width, base.height);
+        $('vPos').textContent = im.width + '×' + im.height + ' px';
         res();
       };
       im.onerror = () => {
