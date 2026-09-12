@@ -157,10 +157,17 @@
   .barra{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:11px clamp(12px,3vw,24px);border-bottom:1px solid rgba(242,237,227,.16)}
   .barra .titulo{flex:1;min-width:150px;font-size:15px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .barra .pos{font-size:13px;font-weight:300;opacity:.7}
+  .zoom{display:flex;align-items:center;gap:6px}
+  .zoom b{font-size:12.5px;font-weight:700;min-width:74px;text-align:center;opacity:.9}
+  .zoom button{padding:7px 12px;font-size:15px;line-height:1}
+  .zoom #zAjustar{font-size:12.5px;padding:8px 12px}
   .lienzo-zona{position:relative;overflow:auto;display:flex;align-items:center;justify-content:center;padding:14px}
   .apilado{position:relative;line-height:0;box-shadow:0 8px 30px rgba(0,0,0,.5)}
   .apilado{max-width:100%}
   #capaBase{display:block;max-width:100%;max-height:calc(100vh - 190px);background:#fff}
+  .lienzo-zona.ampliada{align-items:flex-start;justify-content:flex-start}
+  .lienzo-zona.ampliada .apilado{max-width:none}
+  .lienzo-zona.ampliada #capaBase{max-width:none;max-height:none}
   #capaAnot{position:absolute;left:0;top:0;width:100%;height:100%;
     background:transparent;touch-action:none;cursor:crosshair}
   .flecha{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:62px;border-radius:8px;background:rgba(242,237,227,.16);color:var(--papel);font-size:20px}
@@ -199,7 +206,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v4</span></h1>
+  <h1>Estantería de entregas <span class="version">v5</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -243,6 +250,12 @@
   <div class="barra">
     <div class="titulo" id="vTitulo">—</div>
     <span class="pos" id="vPos"></span>
+    <span class="zoom" id="zoomCaja">
+      <button class="fantasma" id="zMenos" aria-label="Reducir">−</button>
+      <b id="zNivel">Ajustado</b>
+      <button class="fantasma" id="zMas" aria-label="Ampliar">+</button>
+      <button class="fantasma" id="zAjustar">Ajustar</button>
+    </span>
     <button class="fantasma" id="vDescargar">Descargar original</button>
     <button class="fantasma" id="vCerrar">Cerrar</button>
   </div>
@@ -727,6 +740,7 @@ async function dibujarPagina(){
       'Si no suena, descarga el original y ábrelo con el reproductor del ordenador.';
     $('vPos').textContent = reloj(o.duracion);
     $('vAnt').style.display = $('vSig').style.display = obras.length > 1 ? '' : 'none';
+    $('zoomCaja').style.display = 'none';
     return;
   }
   modoMedia(false);
@@ -784,7 +798,44 @@ async function dibujarPagina(){
     (vTotalPag > 1 || obras.length > 1) ? '' : 'none';
   historial = [];
   restaurarAnotacion();
+  $('zoomCaja').style.display = '';
+  requestAnimationFrame(() => { anchoAjustado = 0; aplicarZoom(); });
 }
+
+/* ---------------------------------------- zoom
+   El nivel 1 es "ajustado a la pantalla". A partir de ahí se multiplica
+   sobre el ancho ajustado, y las anotaciones acompañan porque la capa
+   de marcas mide siempre el 100 % del lienzo. */
+let zoom = 1, anchoAjustado = 0;
+
+function aplicarZoom(){
+  const zona = $('lienzoZona');
+  if(zoom === 1){
+    zona.classList.remove('ampliada');
+    base.style.width = '';
+    $('zNivel').textContent = 'Ajustado';
+    anchoAjustado = base.getBoundingClientRect().width || base.width;
+    return;
+  }
+  if(!anchoAjustado) anchoAjustado = base.getBoundingClientRect().width || base.width;
+  zona.classList.add('ampliada');
+  base.style.width = Math.round(anchoAjustado * zoom) + 'px';
+  $('zNivel').textContent = Math.round(zoom * 100) + ' %';
+}
+
+function cambiarZoom(paso){
+  if(ES_MEDIA(obras[vIdx].tipo)) return;
+  const niveles = [1, 1.25, 1.5, 2, 2.5, 3, 4];
+  let i = niveles.indexOf(zoom);
+  if(i < 0) i = 0;
+  i = Math.max(0, Math.min(niveles.length - 1, i + paso));
+  zoom = niveles[i];
+  aplicarZoom();
+}
+
+$('zMas').addEventListener('click', () => cambiarZoom(1));
+$('zMenos').addEventListener('click', () => cambiarZoom(-1));
+$('zAjustar').addEventListener('click', () => { zoom = 1; aplicarZoom(); });
 
 function claveAnot(){ return obras[vIdx].clave + ':' + vPag; }
 
@@ -994,6 +1045,9 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Escape') cerrar();
   if(e.key === 'ArrowLeft' && !ES_MEDIA(obras[vIdx].tipo)) saltar(-1);
   if(e.key === 'ArrowRight' && !ES_MEDIA(obras[vIdx].tipo)) saltar(1);
+  if(e.key === '+' || e.key === '=') cambiarZoom(1);
+  if(e.key === '-') cambiarZoom(-1);
+  if(e.key === '0'){ zoom = 1; aplicarZoom(); }
 });
 
 $('inZip').addEventListener('change', e => {
