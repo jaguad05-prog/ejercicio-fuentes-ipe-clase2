@@ -159,7 +159,7 @@
   .lienzo-zona{position:relative;overflow:auto;display:flex;align-items:center;justify-content:center;padding:14px}
   .apilado{position:relative;line-height:0;box-shadow:0 8px 30px rgba(0,0,0,.5)}
   .apilado canvas{display:block;max-width:100%;background:#fff}
-  #capaAnot{position:absolute;inset:0;touch-action:none;cursor:crosshair}
+  #capaAnot{position:absolute;inset:0;background:transparent;touch-action:none;cursor:crosshair}
   .flecha{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:62px;border-radius:8px;background:rgba(242,237,227,.16);color:var(--papel);font-size:20px}
   .flecha.izq{left:8px}
   .flecha.der{right:8px}
@@ -202,7 +202,7 @@
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
     <label class="btn" for="inZip">Abrir zip de Moodle</label>
     <input type="file" id="inZip" accept=".zip">
-    <button class="btn" id="btnCarpetaFija" hidden>Abrir carpeta y recordarla</button>
+    <button class="btn" id="btnZipFijo" hidden>Abrir zip y recordarlo</button>
     <label class="btn fantasma" for="inCarpeta">Abrir carpeta</label>
     <input type="file" id="inCarpeta" webkitdirectory directory multiple>
     <button class="fantasma" id="btnNombres">Ocultar nombres</button>
@@ -213,14 +213,15 @@
 <main>
   <div class="soltar" id="soltar">
     <h2>Suelta aquí el zip de Moodle</h2>
-    <p>Descárgate las entregas desde la tarea y arrastra el zip tal cual, sin descomprimirlo
-       y sin moverlo de Descargas. Se abre aquí dentro y los archivos no salen de tu ordenador.</p>
-    <label class="btn" for="inZip">Elegir el zip</label>
+    <p>Descárgate las entregas desde la tarea de Moodle y arrastra el zip tal cual, sin
+       descomprimirlo y sin moverlo de Descargas. Se abre aquí dentro y los archivos no salen
+       de tu ordenador. Si lo eliges con el botón, la página recordará cuál era para la próxima vez.</p>
+    <button class="btn" id="btnZipFijo2">Elegir el zip</button>
   </div>
   <div class="recordada" id="recordada" hidden>
     <span id="recordadaTxt"></span>
-    <button id="btnRecordada">Volver a abrirla</button>
-    <button class="fantasma" id="btnOlvidar">Olvidarla</button>
+    <button id="btnRecordada">Volver a abrirlo</button>
+    <button class="fantasma" id="btnOlvidar">Olvidarlo</button>
   </div>
   <div class="avisos" id="avisos" hidden>
     <button class="cerrar-aviso" id="cerrarAviso" aria-label="Cerrar aviso">×</button>
@@ -307,7 +308,6 @@ const LOMOS = ['#7A4B3A','#3C5A6E','#6B5B8E','#4E6B4A','#8A5A2B','#5A5F6B','#7D3
 
 let obras = [];          // {alumno, archivo, tipo, blob, url, thumb, paginas, visto}
 let marcas = new Map();  // clave estable -> {visto, anot:{pagina:dataURL}}
-let handleCarpeta = null;
 let filtro = '';
 let ocultos = false;
 let vIdx = -1, vPag = 1, vTotalPag = 1, pdfActual = null;
@@ -1080,80 +1080,60 @@ function recorrer(entry, ruta, salida){
   });
 }
 
-/* ---------------------------------------- carpeta recordada */
-const SOPORTA_CARPETA = typeof window.showDirectoryPicker === 'function';
-
-async function leerHandle(handle, ruta, salida){
-  for await (const [nombre, h] of handle.entries()){
-    if(nombre.startsWith('.')) continue;
-    if(h.kind === 'directory'){
-      await leerHandle(h, ruta + nombre + '/', salida);
-      continue;
-    }
-    if(!esUtil(nombre)){
-      descartados.push({alumno: alumnoDesdeRuta(ruta + nombre, nombre), archivo: nombre});
-      continue;
-    }
-    try{
-      const f = await h.getFile();
-      salida.push(nuevaObra(alumnoDesdeRuta(ruta + nombre, nombre), nombre, f));
-    }catch(err){
-      fallidos.push({alumno: alumnoDesdeRuta(ruta + nombre, nombre), archivo: nombre,
-                     motivo: 'no se ha podido leer del disco'});
-    }
-  }
-}
-
-async function cargarDesdeHandle(){
-  mostrarProgreso('Leyendo la carpeta', 0, 1);
-  const encontrados = [];
-  try{
-    await leerHandle(handleCarpeta, '', encontrados);
-  }catch(err){
-    progEl.hidden = true;
-    alert('No se ha podido leer la carpeta. Si la has movido o renombrado, vuelve a elegirla.');
-    return;
-  }
-  progEl.hidden = true;
-  if(!encontrados.length){
-    pintarAvisos();
-    alert('En esa carpeta no hay nada que se pueda abrir.');
-    return;
-  }
-  añadir(encontrados);
-}
+/* ---------------------------------------- zip recordado
+   Guardamos el zip que se usó la última vez, para volver a abrirlo
+   de un clic sin buscarlo otra vez en Descargas. */
+const SOPORTA_RECORDAR = typeof window.showOpenFilePicker === 'function';
+let handleZip = null;
 
 function pintarRecordada(){
-  if(!handleCarpeta){ $('recordada').hidden = true; return; }
-  $('recordadaTxt').innerHTML = 'Última carpeta usada: <b></b>. Los navegadores piden confirmación cada vez que abres la página.';
-  $('recordadaTxt').querySelector('b').textContent = handleCarpeta.name;
+  if(!handleZip){ $('recordada').hidden = true; return; }
+  $('recordadaTxt').innerHTML = 'Último zip que abriste: <b></b>';
+  $('recordadaTxt').querySelector('b').textContent = handleZip.name;
   $('recordada').hidden = false;
 }
 
-async function elegirCarpeta(){
+async function elegirZipFijo(){
+  let h;
   try{
-    handleCarpeta = await window.showDirectoryPicker({mode: 'read'});
-  }catch(err){ return; }            // el usuario ha cancelado
-  try{ await guardarEn('config', 'carpeta', handleCarpeta); }catch(err){}
+    [h] = await window.showOpenFilePicker({
+      multiple: false,
+      types: [{description: 'Entregas de Moodle', accept: {'application/zip': ['.zip']}}]
+    });
+  }catch(err){ return; }           // ha cancelado
+  handleZip = h;
+  try{ await guardarEn('config', 'zip', h); }catch(err){}
   pintarRecordada();
-  await cargarDesdeHandle();
+  const f = await h.getFile();
+  cargarZip(f);
 }
 
-async function reabrirCarpeta(){
-  let permiso = await handleCarpeta.queryPermission({mode: 'read'});
-  if(permiso !== 'granted') permiso = await handleCarpeta.requestPermission({mode: 'read'});
-  if(permiso !== 'granted'){
-    alert('Sin permiso no se puede leer la carpeta. Pulsa de nuevo y acepta.');
-    return;
+async function reabrirZip(){
+  try{
+    let permiso = await handleZip.queryPermission({mode: 'read'});
+    if(permiso !== 'granted') permiso = await handleZip.requestPermission({mode: 'read'});
+    if(permiso !== 'granted'){
+      alert('Pulsa otra vez y acepta, sin permiso no puedo leer el archivo.');
+      return;
+    }
+    const f = await handleZip.getFile();
+    cargarZip(f);
+  }catch(err){
+    alert('Ese zip ya no está donde estaba. Vuelve a elegirlo con el botón de arriba.');
+    handleZip = null;
+    try{ await borrarDe('config', 'zip'); }catch(e){}
+    pintarRecordada();
   }
-  await cargarDesdeHandle();
 }
 
-$('btnCarpetaFija').addEventListener('click', elegirCarpeta);
-$('btnRecordada').addEventListener('click', reabrirCarpeta);
+$('btnZipFijo').addEventListener('click', elegirZipFijo);
+$('btnZipFijo2').addEventListener('click', () => {
+  if(SOPORTA_RECORDAR) elegirZipFijo(); else $('inZip').click();
+});
+$('btnRecordada').addEventListener('click', reabrirZip);
 $('btnOlvidar').addEventListener('click', async () => {
-  handleCarpeta = null;
-  try{ await borrarDe('config', 'carpeta'); }catch(err){}
+  handleZip = null;
+  try{ await borrarDe('config', 'zip'); }catch(err){}
   pintarRecordada();
 });
 
@@ -1161,13 +1141,16 @@ async function arrancar(){
   try{
     marcas = await leerTodo('marcas');
   }catch(err){ marcas = new Map(); }
-  if(SOPORTA_CARPETA){
-    $('btnCarpetaFija').hidden = false;
-    try{ handleCarpeta = await leerDe('config', 'carpeta') || null; }catch(err){}
+  if(SOPORTA_RECORDAR){
+    $('btnZipFijo').hidden = false;
+    try{
+      const g = await leerDe('config', 'zip');
+      if(g && g.kind === 'file') handleZip = g;
+    }catch(err){}
     pintarRecordada();
   }
   if(marcas.size){
-    $('cuenta').textContent = 'Guardadas las correcciones de ' + marcas.size +
+    $('cuenta').textContent = 'Tienes guardadas las correcciones de ' + marcas.size +
       (marcas.size === 1 ? ' entrega' : ' entregas');
   }
   pintarEstantes();
