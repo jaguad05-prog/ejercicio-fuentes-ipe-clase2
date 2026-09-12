@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Redacción</title>
+<style>
+  :root{
+    --red:#C8102E;--dark:#1B1B1F;--ink:#2B2B30;--paper:#fff;--tint:#FBF1F2;
+    --gold:#E8B54A;--muted:#6B6B72;--border:#D8D8DC;--green:#1E7A45;--bg:#F5F5F7;
+    --sans:Arial,Helvetica,sans-serif;
+    --serif:Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink)}
+
+  /* ---------------------------------------------------------- cabecera */
+  .topbar{background:var(--dark);color:#fff;display:flex;align-items:center;
+    justify-content:space-between;padding:10px 16px;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:20}
+  .brand-title{font-size:14px;font-weight:700;letter-spacing:.03em}
+  .brand-sub{font-size:10px;color:var(--gold);letter-spacing:.06em}
+  .tbtn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#fff;
+    padding:6px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600}
+  .tbtn:hover{background:rgba(255,255,255,.24)}
+  .tbtn.on{background:var(--gold);color:var(--dark);border-color:var(--gold);font-weight:700}
+  select.tbtn{appearance:none;padding-right:26px}
+  select.tbtn option{background:var(--dark);color:#fff}
+
+  .wrap{max-width:1500px;margin:0 auto;padding:14px}
+
+  /* ------------------------------------------------------------ el caso */
+  .caso{background:#fff;border:1px solid var(--border);border-left:4px solid var(--red);
+    border-radius:12px;padding:16px 18px;margin-bottom:14px}
+  .caso h2{font-size:15px;color:var(--red);letter-spacing:.04em;margin-bottom:8px}
+  .caso p{font-size:14.5px;line-height:1.55;margin-bottom:10px}
+  .carpeta{background:var(--tint);border-radius:8px;padding:11px 14px}
+  .carpeta strong{font-size:10.5px;letter-spacing:.09em;color:var(--red);display:block;margin-bottom:5px}
+  .carpeta ul{margin:0;padding-left:16px}
+  .carpeta li{font-size:12.5px;line-height:1.5;color:var(--ink);margin-bottom:2px}
+
+  /* ---------------------------------------------------------- la parrilla */
+  .parrilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:14px;align-items:start}
+
+  .modulo{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;
+    display:flex;flex-direction:column}
+  .mod-head{background:var(--dark);color:#fff;padding:8px 13px;display:flex;align-items:center;
+    justify-content:space-between;gap:8px}
+  .mod-num{width:19px;height:19px;border-radius:50%;background:var(--gold);color:var(--dark);
+    font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .mod-name{font-size:11.5px;font-weight:700;letter-spacing:.05em;flex:1}
+  .mod-soporte{font-size:9px;color:var(--gold);letter-spacing:.08em}
+  .mod-body{padding:12px 13px;display:flex;flex-direction:column;gap:9px}
+
+  .campo{width:100%;border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;
+    font-size:13px;font-family:inherit;color:var(--ink);resize:vertical;line-height:1.45}
+  .campo:focus{outline:none;border-color:var(--red)}
+  .contador{font-size:10.5px;color:var(--muted);text-align:right}
+  .contador.mal{color:var(--red);font-weight:700}
+  .contador.bien{color:var(--green);font-weight:700}
+  .mini{font-size:10.5px;color:var(--muted);font-style:italic;line-height:1.4}
+
+  .vista{border-top:1px dashed var(--border);padding:13px;background:#FAFAFB;margin-top:auto}
+  .vista-lab{font-size:9px;letter-spacing:.11em;color:var(--muted);margin-bottom:8px}
+
+  /* --------------------------------------------- envase 1 · alerta móvil */
+  .lock{background:linear-gradient(160deg,#2E3550,#151A2B);border-radius:16px;padding:16px 12px 20px;
+    color:#fff;position:relative;overflow:hidden}
+  .lock-hora{text-align:center;font-size:34px;font-weight:200;letter-spacing:-.02em;line-height:1}
+  .lock-fecha{text-align:center;font-size:10.5px;opacity:.7;margin-top:2px;margin-bottom:14px}
+  .notif{background:rgba(255,255,255,.16);backdrop-filter:blur(6px);border-radius:12px;padding:9px 11px}
+  .notif-top{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+  .notif-ico{width:15px;height:15px;border-radius:4px;background:var(--red);color:#fff;font-size:9px;
+    font-weight:700;display:flex;align-items:center;justify-content:center}
+  .notif-medio{font-size:10px;font-weight:700;letter-spacing:.04em;flex:1;opacity:.92}
+  .notif-hora{font-size:9.5px;opacity:.65}
+  .notif-txt{font-size:12.5px;line-height:1.35;font-weight:600}
+  .notif-txt.vacio{opacity:.4;font-weight:400;font-style:italic}
+
+  /* ------------------------------------------------ envase 2 · noticia web */
+  .web{background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .web-bar{background:#EDEDF0;padding:6px 9px;display:flex;align-items:center;gap:5px}
+  .web-dot{width:7px;height:7px;border-radius:50%;background:#C6C6CC}
+  .web-url{flex:1;background:#fff;border-radius:5px;font-size:9px;color:var(--muted);
+    padding:3px 7px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .web-body{padding:13px}
+  .web-kicker{font-size:9px;color:var(--red);font-weight:700;letter-spacing:.1em;margin-bottom:5px}
+  .web-tit{font-family:var(--serif);font-size:18px;line-height:1.24;font-weight:700;margin-bottom:7px}
+  .web-ent{font-size:12.5px;line-height:1.5;color:#3C3C44}
+  .web-meta{font-size:9.5px;color:var(--muted);margin-top:9px;border-top:1px solid var(--border);padding-top:7px}
+  .vacio-txt{color:#B4B4BC;font-style:italic;font-weight:400}
+
+  /* --------------------------------------------- envase 3 · nota de voz */
+  .chat{background:#E7DDD4;border-radius:12px;padding:12px 10px}
+  .burbuja{background:#DCF8C6;border-radius:10px 10px 2px 10px;padding:9px 11px;margin-left:auto;
+    max-width:96%;box-shadow:0 1px 1px rgba(0,0,0,.12)}
+  .voz{display:flex;align-items:center;gap:9px}
+  .voz-play{width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;border:0;
+    display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;flex:0 0 auto}
+  .voz-onda{flex:1;height:20px;display:flex;align-items:center;gap:1.5px}
+  .voz-onda i{flex:1;background:#7A9C86;border-radius:1px;display:block}
+  .voz-seg{font-size:10.5px;color:#5B7565;font-weight:700;flex:0 0 auto}
+  .burbuja-hora{font-size:9px;color:#7A8C7F;text-align:right;margin-top:3px}
+  .transcrip{background:rgba(255,255,255,.75);border-radius:8px;padding:8px 10px;margin-top:8px;
+    font-size:12px;line-height:1.45;color:#333}
+  audio{width:100%;margin-top:8px;height:34px}
+
+  /* ---------------------------------------------------- envase 4 · hilo */
+  .hilo{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px}
+  .tw{display:flex;gap:9px;position:relative;padding-bottom:13px}
+  .tw:last-child{padding-bottom:0}
+  .tw-av{width:31px;height:31px;border-radius:50%;background:var(--dark);color:#fff;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;z-index:1}
+  .tw-linea{position:absolute;left:15px;top:34px;bottom:0;width:2px;background:#E1E8ED}
+  .tw-cuerpo{flex:1;min-width:0}
+  .tw-nom{font-size:12.5px;font-weight:700}
+  .tw-nom span{color:#657786;font-weight:400;font-size:11.5px}
+  .tw-txt{font-size:12.5px;line-height:1.45;margin-top:2px;white-space:pre-wrap;word-wrap:break-word}
+  .tw-acc{display:flex;gap:22px;margin-top:6px;font-size:10px;color:#657786}
+
+  /* -------------------------------------------------- envase 5 · columna */
+  .diario{background:#FBFAF7;border:1px solid #E2DED4;border-radius:6px;padding:15px 14px}
+  .diario-cab{border-bottom:2px solid var(--dark);padding-bottom:5px;margin-bottom:10px;
+    display:flex;justify-content:space-between;align-items:baseline}
+  .diario-nom{font-family:var(--serif);font-size:14px;font-weight:700;letter-spacing:.04em}
+  .diario-sec{font-size:8.5px;letter-spacing:.14em;color:var(--red);font-weight:700}
+  .col-tit{font-family:var(--serif);font-size:19px;line-height:1.22;font-weight:700;margin-bottom:8px}
+  .col-firma{font-size:10px;letter-spacing:.1em;color:var(--red);font-weight:700;margin-bottom:9px}
+  .col-txt{font-family:var(--serif);font-size:12.5px;line-height:1.62;text-align:justify}
+  .col-txt::first-letter{font-size:29px;float:left;line-height:.86;padding:2px 5px 0 0;font-weight:700;color:var(--red)}
+  .col-txt.vacio::first-letter{font-size:inherit;float:none;padding:0;color:inherit;font-weight:400}
+
+  /* ------------------------------------------------------------ mural */
+  body.mural .mod-body,body.mural .caso .carpeta{display:none}
+  body.mural .vista{border-top:0;background:#fff;margin-top:0}
+  body.mural .parrilla{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+
+  @media(max-width:700px){
+    .parrilla{grid-template-columns:1fr}
+  }
+  @media print{
+    .topbar,.mod-body{display:none}
+    .parrilla{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="brand-title">LA REDACCIÓN</div>
+    <div class="brand-sub">UN HECHO · CINCO FORMATOS · PERIODISMO DEPORTIVO</div>
+  </div>
+  <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">
+    <select class="tbtn" id="selCaso" onchange="pintarCaso()"></select>
+    <button class="tbtn" onclick="cambiarCaso(1)">Siguiente caso →</button>
+    <input class="tbtn" id="inEquipo" placeholder="Equipo" style="width:110px;background:rgba(255,255,255,.07)">
+    <button class="tbtn" id="btnMural" onclick="toggleMural()">🖥 Mural</button>
+    <button class="tbtn" onclick="descargar()" style="background:var(--gold);color:var(--dark);border-color:var(--gold);font-weight:700">⬇ Descargar</button>
+    <button class="tbtn" onclick="limpiar()">↺ Limpiar</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="caso">
+    <h2 id="casoTitulo"></h2>
+    <p id="casoHecho"></p>
+    <div class="carpeta">
+      <strong>Más datos que sabéis</strong>
+      <ul id="casoCarpeta"></ul>
+    </div>
+  </div>
+
+  <div class="parrilla">
+
+    <!-- ============================================ 1 · ALERTA -->
+    <div class="modulo">
+      <div class="mod-head"><div class="mod-num">1</div>
+        <div class="mod-name">ALERTA DEL MÓVIL</div><div class="mod-soporte">APP</div></div>
+      <div class="mod-body">
+        <textarea class="campo" id="inAlerta" rows="2" placeholder="Escribid la alerta…"
+          oninput="pintarAlerta()"></textarea>
+        <div class="contador" id="cAlerta">0 / 12 palabras</div>
+        <input class="campo" id="inMedio" value="EL DIARIO" oninput="pintarAlerta()"
+          style="font-size:11px" aria-label="Nombre del medio">
+      </div>
+      <div class="vista">
+        <div class="vista-lab">ASÍ LE LLEGA AL LECTOR</div>
+        <div class="lock">
+          <div class="lock-hora" id="lockHora">14:07</div>
+          <div class="lock-fecha">sábado, 21 de marzo</div>
+          <div class="notif">
+            <div class="notif-top">
+              <div class="notif-ico" id="notifIco">E</div>
+              <div class="notif-medio" id="notifMedio">EL DIARIO</div>
+              <div class="notif-hora">ahora</div>
+            </div>
+            <div class="notif-txt vacio" id="notifTxt">Aquí aparecerá vuestra alerta</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================ 2 · NOTICIA WEB -->
+    <div class="modulo">
+      <div class="mod-head"><div class="mod-num">2</div>
+        <div class="mod-name">NOTICIA</div><div class="mod-soporte">WEB</div></div>
+      <div class="mod-body">
+        <textarea class="campo" id="inWebTit" rows="2" placeholder="Titular…" oninput="pintarWeb()"></textarea>
+        <textarea class="campo" id="inWebEnt" rows="4" placeholder="Entradilla: qué, quién, cuándo, dónde…"
+          oninput="pintarWeb()"></textarea>
+        <div class="contador" id="cWeb">0 palabras de entradilla</div>
+      </div>
+      <div class="vista">
+        <div class="vista-lab">ASÍ SE PUBLICA</div>
+        <div class="web">
+          <div class="web-bar"><span class="web-dot"></span><span class="web-dot"></span>
+            <div class="web-url">eldiario.es/deportes/…</div></div>
+          <div class="web-body">
+            <div class="web-kicker">FÚTBOL</div>
+            <div class="web-tit" id="webTit"><span class="vacio-txt">Vuestro titular</span></div>
+            <div class="web-ent" id="webEnt"><span class="vacio-txt">Vuestra entradilla</span></div>
+            <div class="web-meta">Redacción · Hace 3 minutos</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================ 3 · RADIO -->
+    <div class="modulo">
+      <div class="mod-head"><div class="mod-num">3</div>
+        <div class="mod-name">CORTE DE VOZ</div><div class="mod-soporte">RADIO · 20 s</div></div>
+      <div class="mod-body">
+        <textarea class="campo" id="inRadio" rows="5" placeholder="Escribid el corte tal como se va a decir…"
+          oninput="pintarRadio()"></textarea>
+        <div class="contador" id="cRadio">0 s aproximados</div>
+        <div style="display:flex;gap:7px">
+          <button class="tbtn" id="btnRec" style="background:var(--red);border-color:var(--red);flex:1"
+            onclick="toggleGrabar()">● Grabar</button>
+          <button class="tbtn" style="background:var(--dark);border-color:var(--dark)"
+            onclick="borrarAudio()">Borrar</button>
+        </div>
+        <div class="mini" id="micNota">Si el micrófono no responde, descargad este archivo y abridlo
+          directamente en el navegador.</div>
+      </div>
+      <div class="vista">
+        <div class="vista-lab">ASÍ SUENA EN ANTENA</div>
+        <div class="chat">
+          <div class="burbuja">
+            <div class="voz">
+              <button class="voz-play" onclick="reproducir()">▶</button>
+              <div class="voz-onda" id="onda"></div>
+              <div class="voz-seg" id="vozSeg">0:00</div>
+            </div>
+            <div class="burbuja-hora">14:09 ✓✓</div>
+          </div>
+          <div class="transcrip" id="transcrip"><span class="vacio-txt">Aquí va vuestro texto</span></div>
+          <audio id="player" controls style="display:none"></audio>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================ 4 · HILO -->
+    <div class="modulo">
+      <div class="mod-head"><div class="mod-num">4</div>
+        <div class="mod-name">HILO DE ANÁLISIS</div><div class="mod-soporte">REDES</div></div>
+      <div class="mod-body">
+        <input class="campo" id="inTwUser" value="analistadeporte" oninput="pintarHilo()"
+          style="font-size:12px" aria-label="Usuario">
+        <div id="tuitsEditor" style="display:flex;flex-direction:column;gap:7px"></div>
+        <button class="tbtn" style="background:var(--dark);border-color:var(--dark)"
+          onclick="addTuit()">+ Añadir tuit</button>
+      </div>
+      <div class="vista">
+        <div class="vista-lab">ASÍ SE PUBLICA EL HILO</div>
+        <div class="hilo" id="hiloVista"></div>
+      </div>
+    </div>
+
+    <!-- ============================================ 5 · COLUMNA -->
+    <div class="modulo">
+      <div class="mod-head"><div class="mod-num">5</div>
+        <div class="mod-name">COLUMNA</div><div class="mod-soporte">PAPEL</div></div>
+      <div class="mod-body">
+        <textarea class="campo" id="inColTit" rows="2" placeholder="Titular de la columna…"
+          oninput="pintarColumna()"></textarea>
+        <input class="campo" id="inColFirma" placeholder="Firma" oninput="pintarColumna()"
+          style="font-size:12px" aria-label="Firma">
+        <textarea class="campo" id="inColTxt" rows="6" placeholder="Primer párrafo…"
+          oninput="pintarColumna()"></textarea>
+        <div class="contador" id="cCol">0 palabras</div>
+      </div>
+      <div class="vista">
+        <div class="vista-lab">ASÍ SALE EN PAPEL</div>
+        <div class="diario">
+          <div class="diario-cab"><div class="diario-nom">EL DIARIO</div><div class="diario-sec">OPINIÓN</div></div>
+          <div class="col-tit" id="colTit"><span class="vacio-txt">Vuestro titular</span></div>
+          <div class="col-firma" id="colFirma">FIRMA</div>
+          <div class="col-txt vacio" id="colTxt"><span class="vacio-txt">Vuestro primer párrafo</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ==================================================== LOS SEIS CASOS
+const CASOS = [
+{ t:"CASO 1 · LA LESIÓN",
+  h:"Mateo Salgado, el fichaje más caro de la historia del Ciudad FC (22 millones), se rompe el ligamento cruzado de la rodilla derecha en el minuto 34 contra el Puerto SC. Sucede sin contacto con nadie, al írsele la pierna en un cambio de dirección. Tiene que estar ocho meses de baja tras pasar la revisión médica. Los tres días anteriores no había entrenado con el grupo porque volvía de jugar dos partidos completos con su selección. Aterrizó el viernes por la tarde para jugar el sábado. Lleva 12 goles, el 61 % de los del equipo.",
+  c:["El club lo confirma a las 14:00 con una nota de cuatro líneas",
+     "En el vídeo se le ve pedir el cambio antes de caer",
+     "El entrenador: «No voy a entrar en si debió jugar o no»",
+     "La selección no ha dicho nada",
+     "NO está confirmado quién decidió que jugara"] },
+
+{ t:"CASO 2 · EL ENTRENADOR DESTITUIDO YENDO CUARTO",
+  h:"El Ciudad FC destituye a su entrenador con el equipo cuarto, en puestos europeos y a seis puntos del líder. Lo comunica un martes a las 9:00 con una nota de tres líneas y sin rueda de prensa. Llevaba dos años y medio en el cargo. Se había opuesto públicamente a dos fichajes de invierno y en la última rueda de prensa dijo, sin que nadie le preguntara: «Aquí las decisiones deportivas no siempre las toman los que saben de deporte».",
+  c:["La nota oficial habla de «cambio de rumbo deportivo»",
+     "El club le debe año y medio de contrato",
+     "Tres jugadores han dado like a su mensaje de despedida",
+     "El director deportivo no coge el teléfono",
+     "NO está confirmado que hubiera una discusión en el entrenamiento"] },
+
+{ t:"CASO 3 · EL RECORTE AL EQUIPO FEMENINO",
+  h:"El Real Vega anuncia que su equipo femenino deja de entrenar en la ciudad deportiva y pasa a un campo municipal a 40 minutos, compartido con dos equipos de barrio. El club lo atribuye a «una reorganización de espacios» por las obras del nuevo pabellón. El mismo día presenta un fichaje masculino de 4 millones. El femenino terminó quinto la temporada pasada, su mejor puesto histórico, y ha subido un 30 % su asistencia.",
+  c:["Presupuesto del femenino: 900.000 € · del masculino: 41 millones",
+     "El comunicado no nombra al equipo femenino: dice «el equipo»",
+     "La capitana ha publicado una foto del campo encharcado, sin texto",
+     "Dos jugadoras tienen contrato hasta junio",
+     "El club NO ha respondido a si el traslado es temporal"] },
+
+{ t:"CASO 4 · LA VENTA DEL CLUB",
+  h:"La familia propietaria del Atlético Cima vende el 70 % del club a un fondo de inversión extranjero por 140 millones. El acuerdo se firmó hace tres semanas y se conoce ahora. El presidente actual seguirá tres años. La afición llevaba cinco jornadas con pancartas contra la venta sin saber que ya estaba firmada.",
+  c:["El fondo participa en otros cuatro clubes europeos",
+     "En dos de ellos subió el abono más de un 40 % en dos temporadas",
+     "El Cima tiene 18.000 socios y el abono está congelado desde 2019",
+     "El comunicado habla de «un socio estratégico que garantiza el futuro»",
+     "NO se ha publicado el contrato y nadie del fondo da entrevistas"] },
+
+{ t:"CASO 5 · LA REMONTADA DEL RÍO ESTUDIO",
+  h:"El Río Estudio, penúltimo de la categoría inferior, elimina en Copa al Real Vega, líder de Primera, en los penaltis. El partido acabó 2-2 tras la prórroga: el Río iba 0-2 en el minuto 78. Su portero paró tres lanzamientos en la tanda. El campo tiene 4.000 localidades y se llenó. Lo siguieron 800.000 espectadores por televisión.",
+  c:["El portero es electricista y entrena tres días por semana",
+     "El presupuesto del Río Estudio es 400 veces menor que el del Real Vega",
+     "El entrenador del Real Vega se marchó sin pasar por la sala de prensa",
+     "El Río ingresará por esta eliminatoria más que en toda la temporada",
+     "NO se sabe todavía contra quién jugarán la siguiente ronda"] },
+
+{ t:"CASO 6 · EL VAR Y EL DESCENSO",
+  h:"El árbitro anula en el minuto 94 un gol del Puerto SC por un fuera de juego de 6 centímetros. El VAR tarda cuatro minutos en decidirlo. El partido acaba 1-1 en vez de 1-2 y ese punto deja al Puerto en descenso a falta de una jornada. El Comité de Árbitros publica al día siguiente un comunicado defendiendo la decisión con la imagen del trazado de líneas.",
+  c:["Tres exárbitros dicen en televisión que el trazado no es concluyente",
+     "El reglamento no fija margen de error para el trazado",
+     "Descender le cuesta al club unos 18 millones",
+     "El Puerto anuncia alegaciones; es su cuarta queja de la temporada",
+     "El árbitro NO ha hablado. La Liga tampoco"] },
+];
+
+let casoIdx = 0;
+let tuits = ["", ""];
+
+// ==================================================== CASO
+function pintarCaso(){
+  casoIdx = +document.getElementById('selCaso').value;
+  const c = CASOS[casoIdx];
+  document.getElementById('casoTitulo').textContent = c.t;
+  document.getElementById('casoHecho').textContent = c.h;
+  document.getElementById('casoCarpeta').innerHTML = c.c.map(x => `<li>${x}</li>`).join('');
+}
+function cambiarCaso(d){
+  const s = document.getElementById('selCaso');
+  s.value = (casoIdx + d + CASOS.length) % CASOS.length;
+  pintarCaso();
+}
+
+// ==================================================== 1 · ALERTA
+function pintarAlerta(){
+  const txt = document.getElementById('inAlerta').value.trim();
+  const medio = document.getElementById('inMedio').value.trim() || 'EL DIARIO';
+  const n = txt ? txt.split(/\s+/).length : 0;
+  const c = document.getElementById('cAlerta');
+  c.textContent = `${n} / 12 palabras`;
+  c.className = 'contador' + (n === 0 ? '' : n > 12 ? ' mal' : ' bien');
+
+  const el = document.getElementById('notifTxt');
+  if(txt){ el.textContent = txt; el.classList.remove('vacio'); }
+  else { el.textContent = 'Aquí aparecerá vuestra alerta'; el.classList.add('vacio'); }
+  document.getElementById('notifMedio').textContent = medio.toUpperCase();
+  document.getElementById('notifIco').textContent = medio.charAt(0).toUpperCase() || 'E';
+}
+
+// ==================================================== 2 · WEB
+function pintarWeb(){
+  const tit = document.getElementById('inWebTit').value.trim();
+  const ent = document.getElementById('inWebEnt').value.trim();
+  document.getElementById('webTit').innerHTML = tit || '<span class="vacio-txt">Vuestro titular</span>';
+  document.getElementById('webEnt').innerHTML = ent || '<span class="vacio-txt">Vuestra entradilla</span>';
+  const n = ent ? ent.split(/\s+/).length : 0;
+  const c = document.getElementById('cWeb');
+  c.textContent = `${n} palabras de entradilla`;
+  c.className = 'contador' + (n === 0 ? '' : n > 45 ? ' mal' : ' bien');
+}
+
+// ==================================================== 3 · RADIO
+let micStream = null, rec = null, chunks = [], audioURL = null, grabando = false;
+
+function pintarRadio(){
+  const txt = document.getElementById('inRadio').value.trim();
+  const n = txt ? txt.split(/\s+/).length : 0;
+  const seg = Math.round(n / 2.5);
+  const c = document.getElementById('cRadio');
+  c.textContent = `${n} palabras · unos ${seg} s leídos en alto`;
+  c.className = 'contador' + (n === 0 ? '' : seg > 22 ? ' mal' : ' bien');
+  document.getElementById('transcrip').innerHTML =
+    txt || '<span class="vacio-txt">Aquí va vuestro texto</span>';
+  if(!audioURL) document.getElementById('vozSeg').textContent =
+    seg ? '0:' + String(seg).padStart(2,'0') : '0:00';
+  pintarOnda(n ? Math.min(26, Math.max(9, n)) : 22, !!audioURL);
+}
+
+function pintarOnda(barras, activa){
+  const o = document.getElementById('onda');
+  let h = '';
+  for(let i=0;i<barras;i++){
+    const alt = 25 + Math.abs(Math.sin(i*1.7)) * 70;
+    h += `<i style="height:${alt}%;opacity:${activa?1:.45}"></i>`;
+  }
+  o.innerHTML = h;
+}
+
+async function toggleGrabar(){
+  const b = document.getElementById('btnRec');
+  if(grabando){
+    rec.stop();
+    return;
+  }
+  try{
+    if(!micStream || !micStream.active)
+      micStream = await navigator.mediaDevices.getUserMedia({audio:true});
+  }catch(e){
+    document.getElementById('micNota').innerHTML =
+      '<b style="color:#C8102E">El navegador ha bloqueado el micrófono.</b> Descargad el archivo y abridlo con doble clic.';
+    return;
+  }
+  chunks = [];
+  rec = new MediaRecorder(micStream);
+  rec.ondataavailable = e => { if(e.data.size) chunks.push(e.data); };
+  rec.onstop = () => {
+    const blob = new Blob(chunks, {type: rec.mimeType || 'audio/webm'});
+    if(audioURL) URL.revokeObjectURL(audioURL);
+    audioURL = URL.createObjectURL(blob);
+    const p = document.getElementById('player');
+    p.src = audioURL; p.style.display = 'block';
+    p.onloadedmetadata = () => {
+      const d = Math.round(p.duration);
+      if(isFinite(d)) document.getElementById('vozSeg').textContent = '0:' + String(d).padStart(2,'0');
+    };
+    pintarOnda(24, true);
+    grabando = false;
+    document.getElementById('btnRec').textContent = '● Grabar otra vez';
+    document.getElementById('btnRec').style.background = 'var(--red)';
+  };
+  rec.start();
+  grabando = true;
+  b.textContent = '■ Parar';
+  b.style.background = '#1B1B1F';
+}
+
+function reproducir(){
+  const p = document.getElementById('player');
+  if(p.src) p.paused ? p.play() : p.pause();
+}
+function borrarAudio(){
+  if(audioURL){ URL.revokeObjectURL(audioURL); audioURL = null; }
+  const p = document.getElementById('player');
+  p.removeAttribute('src'); p.style.display = 'none';
+  pintarRadio();
+}
+
+// ==================================================== 4 · HILO
+function renderEditorTuits(){
+  const el = document.getElementById('tuitsEditor');
+  el.innerHTML = tuits.map((t,i) => `
+    <div style="display:flex;gap:5px;align-items:flex-start">
+      <textarea class="campo" rows="2" placeholder="Tuit ${i+1}…"
+        oninput="tuits[${i}]=this.value;pintarHilo()">${t.replace(/</g,'&lt;')}</textarea>
+      ${tuits.length > 1 ? `<button class="tbtn" style="background:#EDEDF0;color:#6B6B72;border-color:#D8D8DC;padding:6px 9px" onclick="delTuit(${i})">✕</button>` : ''}
+    </div>`).join('');
+}
+function addTuit(){ if(tuits.length < 8){ tuits.push(''); renderEditorTuits(); pintarHilo(); } }
+function delTuit(i){ tuits.splice(i,1); renderEditorTuits(); pintarHilo(); }
+
+function pintarHilo(){
+  const user = document.getElementById('inTwUser').value.trim() || 'analistadeporte';
+  const total = tuits.length;
+  const cont = tuits.map((t,i) => {
+    const txt = t.trim();
+    const n = txt.length;
+    const cuerpo = txt
+      ? txt.replace(/</g,'&lt;')
+      : `<span class="vacio-txt">Tuit ${i+1} de ${total}…</span>`;
+    return `
+      <div class="tw">
+        ${i < total-1 ? '<div class="tw-linea"></div>' : ''}
+        <div class="tw-av">${user.charAt(0).toUpperCase()}</div>
+        <div class="tw-cuerpo">
+          <div class="tw-nom">Análisis <span>@${user} · ${i+1}/${total}</span></div>
+          <div class="tw-txt">${cuerpo}</div>
+          <div class="tw-acc"><span>💬</span><span>🔁</span><span>♡</span>
+            <span style="color:${n>280?'#C8102E':'#657786'};font-weight:${n>280?'700':'400'}">${n}/280</span></div>
+        </div>
+      </div>`;
+  }).join('');
+  document.getElementById('hiloVista').innerHTML = cont;
+}
+
+// ==================================================== 5 · COLUMNA
+function pintarColumna(){
+  const tit = document.getElementById('inColTit').value.trim();
+  const firma = document.getElementById('inColFirma').value.trim();
+  const txt = document.getElementById('inColTxt').value.trim();
+  document.getElementById('colTit').innerHTML = tit || '<span class="vacio-txt">Vuestro titular</span>';
+  document.getElementById('colFirma').textContent = (firma || 'FIRMA').toUpperCase();
+  const el = document.getElementById('colTxt');
+  if(txt){ el.textContent = txt; el.classList.remove('vacio'); }
+  else { el.innerHTML = '<span class="vacio-txt">Vuestro primer párrafo</span>'; el.classList.add('vacio'); }
+  const n = txt ? txt.split(/\s+/).length : 0;
+  const c = document.getElementById('cCol');
+  c.textContent = `${n} palabras`;
+  c.className = 'contador' + (n === 0 ? '' : n > 90 ? ' mal' : ' bien');
+}
+
+// ==================================================== GENERAL
+function toggleMural(){
+  document.body.classList.toggle('mural');
+  const on = document.body.classList.contains('mural');
+  const b = document.getElementById('btnMural');
+  b.classList.toggle('on', on);
+  b.textContent = on ? '✎ Volver a escribir' : '🖥 Mural';
+}
+
+function limpiar(){
+  ['inAlerta','inWebTit','inWebEnt','inRadio','inColTit','inColTxt'].forEach(id =>
+    document.getElementById(id).value = '');
+  tuits = ['', ''];
+  borrarAudio();
+  renderEditorTuits();
+  pintarAlerta(); pintarWeb(); pintarRadio(); pintarHilo(); pintarColumna();
+}
+
+async function audioABase64(){
+  if(!audioURL) return null;
+  const blob = await (await fetch(audioURL)).blob();
+  return await new Promise(res => {
+    const r = new FileReader();
+    r.onloadend = () => res(r.result);
+    r.readAsDataURL(blob);
+  });
+}
+
+async function descargar(){
+  const equipo = document.getElementById('inEquipo').value.trim() || 'Sin nombre';
+  const caso = CASOS[casoIdx];
+  const estilos = document.querySelector('style').innerHTML;
+  const dataAudio = await audioABase64();
+
+  const nombres = ['Alerta del móvil · app', 'Noticia · web', 'Corte de voz · radio',
+                   'Hilo de análisis · redes', 'Columna · papel'];
+  const vistas = [...document.querySelectorAll('.modulo')].map((m, i) => {
+    const v = m.querySelector('.vista').cloneNode(true);
+    v.querySelectorAll('.vista-lab').forEach(x => x.remove());
+    const au = v.querySelector('audio');
+    if(au){
+      if(dataAudio){ au.src = dataAudio; au.style.display = 'block'; au.removeAttribute('controls'); au.setAttribute('controls',''); }
+      else au.remove();
+    }
+    v.querySelectorAll('button').forEach(b => b.removeAttribute('onclick'));
+    return `<section class="ficha"><h3>${i+1} · ${nombres[i]}</h3>${v.innerHTML}</section>`;
+  }).join('');
+
+  const doc = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${equipo} · ${caso.t}</title><style>${estilos}
+body{background:#F5F5F7;padding:0}
+.hoja{max-width:1400px;margin:0 auto;padding:18px}
+.cab{background:#1B1B1F;color:#fff;padding:16px 18px;border-radius:12px;margin-bottom:14px}
+.cab .eq{font-size:20px;font-weight:700}
+.cab .cs{font-size:11px;color:#E8B54A;letter-spacing:.07em;margin-top:3px}
+.cab .hc{font-size:12.5px;line-height:1.5;color:#C9C9CF;margin-top:9px}
+.rej{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;align-items:start}
+.ficha{background:#fff;border:1px solid #D8D8DC;border-radius:12px;overflow:hidden}
+.ficha h3{background:#1B1B1F;color:#fff;font-size:11px;letter-spacing:.06em;padding:8px 13px;font-weight:700}
+.ficha .vista{border-top:0;background:#fff;margin:0}
+@media print{body{background:#fff}.hoja{padding:0}.rej{grid-template-columns:1fr 1fr}}
+</style></head><body><div class="hoja">
+<div class="cab"><div class="eq">${equipo}</div><div class="cs">${caso.t}</div>
+<div class="hc">${caso.h}</div></div>
+<div class="rej">${vistas}</div></div></body></html>`;
+
+  const filename = `redaccion_${equipo.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')}_caso${casoIdx+1}.html`;
+
+  // Published as a Claude artifact: the page runs sandboxed and a plain
+  // <a download> link is inert there, so hand the file to the viewer
+  // through the platform's downloads capability instead.
+  if(window.claude && window.claude.use){
+    let downloads = null;
+    try{ downloads = await window.claude.use('downloads'); }catch(e){ downloads = null; }
+    if(downloads){
+      try{
+        await downloads.save({filename, data: doc});
+      }catch(err){
+        if(!err || err.code !== 'declined'){
+          alert('No se ha podido guardar el archivo: ' + (err && err.message ? err.message : 'error desconocido') + '.');
+        }
+      }
+      return;
+    }
+    alert('La descarga no está disponible en esta vista. Abrid el archivo .html directamente para descargar desde ahí.');
+    return;
+  }
+
+  // Opened as a plain local file (double click, no Claude runtime).
+  // Some browsers mishandle a blob <a download> click when the PAGE
+  // itself was loaded over file://: instead of saving the report, they
+  // save a stub pointing at the file:// address. Two safer paths:
+  if(window.showSaveFilePicker){
+    // Modern Chrome/Edge on desktop: a real native "save as" dialog,
+    // no blob/anchor quirks at all.
+    try{
+      const handle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{description:'Página HTML', accept:{'text/html':['.html']}}]
+      });
+      const writable = await handle.createWritable();
+      await writable.write(doc);
+      await writable.close();
+      return;
+    }catch(err){
+      if(err && err.name === 'AbortError') return; // cancelled the dialog
+      // otherwise fall through to the next method below
+    }
+  }
+  // Universal fallback: open the finished report in its own tab and let
+  // the person use the browser's own Guardar como… / Ctrl+S. That save
+  // path is native to the browser, so it works even where the blob trick
+  // above does not.
+  const blob = new Blob([doc], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if(!win){
+    alert('El navegador ha bloqueado la ventana nueva. Permitid las ventanas emergentes para este archivo y volved a pulsar «Descargar».');
+    return;
+  }
+  alert('Se ha abierto la ficha en una pestaña nueva. Para guardarla, pulsad Ctrl+S (Cmd+S en Mac) en esa pestaña y guardadla como «' + filename + '».');
+}
+
+(function init(){
+  document.getElementById('selCaso').innerHTML =
+    CASOS.map((c,i) => `<option value="${i}">${c.t}</option>`).join('');
+  const ahora = new Date();
+  document.getElementById('lockHora').textContent =
+    ahora.getHours() + ':' + String(ahora.getMinutes()).padStart(2,'0');
+  pintarCaso();
+  renderEditorTuits();
+  pintarAlerta(); pintarWeb(); pintarRadio(); pintarHilo(); pintarColumna();
+})();
+</script>
+</body>
+</html>
