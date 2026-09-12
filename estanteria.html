@@ -161,14 +161,22 @@
   .zoom b{font-size:12.5px;font-weight:700;min-width:74px;text-align:center;opacity:.9}
   .zoom button{padding:7px 12px;font-size:15px;line-height:1}
   .zoom #zAjustar{font-size:12.5px;padding:8px 12px}
-  .lienzo-zona{position:relative;overflow:auto;display:flex;padding:14px}
+  .lienzo-zona{
+    position:relative;overflow:auto;display:flex;padding:14px;
+    align-items:safe center;justify-content:safe center;
+  }
   .apilado{
-    position:relative;line-height:0;margin:auto;
-    flex:0 0 auto;align-self:center;
+    position:relative;line-height:0;margin:0;
+    flex:0 0 auto;
     box-shadow:0 8px 30px rgba(0,0,0,.5);
   }
+  /* Por si el navegador no entiende el centrado seguro */
+  @supports not (align-items: safe center){
+    .lienzo-zona{align-items:center;justify-content:center}
+    .lienzo-zona.ampliada{align-items:flex-start;justify-content:flex-start}
+  }
   #capaBase{display:block;background:#fff}
-  .lienzo-zona.ampliada .apilado{margin:0}
+
   #capaAnot{position:absolute;left:0;top:0;width:100%;height:100%;
     background:transparent;touch-action:none;cursor:crosshair}
   .flecha{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:62px;border-radius:8px;background:rgba(242,237,227,.16);color:var(--papel);font-size:20px}
@@ -230,7 +238,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v10</span></h1>
+  <h1>Estantería de entregas <span class="version">v11</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -274,6 +282,7 @@
 <div class="visor" id="visor" role="dialog" aria-modal="true" aria-label="Visor de entregas">
   <div class="barra">
     <div class="titulo" id="vTitulo">—</div>
+    <button class="fantasma" id="vNombre" title="Oculta el nombre del alumno para proyectar en clase">Ocultar nombre</button>
     <span class="pos" id="vPos"></span>
     <span class="zoom" id="zoomCaja">
       <button class="fantasma" id="zMenos" aria-label="Reducir">−</button>
@@ -752,10 +761,19 @@ function modoMedia(activo){
     .forEach(b => { b.disabled = activo; b.style.opacity = activo ? .35 : 1; });
 }
 
+function pintarTituloVisor(){
+  const o = obras[vIdx];
+  if(!o) return;
+  $('vTitulo').textContent = ocultos
+    ? 'Entrega ' + (vIdx + 1)
+    : o.alumno + ' · ' + o.archivo;
+  $('vNombre').textContent = ocultos ? 'Mostrar nombre' : 'Ocultar nombre';
+  $('vNombre').classList.toggle('activo', ocultos);
+}
+
 async function dibujarPagina(){
   const o = obras[vIdx];
-  $('vTitulo').textContent = (ocultos ? 'Entrega ' + (vIdx + 1) : o.alumno) +
-                             (ocultos ? '' : ' · ' + o.archivo);
+  pintarTituloVisor();
 
   const au = $('repAudio'), vi = $('repVideo');
   au.pause(); vi.pause();
@@ -1426,12 +1444,15 @@ $('buscar').addEventListener('input', e => {
   filtro = e.target.value.trim().toLowerCase();
   pintarEstantes();
 });
-$('btnNombres').addEventListener('click', () => {
+function alternarNombres(){
   ocultos = !ocultos;
   $('btnNombres').textContent = ocultos ? 'Mostrar nombres' : 'Ocultar nombres';
   $('btnNombres').classList.toggle('activo', ocultos);
   pintarEstantes();
-});
+  if($('visor').classList.contains('abierto')) pintarTituloVisor();
+}
+$('btnNombres').addEventListener('click', alternarNombres);
+$('vNombre').addEventListener('click', alternarNombres);
 $('btnVaciar').addEventListener('click', () => {
   obras.forEach(o => URL.revokeObjectURL(o.url));
   obras = []; anotaciones.clear(); textos.clear();
