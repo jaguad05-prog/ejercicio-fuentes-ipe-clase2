@@ -206,7 +206,7 @@
     position:absolute;pointer-events:none;
     font-family:"Bricolage Grotesque",Arial,sans-serif;font-weight:700;
     color:var(--rojo);line-height:1.25;white-space:pre-wrap;
-    padding:1px 3px;border-radius:3px;max-width:80%;
+    padding:1px 3px;border-radius:3px;
     outline:1.5px dashed transparent;cursor:move;
   }
   .apilado.editable .nota{pointer-events:auto}
@@ -238,7 +238,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v11</span></h1>
+  <h1>Estantería de entregas <span class="version">v12</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -1074,6 +1074,13 @@ function seleccionar(dato){
   if(n) n.classList.add('sel');
 }
 
+// Ancho de la caja de una nota, en píxeles del documento. Lo usan por
+// igual la pantalla y la imagen que se guarda, así el texto se parte
+// exactamente por los mismos sitios.
+function anchoNota(d){
+  return Math.max(70, Math.min(anot.width * 0.8, anot.width - d.x - 6));
+}
+
 function refrescarTextos(){
   if(!capaT.children.length) return;
   const esc = escalaVista();
@@ -1082,6 +1089,7 @@ function refrescarTextos(){
     n.style.left = (d.x * esc) + 'px';
     n.style.top = (d.y * esc) + 'px';
     n.style.fontSize = Math.max(7, d.tam * esc) + 'px';
+    n.style.maxWidth = (anchoNota(d) * esc) + 'px';
   });
 }
 
@@ -1207,15 +1215,34 @@ function ponerTexto(ev, p){
   setTimeout(() => editarNota(dato, true), 0);
 }
 
+// Parte el texto por palabras igual que hace el navegador en pantalla
+function partirLineas(g, txt, maxPx){
+  const salida = [];
+  txt.split('\n').forEach(parrafo => {
+    const palabras = parrafo.split(/\s+/).filter(Boolean);
+    if(!palabras.length){ salida.push(''); return; }
+    let linea = palabras[0];
+    for(let i = 1; i < palabras.length; i++){
+      const prueba = linea + ' ' + palabras[i];
+      if(g.measureText(prueba).width <= maxPx) linea = prueba;
+      else { salida.push(linea); linea = palabras[i]; }
+    }
+    salida.push(linea);
+  });
+  return salida;
+}
+
 // Dibuja las notas sobre un lienzo, para la imagen que se guarda
 function estamparTextos(g){
   listaTextos().forEach(d => {
     g.fillStyle = '#C8452F';
     g.font = '700 ' + d.tam + 'px "Bricolage Grotesque", Arial, sans-serif';
     g.textBaseline = 'top';
-    d.txt.split('\n').forEach((linea, i) => {
-      g.fillText(linea, d.x + 2, d.y + 1 + i * d.tam * 1.25);
-    });
+    const maxPx = anchoNota(d) - 6;
+    const lineas = partirLineas(g, d.txt, maxPx);
+    const salto = d.tam * 1.25;
+    const arranque = d.y + 1 + (salto - d.tam) / 2;   // medio interlineado, como en CSS
+    lineas.forEach((linea, i) => g.fillText(linea, d.x + 3, arranque + i * salto));
   });
 }
 
@@ -1303,7 +1330,10 @@ function nombreSalida(o, idx, pag, total){
   return (base + (total > 1 ? '_pag' + pag : '') + '_corregida.png').replace(/\s+/g, '_');
 }
 
-function componer(){
+async function componer(){
+  // Sin la tipografía cargada, el navegador mediría con otra fuente
+  // y el texto se partiría por sitios distintos.
+  try{ await document.fonts.ready; }catch(err){}
   const c = document.createElement('canvas');
   c.width = base.width; c.height = base.height;
   const g = c.getContext('2d');
