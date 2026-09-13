@@ -265,7 +265,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v14</span></h1>
+  <h1>Estantería de entregas <span class="version">v15</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -275,7 +275,6 @@
     <label class="btn fantasma" for="inCarpeta">Abrir carpeta</label>
     <input type="file" id="inCarpeta" webkitdirectory directory multiple>
     <button class="fantasma" id="btnDestino" hidden>Carpeta de guardado</button>
-    <button class="fantasma" id="btnMoodle" hidden>Copia para Moodle</button>
     <button class="fantasma" id="btnNombres">Ocultar nombres</button>
     <button class="fantasma" id="btnVaciar">Vaciar</button>
   </div>
@@ -1412,7 +1411,6 @@ $('tLimpiar').addEventListener('click', () => {
 const CARPETA_SALIDA = 'trabajos clase';
 const CARPETA_MOODLE = 'trabajos clase - Moodle';
 let handleDestino = null;
-let copiaMoodle = false;
 
 // Subcarpeta con el nombre exacto que puso Moodle, para poder devolver
 // las correcciones a toda la clase de una vez en un zip.
@@ -1429,19 +1427,7 @@ async function carpetaDeAlumno(o){
   }catch(err){ return null; }
 }
 
-function pintarMoodle(){
-  $('btnMoodle').textContent = copiaMoodle ? 'Copia para Moodle: sí' : 'Copia para Moodle';
-  $('btnMoodle').classList.toggle('activo', copiaMoodle);
-}
 
-$('btnMoodle').addEventListener('click', async () => {
-  copiaMoodle = !copiaMoodle;
-  pintarMoodle();
-  try{ await guardarEn('config', 'moodle', copiaMoodle); }catch(err){}
-  if(copiaMoodle && !handleDestino){
-    alert('Para la copia de Moodle hace falta elegir antes la carpeta de guardado.');
-  }
-});
 
 async function carpetaSalida(pedirPermiso){
   if(!handleDestino) return null;
@@ -1464,6 +1450,9 @@ async function elegirDestino(){
   const dir = await carpetaSalida(true);
   if(dir){
     $('btnDestino').classList.add('activo');
+    alert('Listo. Cada corregida se guardará en dos sitios dentro de «' + handleDestino.name +
+          '»:\n\n· «' + CARPETA_SALIDA + '», con el nombre del alumno.\n· «' + CARPETA_MOODLE +
+          '», con las carpetas originales, para devolverlas todas de una vez en Moodle.');
   }else{
     alert('Hace falta dar permiso de escritura en esa carpeta. Vuelve a elegirla y acepta.');
     handleDestino = null;
@@ -1542,14 +1531,10 @@ $('tGuardar').addEventListener('click', async () => {
   if(dir){
     try{
       await escribirEn(dir, nombre, blob);
-      let aviso = 'Guardada en ' + CARPETA_SALIDA;
-      if(copiaMoodle){
-        const dm = await carpetaDeAlumno(o);
-        if(dm){
-          await escribirEn(dm, 'corregida_' + o.archivo.replace(/\.[^.]+$/, '') + '.png', blob);
-          aviso += ' y en la copia para Moodle';
-        }
-      }
+      let aviso = 'Guardada en «' + CARPETA_SALIDA + '»';
+      const dm = await carpetaDeAlumno(o);
+      if(dm) aviso += ' y en «' + CARPETA_MOODLE + '»';
+      if(dm) await escribirEn(dm, 'corregida_' + o.archivo.replace(/\.[^.]+$/, '') + '.png', blob);
       $('vPos').textContent = aviso;
       return;
     }catch(err){
@@ -1588,12 +1573,10 @@ $('tGuardarTodas').addEventListener('click', async () => {
       const nombre = nombreSalida(o, i, pag, paginas.length > 1 ? 2 : 1);
       if(dir){
         await escribirEn(dir, nombre, blob);
-        if(copiaMoodle){
-          const dm = await carpetaDeAlumno(o);
-          if(dm){
-            const base2 = 'corregida_' + o.archivo.replace(/\.[^.]+$/, '');
-            await escribirEn(dm, base2 + (paginas.length > 1 ? '_pag' + pag : '') + '.png', blob);
-          }
+        const dm = await carpetaDeAlumno(o);
+        if(dm){
+          const base2 = 'corregida_' + o.archivo.replace(/\.[^.]+$/, '');
+          await escribirEn(dm, base2 + (paginas.length > 1 ? '_pag' + pag : '') + '.png', blob);
         }
       }else bajarSuelta(nombre, blob);
       hechas++;
@@ -1604,7 +1587,8 @@ $('tGuardarTodas').addEventListener('click', async () => {
   await dibujarPagina();
   progEl.hidden = true;
   alert(hechas + (hechas === 1 ? ' corregida guardada' : ' corregidas guardadas') +
-        (dir ? ' en «' + handleDestino.name + ' › ' + CARPETA_SALIDA + '».' : ' en Descargas.'));
+        (dir ? ' en «' + handleDestino.name + '», en las carpetas «' + CARPETA_SALIDA +
+               '» y «' + CARPETA_MOODLE + '».' : ' en Descargas.'));
 });
 
 $('tVisto').addEventListener('click', () => {
@@ -1802,9 +1786,6 @@ async function arrancar(){
       if(d && d.kind === 'directory') handleDestino = d;
     }catch(err){}
     pintarDestino();
-    $('btnMoodle').hidden = false;
-    try{ copiaMoodle = !!(await leerDe('config', 'moodle')); }catch(err){}
-    pintarMoodle();
   }
   if(SOPORTA_RECORDAR){
     $('btnZipFijo').hidden = false;
