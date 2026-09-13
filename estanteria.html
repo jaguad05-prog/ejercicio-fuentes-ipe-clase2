@@ -265,7 +265,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v13</span></h1>
+  <h1>Estantería de entregas <span class="version">v14</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -275,6 +275,7 @@
     <label class="btn fantasma" for="inCarpeta">Abrir carpeta</label>
     <input type="file" id="inCarpeta" webkitdirectory directory multiple>
     <button class="fantasma" id="btnDestino" hidden>Carpeta de guardado</button>
+    <button class="fantasma" id="btnMoodle" hidden>Copia para Moodle</button>
     <button class="fantasma" id="btnNombres">Ocultar nombres</button>
     <button class="fantasma" id="btnVaciar">Vaciar</button>
   </div>
@@ -515,7 +516,8 @@ async function cargarZip(file){
         const datos = await e.async('uint8array');
         if(!datos || !datos.length) throw new Error('archivo vacío');
         const blob = new Blob([datos], {type: TIPOS[extension(nombreArchivo)] || 'application/octet-stream'});
-        nuevas.push(nuevaObra(alumnoDesdeRuta(ruta, nombreArchivo), nombreArchivo, blob));
+        nuevas.push(nuevaObra(alumnoDesdeRuta(ruta, nombreArchivo), nombreArchivo, blob,
+                               carpetaMoodle(ruta)));
       }catch(err){
         fallidos.push({alumno: alumnoDesdeRuta(ruta, nombreArchivo), archivo: nombreArchivo,
                        motivo: err.message || 'no se ha podido leer'});
@@ -529,7 +531,14 @@ async function cargarZip(file){
   }
 }
 
-function nuevaObra(alumno, archivo, blob){
+// Primer tramo de la ruta dentro del zip: la carpeta que crea Moodle,
+// del tipo "Lucia Cabestrero_884512_assignsubmission_file_"
+function carpetaMoodle(ruta){
+  const trozos = String(ruta).split('/').filter(Boolean);
+  return trozos.length > 1 ? trozos[0] : '';
+}
+
+function nuevaObra(alumno, archivo, blob, carpeta){
   const e = extension(archivo);
   const tipoMime = TIPOS[e] || 'application/octet-stream';
   if(!blob.type || blob.type === 'application/octet-stream'){
@@ -539,6 +548,7 @@ function nuevaObra(alumno, archivo, blob){
   const guardada = marcas.get(clave);
   const o = {
     alumno, archivo, blob, clave,
+    carpeta: carpeta || '',
     tipo: tipoDe(archivo) || 'img',
     url: URL.createObjectURL(blob),
     thumb: null, paginas: 1, duracion: 0,
@@ -565,7 +575,8 @@ function cargarSueltos(lista){
     const ruta = f.webkitRelativePath || f.name;
     const trozos = ruta.split('/').filter(Boolean);
     const carpeta = trozos.length > 1 ? trozos.slice(0,-1).join('/') + '/' : '';
-    nuevas.push(nuevaObra(alumnoDesdeRuta(carpeta + f.name, f.name), f.name, f));
+    nuevas.push(nuevaObra(alumnoDesdeRuta(carpeta + f.name, f.name), f.name, f,
+                          carpetaMoodle(ruta)));
   }
   if(!nuevas.length){
     pintarAvisos();
@@ -1399,7 +1410,38 @@ $('tLimpiar').addEventListener('click', () => {
    Si eliges una carpeta de guardado, los PNG van a una subcarpeta
    llamada "trabajos clase". Sin carpeta elegida caen en Descargas. */
 const CARPETA_SALIDA = 'trabajos clase';
+const CARPETA_MOODLE = 'trabajos clase - Moodle';
 let handleDestino = null;
+let copiaMoodle = false;
+
+// Subcarpeta con el nombre exacto que puso Moodle, para poder devolver
+// las correcciones a toda la clase de una vez en un zip.
+async function carpetaDeAlumno(o){
+  if(!handleDestino) return null;
+  try{
+    let per = await handleDestino.queryPermission({mode: 'readwrite'});
+    if(per !== 'granted') per = await handleDestino.requestPermission({mode: 'readwrite'});
+    if(per !== 'granted') return null;
+    const raiz = await handleDestino.getDirectoryHandle(CARPETA_MOODLE, {create: true});
+    const nombre = (o.carpeta || o.alumno).replace(/[\\/:*?"<>|]/g, '').trim();
+    if(!nombre) return null;
+    return await raiz.getDirectoryHandle(nombre, {create: true});
+  }catch(err){ return null; }
+}
+
+function pintarMoodle(){
+  $('btnMoodle').textContent = copiaMoodle ? 'Copia para Moodle: sí' : 'Copia para Moodle';
+  $('btnMoodle').classList.toggle('activo', copiaMoodle);
+}
+
+$('btnMoodle').addEventListener('click', async () => {
+  copiaMoodle = !copiaMoodle;
+  pintarMoodle();
+  try{ await guardarEn('config', 'moodle', copiaMoodle); }catch(err){}
+  if(copiaMoodle && !handleDestino){
+    alert('Para la copia de Moodle hace falta elegir antes la carpeta de guardado.');
+  }
+});
 
 async function carpetaSalida(pedirPermiso){
   if(!handleDestino) return null;
@@ -1500,7 +1542,15 @@ $('tGuardar').addEventListener('click', async () => {
   if(dir){
     try{
       await escribirEn(dir, nombre, blob);
-      $('vPos').textContent = 'Guardada en ' + handleDestino.name + ' › ' + CARPETA_SALIDA;
+      let aviso = 'Guardada en ' + CARPETA_SALIDA;
+      if(copiaMoodle){
+        const dm = await carpetaDeAlumno(o);
+        if(dm){
+          await escribirEn(dm, 'corregida_' + o.archivo.replace(/\.[^.]+$/, '') + '.png', blob);
+          aviso += ' y en la copia para Moodle';
+        }
+      }
+      $('vPos').textContent = aviso;
       return;
     }catch(err){
       alert('No he podido escribir en la carpeta elegida, así que va a Descargas.\n\n' + (err.message || ''));
@@ -1536,8 +1586,16 @@ $('tGuardarTodas').addEventListener('click', async () => {
       pintarTextos();
       const blob = await componer();
       const nombre = nombreSalida(o, i, pag, paginas.length > 1 ? 2 : 1);
-      if(dir) await escribirEn(dir, nombre, blob);
-      else bajarSuelta(nombre, blob);
+      if(dir){
+        await escribirEn(dir, nombre, blob);
+        if(copiaMoodle){
+          const dm = await carpetaDeAlumno(o);
+          if(dm){
+            const base2 = 'corregida_' + o.archivo.replace(/\.[^.]+$/, '');
+            await escribirEn(dm, base2 + (paginas.length > 1 ? '_pag' + pag : '') + '.png', blob);
+          }
+        }
+      }else bajarSuelta(nombre, blob);
       hechas++;
       mostrarProgreso('Guardando corregidas · ' + hechas, hechas, conMarcas.length);
     }
@@ -1656,7 +1714,8 @@ function recorrer(entry, ruta, salida){
     if(entry.isFile){
       if(!esUtil(entry.name) || entry.name.startsWith('.')) return res();
       entry.file(f => {
-        salida.push(nuevaObra(alumnoDesdeRuta(ruta + entry.name, entry.name), entry.name, f));
+        salida.push(nuevaObra(alumnoDesdeRuta(ruta + entry.name, entry.name), entry.name, f,
+                               carpetaMoodle(ruta + entry.name)));
         res();
       }, res);
       return;
@@ -1743,6 +1802,9 @@ async function arrancar(){
       if(d && d.kind === 'directory') handleDestino = d;
     }catch(err){}
     pintarDestino();
+    $('btnMoodle').hidden = false;
+    try{ copiaMoodle = !!(await leerDe('config', 'moodle')); }catch(err){}
+    pintarMoodle();
   }
   if(SOPORTA_RECORDAR){
     $('btnZipFijo').hidden = false;
