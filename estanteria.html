@@ -196,6 +196,31 @@
   .flecha{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:62px;border-radius:8px;background:rgba(242,237,227,.16);color:var(--papel);font-size:20px}
   .flecha.izq{left:8px}
   .flecha.der{right:8px}
+  .ficha-zona{display:flex;gap:14px;width:100%;height:100%;align-items:stretch}
+  .ficha-zona[hidden]{display:none}
+  #fichaFrame{
+    flex:1;min-width:0;border:0;border-radius:10px;background:#fff;
+    box-shadow:0 8px 30px rgba(0,0,0,.5);
+  }
+  .correcciones{
+    flex:0 0 clamp(240px,26vw,360px);
+    background:#FBF7EC;color:#14211F;border-radius:10px;
+    padding:14px 14px 16px;overflow:auto;
+  }
+  .correcciones h3{margin:0 0 10px;font-size:14px;letter-spacing:.04em;color:#8A3626}
+  .correcciones ol{margin:0 0 12px;padding-left:24px;font-size:13.5px;line-height:1.45}
+  .correcciones li{margin-bottom:9px;cursor:text}
+  .correcciones li:hover{background:rgba(200,69,47,.09);border-radius:4px}
+  .correcciones li .quitar-corr{
+    float:right;margin-left:8px;background:transparent;color:#8A3626;
+    box-shadow:none;padding:0 4px;font-size:15px;line-height:1;
+  }
+  .correcciones textarea{
+    width:100%;font-family:inherit;font-size:13.5px;line-height:1.4;
+    border:2px solid var(--rojo);border-radius:5px;padding:5px 6px;resize:vertical;
+  }
+  .correcciones .vacio{font-style:italic;opacity:.6;font-size:13px;font-weight:300}
+
   .reproductor{
     width:min(760px,100%);text-align:center;
     background:rgba(20,33,31,.9);border:1px solid rgba(242,237,227,.18);
@@ -265,7 +290,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v15</span></h1>
+  <h1>Estantería de entregas <span class="version">v16</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -330,6 +355,14 @@
       <canvas id="capaMargen"></canvas>
       <div id="capaTexto"></div>
     </div>
+    <div class="ficha-zona" id="fichaZona" hidden>
+      <iframe id="fichaFrame" sandbox title="Entrega del alumno"></iframe>
+      <aside class="correcciones" id="correcciones">
+        <h3>Correcciones</h3>
+        <ol id="listaCorr"></ol>
+        <button class="btn" id="addCorr">+ Añadir comentario</button>
+      </aside>
+    </div>
     <div class="reproductor" id="reproductor" hidden>
       <div class="onda" id="ondaFondo"></div>
       <audio id="repAudio" controls preload="metadata"></audio>
@@ -362,6 +395,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 const EXT_IMG = ['jpg','jpeg','png','webp','gif','bmp'];
 const EXT_AUD = ['wav','mp3','m4a','ogg','oga','opus','aac','flac','weba'];
 const EXT_VID = ['mp4','webm','mov','m4v','ogv'];
+const EXT_WEB = ['html','htm'];
 const TIPOS = {
   pdf:'application/pdf', jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png',
   webp:'image/webp', gif:'image/gif', bmp:'image/bmp',
@@ -369,7 +403,8 @@ const TIPOS = {
   oga:'audio/ogg', opus:'audio/ogg', aac:'audio/aac', flac:'audio/flac',
   weba:'audio/webm',
   mp4:'video/mp4', webm:'video/webm', mov:'video/quicktime',
-  m4v:'video/mp4', ogv:'video/ogg'
+  m4v:'video/mp4', ogv:'video/ogg',
+  html:'text/html', htm:'text/html'
 };
 
 function tipoDe(nombre){
@@ -378,6 +413,7 @@ function tipoDe(nombre){
   if(EXT_IMG.includes(e)) return 'img';
   if(EXT_AUD.includes(e)) return 'audio';
   if(EXT_VID.includes(e)) return 'video';
+  if(EXT_WEB.includes(e)) return 'web';
   return null;
 }
 const ES_MEDIA = t => t === 'audio' || t === 'video';
@@ -625,7 +661,7 @@ function pintarAvisos(){
   }
 
   $('avisoPie').textContent = descartados.length
-    ? 'Los de Word, Excel, ODT o texto plano no se abren aquí, míralos aparte o pide que te los reenvíen en pdf.'
+    ? 'Los de Word, Excel u ODT no se abren aquí, míralos aparte o pide que te los reenvíen en pdf.'
     : 'Pide a esos alumnos que vuelvan a subir el archivo.';
   $('avisos').hidden = false;
 }
@@ -650,6 +686,34 @@ function ondaSonora(semilla, etiqueta){
   g.font = '700 20px "Bricolage Grotesque", sans-serif';
   g.textAlign = 'center';
   g.fillText(etiqueta, 150, 330);
+  return c.toDataURL('image/jpeg', 0.85);
+}
+
+// Portada para las fichas html, que no se pueden rasterizar
+function portadaFicha(nombre){
+  const c = document.createElement('canvas');
+  c.width = 300; c.height = 390;
+  const g = c.getContext('2d');
+  g.fillStyle = '#FBF7EC'; g.fillRect(0, 0, 300, 390);
+  g.fillStyle = '#1B1B1F'; g.fillRect(0, 0, 300, 54);
+  g.fillStyle = '#E8B54A';
+  g.font = '700 15px "Bricolage Grotesque", Arial, sans-serif';
+  g.textAlign = 'center';
+  g.fillText('FICHA · 5 FORMATOS', 150, 33);
+  g.fillStyle = '#D9D2C2';
+  for(let f = 0; f < 5; f++){
+    const y = 78 + f * 60;
+    g.fillRect(24, y, 252, 44);
+    g.fillStyle = '#C8102E';
+    g.fillRect(24, y, 4, 44);
+    g.fillStyle = '#B4ADA0';
+    g.fillRect(40, y + 13, 150 - f * 14, 6);
+    g.fillRect(40, y + 26, 200 - f * 22, 6);
+    g.fillStyle = '#D9D2C2';
+  }
+  g.fillStyle = '#6B6B72';
+  g.font = '400 11px "Bricolage Grotesque", Arial, sans-serif';
+  g.fillText((nombre || '').slice(0, 34), 150, 375);
   return c.toDataURL('image/jpeg', 0.85);
 }
 
@@ -685,6 +749,10 @@ async function portada(o){
   try{
     if(o.tipo === 'img'){
       o.thumb = o.url;
+      return;
+    }
+    if(o.tipo === 'web'){
+      o.thumb = portadaFicha(o.archivo);
       return;
     }
     if(ES_MEDIA(o.tipo)){
@@ -763,10 +831,11 @@ function pintarEstantes(){
       tapa.appendChild(im);
     }else{
       tapa.innerHTML = '<span class="cargando">' +
-        ({pdf:'PDF', img:'imagen', audio:'audio', video:'vídeo'}[o.tipo] || '') + '</span>';
+        ({pdf:'PDF', img:'imagen', audio:'audio', video:'vídeo', web:'ficha'}[o.tipo] || '') + '</span>';
     }
     const insignia = o.tipo === 'pdf' && o.paginas > 1
       ? o.paginas + ' pág.'
+      : o.tipo === 'web' ? 'ficha'
       : (ES_MEDIA(o.tipo) ? (reloj(o.duracion) || (o.tipo === 'video' ? 'vídeo' : 'audio')) : '');
     if(insignia){
       const m = document.createElement('span');
@@ -802,6 +871,92 @@ function modoMedia(activo){
     .forEach(b => { b.disabled = activo; b.style.opacity = activo ? .35 : 1; });
 }
 
+function modoFicha(activo){
+  $('fichaZona').hidden = !activo;
+  if(activo){
+    $('reproductor').hidden = true;
+    $('apilado').style.display = 'none';
+    $('zoomCaja').style.display = 'none';
+  }
+  // En una ficha no se puede subrayar, pero sí comentar y guardar
+  document.querySelectorAll('[data-tool],#tDeshacer,#tLimpiar')
+    .forEach(b => { b.disabled = activo; b.style.opacity = activo ? .35 : 1; });
+  if(activo) $('tGuardar').disabled = false, $('tGuardar').style.opacity = 1;
+}
+
+/* ------------------ comentarios de las fichas html */
+function listaCorr(){
+  const k = obras[vIdx].clave + ':1';
+  if(!textos.has(k)) textos.set(k, []);
+  return textos.get(k);
+}
+
+function pintarCorrecciones(){
+  const ol = $('listaCorr');
+  const l = listaCorr();
+  ol.innerHTML = '';
+  if(!l.length){
+    const p = document.createElement('li');
+    p.className = 'vacio';
+    p.style.listStyle = 'none';
+    p.style.marginLeft = '-18px';
+    p.textContent = 'Sin comentarios todavía. Pulsa el botón para escribir el primero.';
+    ol.appendChild(p);
+    return;
+  }
+  l.forEach((d, i) => {
+    const li = document.createElement('li');
+    const x = document.createElement('button');
+    x.className = 'quitar-corr';
+    x.textContent = '×';
+    x.title = 'Borrar este comentario';
+    x.addEventListener('click', ev => {
+      ev.stopPropagation();
+      l.splice(i, 1);
+      pintarCorrecciones();
+      persistirMarcas(obras[vIdx]);
+    });
+    li.appendChild(x);
+    li.appendChild(document.createTextNode(d.txt));
+    li.addEventListener('click', () => editarCorr(li, d));
+    ol.appendChild(li);
+  });
+}
+
+function editarCorr(li, d){
+  li.innerHTML = '';
+  const ta = document.createElement('textarea');
+  ta.value = d.txt;
+  ta.rows = Math.max(2, Math.ceil(d.txt.length / 38));
+  li.appendChild(ta);
+  ta.focus(); ta.select();
+  let cerrado = false;
+  const cerrar = () => {
+    if(cerrado) return;
+    cerrado = true;
+    d.txt = ta.value.trim();
+    const l = listaCorr();
+    if(!d.txt){ const i = l.indexOf(d); if(i >= 0) l.splice(i, 1); }
+    pintarCorrecciones();
+    persistirMarcas(obras[vIdx]);
+  };
+  ta.addEventListener('keydown', e => {
+    e.stopPropagation();
+    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); cerrar(); }
+    if(e.key === 'Escape'){ e.preventDefault(); cerrar(); }
+  });
+  ta.addEventListener('blur', cerrar);
+}
+
+$('addCorr').addEventListener('click', () => {
+  const d = {x: 0, y: listaCorr().length, tam: 0, txt: ''};
+  listaCorr().push(d);
+  pintarCorrecciones();
+  const ol = $('listaCorr');
+  const li = ol.lastElementChild;
+  if(li) editarCorr(li, d);
+});
+
 function pintarTituloVisor(){
   const o = obras[vIdx];
   if(!o) return;
@@ -819,6 +974,20 @@ async function dibujarPagina(){
   const au = $('repAudio'), vi = $('repVideo');
   au.pause(); vi.pause();
   $('tVisto').textContent = o.visto ? 'Quitar la marca' : 'Marcar como vista';
+
+  if(o.tipo === 'web'){
+    modoMedia(false);
+    modoFicha(true);
+    margen.hidden = true;
+    capaAncla.innerHTML = '';
+    vTotalPag = 1; vPag = 1;
+    $('fichaFrame').srcdoc = await o.blob.text();
+    pintarCorrecciones();
+    $('vPos').textContent = 'Ficha interactiva';
+    $('vAnt').style.display = $('vSig').style.display = obras.length > 1 ? '' : 'none';
+    return;
+  }
+  modoFicha(false);
 
   if(ES_MEDIA(o.tipo)){
     modoMedia(true);
@@ -1497,6 +1666,31 @@ async function componer(){
   return new Promise(res => c.toBlob(res, 'image/png'));
 }
 
+// La ficha corregida sale en html, con los comentarios añadidos al final
+async function componerFicha(o){
+  const original = await o.blob.text();
+  const l = (textos.get(o.clave + ':1') || []).filter(d => d.txt);
+  const filas = l.map((d, i) =>
+    '<li>' + String(d.txt)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>') + '</li>').join('');
+  const bloque =
+    '<div style="max-width:1400px;margin:18px auto;padding:0 18px;' +
+    'font-family:Arial,Helvetica,sans-serif">' +
+    '<div style="background:#FBF7EC;border:1px solid #E2DED4;border-left:5px solid #C8102E;' +
+    'border-radius:12px;padding:16px 20px">' +
+    '<h2 style="margin:0 0 10px;font-size:15px;letter-spacing:.05em;color:#8A3626">' +
+    'CORRECCIÓN DE LA PROFESORA</h2>' +
+    (filas
+      ? '<ol style="margin:0;padding-left:22px;font-size:14px;line-height:1.6;color:#2B2B30">' + filas + '</ol>'
+      : '<p style="margin:0;font-size:14px;color:#6B6B72">Sin comentarios.</p>') +
+    '</div></div>';
+  const salida = original.includes('</body>')
+    ? original.replace('</body>', bloque + '</body>')
+    : original + bloque;
+  return new Blob([salida], {type: 'text/html'});
+}
+
 async function escribirEn(dir, nombre, blob){
   const fh = await dir.getFileHandle(nombre, {create: true});
   const w = await fh.createWritable();
@@ -1516,7 +1710,10 @@ $('btnDestino').addEventListener('click', elegirDestino);
 
 $('tGuardar').addEventListener('click', async () => {
   const o = obras[vIdx];
-  const nombre = nombreSalida(o, vIdx, vPag, vTotalPag);
+  const esFicha = o.tipo === 'web';
+  const nombre = esFicha
+    ? nombreSalida(o, vIdx, 1, 1).replace(/\.png$/, '.html')
+    : nombreSalida(o, vIdx, vPag, vTotalPag);
 
   // El permiso se pide primero, antes de generar la imagen: si media una
   // espera, el navegador da por consumido el clic y deniega la escritura.
@@ -1526,7 +1723,7 @@ $('tGuardar').addEventListener('click', async () => {
     }
   }
   const dir = await carpetaSalida(true);
-  const blob = await componer();
+  const blob = esFicha ? await componerFicha(o) : await componer();
 
   if(dir){
     try{
@@ -1534,7 +1731,8 @@ $('tGuardar').addEventListener('click', async () => {
       let aviso = 'Guardada en «' + CARPETA_SALIDA + '»';
       const dm = await carpetaDeAlumno(o);
       if(dm) aviso += ' y en «' + CARPETA_MOODLE + '»';
-      if(dm) await escribirEn(dm, 'corregida_' + o.archivo.replace(/\.[^.]+$/, '') + '.png', blob);
+      if(dm) await escribirEn(dm, 'corregida_' + o.archivo.replace(/\.[^.]+$/, '') +
+                               (esFicha ? '.html' : '.png'), blob);
       $('vPos').textContent = aviso;
       return;
     }catch(err){
@@ -1547,7 +1745,9 @@ $('tGuardar').addEventListener('click', async () => {
 $('tGuardarTodas').addEventListener('click', async () => {
   const conMarcas = obras
     .map((o, i) => ({o, i}))
-    .filter(({o}) => [...anotaciones.keys()].some(k => k.startsWith(o.clave + ':')));
+    .filter(({o}) => [...anotaciones.keys()].some(k => k.startsWith(o.clave + ':')) ||
+                     [...textos.keys()].some(k => k.startsWith(o.clave + ':') &&
+                                                  (textos.get(k) || []).length));
   if(!conMarcas.length){
     alert('Todavía no has corregido ninguna entrega.');
     return;
@@ -1565,6 +1765,19 @@ $('tGuardarTodas').addEventListener('click', async () => {
       .filter(k => k.startsWith(o.clave + ':'))
       .map(k => +k.slice(o.clave.length + 1))
       .sort((a, b) => a - b);
+    if(!paginas.length) paginas.push(1);
+    if(o.tipo === 'web'){
+      const blob = await componerFicha(o);
+      const nombre = nombreSalida(o, i, 1, 1).replace(/\.png$/, '.html');
+      if(dir){
+        await escribirEn(dir, nombre, blob);
+        const dm = await carpetaDeAlumno(o);
+        if(dm) await escribirEn(dm, 'corregida_' + o.archivo.replace(/\.[^.]+$/, '') + '.html', blob);
+      }else bajarSuelta(nombre, blob);
+      hechas++;
+      mostrarProgreso('Guardando corregidas · ' + hechas, hechas, conMarcas.length);
+      continue;
+    }
     for(const pag of paginas){
       vIdx = i; vPag = pag;
       await dibujarPagina();
