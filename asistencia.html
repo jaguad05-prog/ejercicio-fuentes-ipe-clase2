@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lista de asistencia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Kalam:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --papel: #FBFCFE;
+    --linea: #DCE4F2;
+    --margen: #E0525A;
+    --tinta: #1F3A93;
+    --texto: #1B2033;
+    --suave: #5B647D;
+    --ok: #1E7A4C;
+    --error: #B3261E;
+    --campo: #FFFFFF;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --papel: #141925;
+      --linea: #232B3D;
+      --margen: #C2474F;
+      --tinta: #8FA8F0;
+      --texto: #E8ECF5;
+      --suave: #A2ABC2;
+      --ok: #5FC993;
+      --error: #F2877F;
+      --campo: #1B2130;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+    font-size: 1.0625rem;
+    line-height: 1.5;
+    color: var(--texto);
+    background-color: var(--papel);
+    background-image:
+      linear-gradient(to right, transparent 2.9rem, var(--margen) 2.9rem, var(--margen) 3.05rem, transparent 3.05rem),
+      repeating-linear-gradient(to bottom, transparent 0, transparent 1.95rem, var(--linea) 1.95rem, var(--linea) 2rem);
+  }
+  main {
+    max-width: 30rem;
+    padding: 2.5rem 1.25rem 3rem 4.25rem;
+  }
+  h1 {
+    font-family: "Kalam", "Comic Sans MS", cursive;
+    font-size: 2.6rem;
+    line-height: 1.1;
+    color: var(--tinta);
+    margin: 0 0 .25rem;
+    transform: rotate(-1.5deg);
+    transform-origin: left;
+  }
+  .fecha { color: var(--suave); margin: 0 0 2rem; }
+  label { display: block; font-weight: 700; margin-bottom: .35rem; }
+  .ayuda { font-weight: 400; color: var(--suave); font-size: .9rem; }
+  input, select {
+    width: 100%;
+    font: inherit;
+    color: var(--texto);
+    background: var(--campo);
+    border: 2px solid var(--linea);
+    border-radius: 6px;
+    padding: .7rem .8rem;
+    margin-bottom: 1.4rem;
+  }
+  input:focus, select:focus, button:focus-visible {
+    outline: 3px solid var(--tinta);
+    outline-offset: 2px;
+    border-color: var(--tinta);
+  }
+  #codigo { text-transform: uppercase; letter-spacing: .15em; }
+  button {
+    width: 100%;
+    font: inherit;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #fff;
+    background: var(--tinta);
+    border: 0;
+    border-radius: 6px;
+    padding: .9rem;
+    cursor: pointer;
+  }
+  @media (prefers-color-scheme: dark) { button { color: #0E1320; } }
+  button:disabled { opacity: .6; cursor: wait; }
+  .mensaje { margin-top: 1.2rem; font-weight: 700; min-height: 1.5rem; }
+  .mensaje.error { color: var(--error); }
+  .firmado { display: none; }
+  .firmado.visible { display: block; }
+  .firma {
+    font-family: "Kalam", "Comic Sans MS", cursive;
+    font-size: 2.2rem;
+    color: var(--tinta);
+    margin: 1rem 0 .25rem;
+    transform: rotate(-2deg);
+    transform-origin: left;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .firmado.visible .firma { animation: aparecer .5s ease-out; }
+    @keyframes aparecer { from { opacity: 0; transform: rotate(-2deg) translateX(-.6rem); } }
+  }
+  .check { color: var(--ok); font-weight: 700; }
+  .otro { background: transparent; color: var(--tinta); border: 2px solid var(--tinta); margin-top: 2rem; font-size: 1rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="titulo">Lista de asistencia</h1>
+  <p class="fecha" id="fecha"></p>
+
+  <form id="formulario" novalidate>
+    <label for="grupo">Clase</label>
+    <select id="grupo" name="grupo"></select>
+
+    <label for="nombre">Nombre</label>
+    <input id="nombre" name="nombre" autocomplete="given-name" required>
+
+    <label for="apellidos">Apellidos</label>
+    <input id="apellidos" name="apellidos" autocomplete="family-name" required>
+
+    <label for="codigo">Código de hoy <span class="ayuda">lo dice la profesora en clase</span></label>
+    <input id="codigo" name="codigo" autocomplete="off" inputmode="text" required>
+
+    <button type="submit" id="enviar">Firmar</button>
+    <p class="mensaje" id="mensaje" role="status" aria-live="polite"></p>
+  </form>
+
+  <section class="firmado" id="firmado" aria-live="polite">
+    <p class="check" id="textoOk">Asistencia registrada</p>
+    <p class="firma" id="firmaNombre"></p>
+    <p class="fecha" id="firmaHora"></p>
+    <button type="button" class="otro" id="otro">Firmar otra persona</button>
+  </section>
+</main>
+
+<script>
+  // ===== CONFIGURACIÓN =====
+  const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbzSaReDw37io7mBXV6TsGqO8BbS7bHxA-PSDxFaYTx9CRv7Szh0l9eIiDo_3L6Tvp-NOQ/exec";
+  const TITULO = "Lista de asistencia";
+  // Deben coincidir exactamente con los nombres de CLASES en Apps Script
+  const GRUPOS = ["IPE", "Deportes"];
+  // =========================
+
+  const $ = id => document.getElementById(id);
+  $("titulo").textContent = TITULO;
+  document.title = TITULO;
+  $("fecha").textContent = new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+
+  $("grupo").innerHTML = '<option value="">Elige tu clase</option>' +
+    GRUPOS.map(g => `<option>${g}</option>`).join("");
+
+  try {
+    $("nombre").value = localStorage.getItem("asistencia_nombre") || "";
+    $("apellidos").value = localStorage.getItem("asistencia_apellidos") || "";
+    $("grupo").value = localStorage.getItem("asistencia_grupo") || "";
+  } catch (e) {}
+
+  function aviso(texto) {
+    $("mensaje").textContent = texto;
+    $("mensaje").className = "mensaje error";
+  }
+
+  $("formulario").addEventListener("submit", async ev => {
+    ev.preventDefault();
+    const grupo = $("grupo").value;
+    const nombre = $("nombre").value.trim();
+    const apellidos = $("apellidos").value.trim();
+    const codigo = $("codigo").value.trim().toUpperCase();
+
+    if (!grupo) return aviso("Elige tu clase.");
+    if (!nombre) return aviso("Escribe tu nombre.");
+    if (!apellidos) return aviso("Escribe tus apellidos.");
+    if (!codigo) return aviso("Escribe el código de hoy.");
+
+    $("enviar").disabled = true;
+    $("enviar").textContent = "Enviando…";
+    $("mensaje").textContent = "";
+
+    try {
+      const respuesta = await fetch(URL_SCRIPT, {
+        method: "POST",
+        body: new URLSearchParams({ grupo, nombre, apellidos, codigo })
+      });
+      const datos = await respuesta.json();
+
+      if (!datos.ok) {
+        aviso(datos.error || "No se ha podido registrar, inténtalo otra vez.");
+      } else {
+        try {
+          localStorage.setItem("asistencia_nombre", nombre);
+          localStorage.setItem("asistencia_apellidos", apellidos);
+          localStorage.setItem("asistencia_grupo", grupo);
+        } catch (e) {}
+        $("textoOk").textContent = datos.duplicado ? "Ya habías firmado hoy" : "Asistencia registrada";
+        $("firmaNombre").textContent = datos.nombre;
+        $("firmaHora").textContent = grupo + ", a las " + datos.hora;
+        $("formulario").style.display = "none";
+        $("firmado").classList.add("visible");
+      }
+    } catch (e) {
+      aviso("Sin conexión con la lista, comprueba internet e inténtalo otra vez.");
+    } finally {
+      $("enviar").disabled = false;
+      $("enviar").textContent = "Firmar";
+    }
+  });
+
+  $("otro").addEventListener("click", () => {
+    try {
+      localStorage.removeItem("asistencia_nombre");
+      localStorage.removeItem("asistencia_apellidos");
+    } catch (e) {}
+    $("nombre").value = "";
+    $("apellidos").value = "";
+    $("codigo").value = "";
+    $("firmado").classList.remove("visible");
+    $("formulario").style.display = "";
+    $("nombre").focus();
+  });
+</script>
+</body>
+</html>
