@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Estantería de entregas v18</title>
+<title>Estantería de entregas v19</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
@@ -290,7 +290,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v18</span></h1>
+  <h1>Estantería de entregas <span class="version">v19</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -396,8 +396,8 @@
   </div>
   <div class="herramientas">
     <button class="fantasma activo" data-tool="mano">Mover</button>
-    <button class="fantasma" data-tool="lapiz">Lápiz</button>
-    <button class="fantasma" data-tool="subrayar">Subrayar</button>
+    <button class="fantasma" data-tool="lapiz" title="Arrastra para pintar, y pincha sin arrastrar para abrir un comentario numerado">Lápiz</button>
+    <button class="fantasma" data-tool="subrayar" title="Arrastra para subrayar, y pincha sin arrastrar para abrir un comentario numerado">Subrayar</button>
     <button class="fantasma" data-tool="tapar" title="Arrastra sobre el nombre para taparlo, o pincha encima para poner una banda">Tapar nombre</button>
     <button class="fantasma" data-tool="texto" title="Pincha en el punto que quieras comentar y escribe al margen">Nota al margen</button>
     <span class="sep"></span>
@@ -1296,8 +1296,8 @@ anot.addEventListener('pointerdown', ev => {
   }
   anot.setPointerCapture(ev.pointerId);
   pintando = true; x0 = p.x; y0 = p.y;
+  instantanea = ctxA.getImageData(0, 0, anot.width, anot.height);
   if(herramienta === 'tapar'){
-    instantanea = ctxA.getImageData(0, 0, anot.width, anot.height);
   }else{
     ctxA.beginPath();
     ctxA.moveTo(p.x, p.y);
@@ -1331,6 +1331,16 @@ anot.addEventListener('pointerup', ev => {
   if(!pintando) return;
   pintando = false;
   ctxA.globalAlpha = 1;
+  // Con el lapiz y el subrayador, un clic sin arrastrar abre el comentario numerado
+  if(herramienta === 'lapiz' || herramienta === 'subrayar'){
+    const q = puntoEn(ev);
+    if(Math.abs(q.x - x0) < 8 && Math.abs(q.y - y0) < 8){
+      if(instantanea) ctxA.putImageData(instantanea, 0, 0);
+      guardarAnotacion();
+      ponerTexto(ev, q);
+      return;
+    }
+  }
   // Con la herramienta de tapar, un clic sin arrastrar pone una banda por defecto
   if(herramienta === 'tapar'){
     const p = puntoEn(ev);
