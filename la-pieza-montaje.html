@@ -1,0 +1,1992 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Pieza · Montaje de televisión · Periodismo Deportivo</title>
+<style>
+  :root{
+    --red:#C8102E;--dark:#1B1B1F;--ink:#2B2B30;--bg:#F5F5F7;--tint:#FBF1F2;
+    --gold:#E8B54A;--muted:#6B6B72;--border:#D8D8DC;--green:#1E7A45;--azul:#1D6FB8;
+    --sans:Arial,Helvetica,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink)}
+
+  .topbar{background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:space-between;
+    padding:10px 16px;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:30}
+  .brand-title{font-size:14px;font-weight:700;letter-spacing:.03em}
+  .brand-sub{font-size:10px;color:var(--gold);letter-spacing:.06em}
+  .tbtn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#fff;
+    padding:6px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600}
+  .tbtn:hover{background:rgba(255,255,255,.24)}
+  .tbtn.oro{background:var(--gold);color:var(--dark);border-color:var(--gold);font-weight:700}
+  .tbtn:disabled{opacity:.4;cursor:default}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:14px}
+
+  /* ------------------------------------------------------- videoteca */
+  .videoteca{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden}
+  .vt-head{background:var(--dark);color:#fff;padding:8px 13px;font-size:11px;font-weight:700;
+    letter-spacing:.06em;display:flex;justify-content:space-between;align-items:center}
+  .vt-head span{color:var(--gold)}
+  .vt-body{padding:12px 13px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .clip{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 10px;
+    font-size:11.5px;display:flex;align-items:center;gap:8px}
+  .clip b{font-weight:700}
+  .clip small{color:var(--muted)}
+  .clip .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px}
+  .vt-vacia{font-size:12.5px;color:var(--muted);font-style:italic}
+  .guardado{font-size:10.5px;color:#8FE0B0;letter-spacing:.05em}
+  .guardado.mal{color:var(--gold)}
+  .barra-rest{background:var(--dark);color:#fff;border-radius:12px;padding:13px 16px;margin-bottom:14px;
+    display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:13.5px}
+  .musica{background:#fff;border:1px solid var(--border);border-radius:12px;padding:11px 13px;
+    margin-bottom:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .musica .et{font-size:10px;letter-spacing:.09em;color:var(--muted)}
+  .musica select{border:1.5px solid var(--border);border-radius:7px;padding:6px 9px;
+    font-size:12.5px;font-family:inherit;background:#fff}
+  .musica input[type=range]{width:150px}
+  .musica .val{font-size:12px;font-weight:700;width:38px;text-align:right;font-variant-numeric:tabular-nums}
+  .musica .vacia{font-size:12.5px;color:var(--muted);font-style:italic}
+  .son-sel{font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid var(--border);
+    font-family:inherit;background:#fff}
+  .vt-error{width:100%;background:var(--tint);border-left:3px solid var(--red);border-radius:6px;
+    padding:8px 11px;font-size:12px;line-height:1.45;color:var(--ink)}
+
+  /* -------------------------------------------------------- escaleta */
+  .esc-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px;gap:12px}
+  .esc-head h2{font-size:13px;letter-spacing:.07em;color:var(--red)}
+  .total-dur{font-size:12px;color:var(--muted)}
+  .total-dur b{font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums}
+
+  .bloque{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:11px;
+    overflow:hidden;border-left:4px solid var(--azul)}
+  .bloque.total{border-left-color:var(--red)}
+  .b-head{display:flex;align-items:center;gap:9px;padding:8px 12px;background:#FAFAFB;
+    border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .b-num{width:21px;height:21px;border-radius:50%;background:var(--dark);color:#fff;font-size:11px;
+    font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .b-tipo{font-size:11px;font-weight:700;letter-spacing:.07em;color:var(--azul)}
+  .bloque.total .b-tipo{color:var(--red)}
+  .b-tipo-sel{font-size:11px;padding:3px 7px;border-radius:6px;border:1px solid var(--border);
+    font-family:inherit;background:#fff}
+  .b-dur{margin-left:auto;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+  .b-acc{display:flex;gap:4px}
+  .mini-btn{background:#fff;border:1px solid var(--border);border-radius:6px;padding:3px 8px;
+    font-size:12px;cursor:pointer;font-family:inherit;color:var(--muted)}
+  .mini-btn:hover{border-color:var(--dark);color:var(--dark)}
+
+  .b-body{padding:12px;display:grid;grid-template-columns:320px 1fr;gap:14px}
+  @media(max-width:860px){.b-body{grid-template-columns:1fr}}
+
+  .b-video{width:100%;background:#000;border-radius:8px;display:block;aspect-ratio:16/9}
+  .marcas{display:flex;gap:6px;margin-top:7px;align-items:center;flex-wrap:wrap}
+  .marca-btn{background:var(--dark);color:#fff;border:0;border-radius:6px;padding:4px 8px;
+    font-size:10.5px;cursor:pointer;font-family:inherit;font-weight:700}
+  .marca-val{font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted)}
+  .campo{width:100%;border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;
+    font-size:13px;font-family:inherit;color:var(--ink);resize:vertical;line-height:1.45}
+  .campo:focus{outline:none;border-color:var(--red)}
+  .campo-sel{width:100%;border:1.5px solid var(--border);border-radius:7px;padding:7px 9px;
+    font-size:12.5px;font-family:inherit;background:#fff}
+  .fila{display:flex;gap:8px;flex-wrap:wrap}
+  .fila>*{flex:1;min-width:120px}
+  .etq{font-size:10px;letter-spacing:.09em;color:var(--muted);margin-bottom:4px;display:block}
+  .contador{font-size:10.5px;color:var(--muted);text-align:right;margin-top:3px}
+  .contador.mal{color:var(--red);font-weight:700}
+  .contador.bien{color:var(--green);font-weight:700}
+  .aviso-loc{font-size:11px;color:var(--red);font-weight:700;margin-top:5px}
+  .loc-caja{margin-top:9px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 10px}
+  .loc-fila{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+  .loc-btn{background:var(--red);color:#fff;border:0;border-radius:6px;padding:6px 12px;
+    font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit}
+  .loc-btn.grabando{background:var(--dark)}
+  .loc-est{font-size:11px;color:var(--muted)}
+  .loc-est b{color:var(--green)}
+  .loc-est.sin b{color:var(--red)}
+  .loc-caja audio{width:100%;height:32px;margin-top:7px}
+  .rot-caja{margin-top:10px;border:1px solid var(--border);border-radius:8px;padding:9px 10px;background:#fff}
+  .rot-cab{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap}
+  .rot-fila{display:flex;gap:5px;flex-wrap:wrap;align-items:center;padding:6px 0;border-top:1px solid var(--border)}
+  .rot-in{flex:1;min-width:110px;border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;
+    font-size:12px;font-family:inherit}
+  .rot-in:focus{outline:none;border-color:var(--red)}
+  .rot-tiempos{display:flex;gap:3px;align-items:center}
+  .rot-t{background:var(--dark);color:#fff;border:0;border-radius:5px;padding:4px 6px;
+    font-size:9.5px;cursor:pointer;font-family:inherit;font-weight:700;white-space:nowrap}
+  .rot-num{width:52px;border:1.5px solid var(--border);border-radius:5px;padding:4px 5px;
+    font-size:11px;font-family:inherit;text-align:center}
+  .rot-vacio{font-size:11.5px;color:var(--muted);font-style:italic;padding-top:3px}
+  .cabina{position:fixed;inset:0;background:#0B0E1A;z-index:70;display:none;
+    flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:18px}
+  .cabina.on{display:flex}
+  .cab-video{width:min(96vw,1180px);max-height:62vh;background:#000;border-radius:6px;object-fit:contain}
+  .cab-panel{width:min(96vw,1180px);display:flex;flex-direction:column;gap:11px;align-items:center}
+  .cab-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .cab-btn{background:#232A45;border:1px solid #3A4265;color:#fff;border-radius:8px;
+    padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+  .cab-btn:hover{background:#2E3757}
+  .cab-btn.rojo{background:var(--red);border-color:var(--red)}
+  .cab-btn.oro{background:var(--gold);border-color:var(--gold);color:var(--dark)}
+  .cab-marcas{color:#9AA2C0;font-size:13px;font-variant-numeric:tabular-nums}
+  .cab-marcas b{color:#fff}
+  .cab-texto{width:100%;max-height:22vh;overflow-y:auto;background:rgba(255,255,255,.06);
+    border-radius:8px;padding:14px 18px;color:#fff;font-size:clamp(15px,2.1vw,25px);
+    line-height:1.5;text-align:center}
+  .cab-texto.vacio{color:#6B7396;font-style:italic;font-size:15px}
+  .cuenta{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;
+    color:#fff;font-size:22vh;font-weight:200;text-shadow:0 4px 30px rgba(0,0,0,.7);pointer-events:none}
+  .cuenta.on{display:flex}
+  .cab-rec{position:absolute;top:20px;right:24px;display:none;align-items:center;gap:9px;
+    background:rgba(0,0,0,.55);padding:8px 14px;border-radius:9px;color:#fff}
+  .cab-rec.on{display:flex}
+  .cab-rec .punto{width:11px;height:11px;border-radius:50%;background:var(--red);
+    animation:lat 1s infinite}
+  @keyframes lat{50%{opacity:.25}}
+  .cab-rec .resta{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+  #cabRotulo{position:absolute;left:5%;bottom:9%}
+  .cab-cerrar{position:absolute;top:20px;left:24px;background:rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.28);color:#fff;padding:7px 14px;border-radius:8px;
+    font-size:13px;cursor:pointer;font-family:inherit}
+  .exp-panel{position:fixed;inset:0;background:rgba(17,24,52,.96);z-index:60;display:none;
+    flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#fff;text-align:center;padding:26px}
+  .exp-panel.on{display:flex}
+  .exp-panel h2{font-size:26px;font-weight:400}
+  .exp-panel p{color:#9A9AA2;font-size:13.5px;max-width:440px;line-height:1.55}
+  .exp-barra{width:min(440px,80vw);height:6px;background:rgba(255,255,255,.2);border-radius:3px;overflow:hidden}
+  .exp-prog{height:100%;background:var(--gold);width:0;transition:width .3s linear}
+
+  .add-row{display:flex;gap:8px;margin:14px 0 30px;flex-wrap:wrap}
+  .add-btn{border:1.5px dashed var(--border);background:#fff;border-radius:10px;padding:11px 16px;
+    font-size:12.5px;font-family:inherit;cursor:pointer;font-weight:700;color:var(--ink)}
+  .add-btn:hover{border-color:var(--red);color:var(--red)}
+  .add-btn.cola:hover{border-color:var(--azul);color:var(--azul)}
+
+  /* --------------------------------------------------------- emisión */
+  .emision{position:fixed;inset:0;background:#000;z-index:50;display:none;
+    flex-direction:column;align-items:center;justify-content:center}
+  .emision.on{display:flex}
+  .em-stage{position:relative;width:100%;height:100vh;background:#000;flex:0 0 auto;overflow:hidden}
+  .emv{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;opacity:0}
+  .emv.vivo{opacity:1;z-index:2}
+  .em-stage .rotulo{z-index:5}
+  .rotulo{position:absolute;left:5%;bottom:12%;background:rgba(200,16,46,.94);color:#fff;
+    padding:9px 17px;border-radius:3px;opacity:0;transform:translateY(9px);
+    transition:opacity .35s,transform .35s;max-width:70%}
+  .rotulo.on{opacity:1;transform:none}
+  .rotulo .rn{font-size:clamp(15px,2.4vw,27px);font-weight:700;line-height:1.1}
+  .rotulo .rc{font-size:clamp(10px,1.2vw,14px);opacity:.9;margin-top:2px;letter-spacing:.05em}
+  .em-barra{position:absolute;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,.15)}
+  .em-prog{height:100%;background:var(--red);width:0;transition:width .25s linear}
+  .em-info{position:absolute;top:14px;right:16px;color:#fff;font-size:11px;letter-spacing:.08em;
+    background:rgba(0,0,0,.5);padding:5px 10px;border-radius:6px;z-index:6}
+  .em-salir{position:absolute;top:14px;left:16px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+    color:#fff;padding:6px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;z-index:6}
+  .emision.estudio{justify-content:flex-start;padding-top:46px;overflow-y:auto}
+  .emision.estudio .em-stage{height:46vh;width:min(100%,calc(46vh*16/9))}
+  .estudio-panel{width:min(98vw,1400px);display:flex;flex-direction:column;gap:9px;
+    background:rgba(255,255,255,.05);border-radius:12px;padding:12px 14px;margin-top:10px}
+  .est-fila{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .est-et{font-size:10px;letter-spacing:.11em;color:#9AA2C0;font-weight:700}
+  .est-t{color:#fff;font-size:14px;font-variant-numeric:tabular-nums}
+  .est-t b{font-size:18px}
+  .est-nota{font-size:11.5px;color:#E8B54A}
+  .est-in{border:1px solid #3A4265;background:#1A2038;color:#fff;border-radius:7px;
+    padding:7px 10px;font-size:12.5px;font-family:inherit;min-width:130px;flex:1}
+  .est-linea{height:92px;background:#151B33;border-radius:7px;position:relative;overflow:hidden;
+    cursor:ew-resize;touch-action:none;user-select:none;-webkit-user-select:none}
+  .est-blq{position:absolute;top:0;height:36px;border-right:1px solid #0B0E1A;overflow:hidden;white-space:nowrap;
+    display:flex;align-items:center;justify-content:center;font-size:10px;color:#C4CBE6;letter-spacing:.06em}
+  .est-blq.total{background:#4A2029}
+  .est-blq.cola{background:#233058}
+  .est-lane{position:absolute;left:0;right:0;height:15px;background:rgba(255,255,255,.045)}
+  .est-lane.rot{top:41px}
+  .est-lane.mus{top:60px}
+  .est-lane i{position:absolute;left:6px;top:2px;font-size:8.5px;font-style:normal;color:#5F6A92;letter-spacing:.12em}
+  .est-mus{position:absolute;top:60px;height:15px;background:#E8B54A;opacity:.9;border-radius:2px}
+  .est-rot{position:absolute;top:41px;height:15px;background:var(--red);border-radius:2px}
+  .est-tick{position:absolute;bottom:0;height:13px;border-left:1px solid #3A4265;font-size:9px;color:#7C87AD;padding-left:3px}
+  .est-aguja{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;z-index:3;pointer-events:none}
+  .est-ahora{font-size:12.5px;color:#DDE3F7;background:rgba(255,255,255,.06);border-radius:7px;padding:7px 11px}
+  .est-ayuda{font-size:10.5px;color:#6F7AA3}
+  .chip a{color:#fff;cursor:pointer}
+  .chip a:hover{text-decoration:underline}
+  .est-chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{background:rgba(255,255,255,.1);border-radius:20px;padding:4px 10px;font-size:11px;color:#fff;
+    display:flex;align-items:center;gap:7px}
+  .chip.mus{border:1px solid #E8B54A}
+  .chip.rot{border:1px solid var(--red)}
+  .chip button{background:none;border:0;color:#9AA2C0;cursor:pointer;font-size:12px;padding:0}
+  .em-fin{color:#fff;text-align:center}
+  .em-fin h2{font-size:30px;font-weight:400;margin-bottom:8px}
+  .em-fin p{color:#9A9AA2;font-size:14px;margin-bottom:20px}
+
+  /* ------------------------------------------------------ estantería */
+  .estanteria{background:linear-gradient(#EDEDF0,#E4E4E8);border:1px solid var(--border);border-radius:12px;
+    padding:12px 12px 0;margin-bottom:16px;display:flex;gap:12px;overflow-x:auto;align-items:flex-start;
+    min-height:60px}
+  .sh-card{flex:0 0 176px;background:#fff;border:1px solid var(--border);border-radius:9px;
+    border-bottom:5px solid var(--azul);margin-bottom:12px;cursor:grab;position:relative;
+    box-shadow:0 3px 0 rgba(0,0,0,.08)}
+  .sh-card.total{border-bottom-color:var(--red)}
+  .sh-card.sinvoz{border-style:dashed;border-bottom-style:solid}
+  .sh-card.arrastrando{opacity:.4}
+  .sh-card.drop-antes::before,.sh-card.drop-despues::after{content:"";position:absolute;top:-4px;bottom:-4px;
+    width:4px;background:var(--gold);border-radius:2px}
+  .sh-card.drop-antes::before{left:-8px}
+  .sh-card.drop-despues::after{right:-8px}
+  .sh-img{position:relative;aspect-ratio:16/9;background:#111;border-radius:8px 8px 0 0;overflow:hidden;cursor:pointer}
+  .sh-img img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+  .sh-noimg{width:100%;height:100%;background:repeating-linear-gradient(45deg,#1b1b1f,#1b1b1f 8px,#25252b 8px,#25252b 16px)}
+  .sh-num{position:absolute;top:5px;left:5px;width:20px;height:20px;border-radius:50%;background:var(--dark);
+    color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .sh-tipo{position:absolute;top:5px;right:5px;background:var(--azul);color:#fff;font-size:9px;font-weight:700;
+    letter-spacing:.07em;padding:2px 6px;border-radius:4px}
+  .sh-card.total .sh-tipo{background:var(--red)}
+  .sh-dur{position:absolute;bottom:5px;right:5px;background:rgba(0,0,0,.7);color:#fff;font-size:11px;
+    font-weight:700;padding:1px 6px;border-radius:4px;font-variant-numeric:tabular-nums}
+  .sh-nom{font-size:11.5px;font-weight:700;padding:6px 8px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sh-voz{font-size:10.5px;color:var(--muted);padding:1px 8px 0}
+  .sh-card.sinvoz .sh-voz{color:var(--red);font-weight:700}
+  .sh-acc{display:flex;gap:3px;padding:6px 8px 8px}
+  .sh-acc .mini-btn{padding:2px 7px;font-size:11px}
+  .sh-acc .mini-btn:disabled{opacity:.35;cursor:default}
+  .sh-acc .mini-btn:last-child{margin-left:auto}
+  .sh-vacia{font-size:12.5px;color:var(--muted);font-style:italic;padding:10px 4px 22px}
+  .bloque.destello{animation:destello 1.2s}
+  @keyframes destello{0%,60%{box-shadow:0 0 0 3px var(--gold)}100%{box-shadow:0 0 0 0 transparent}}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--dark);color:#fff;
+    padding:10px 16px;border-radius:9px;font-size:13px;z-index:95;display:none;align-items:center;gap:14px;
+    box-shadow:0 6px 24px rgba(0,0,0,.35)}
+  .toast.on{display:flex}
+  .toast button{background:var(--gold);border:0;border-radius:6px;padding:4px 10px;font-weight:700;
+    cursor:pointer;font-family:inherit;font-size:12px}
+  .cab-oir{font-size:12px;color:#9AA2C0;display:flex;align-items:center;gap:6px}
+
+  .vacio-esc{background:#fff;border:1.5px dashed var(--border);border-radius:12px;padding:30px 20px;
+    text-align:center;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="brand-title">LA PIEZA</div>
+    <div class="brand-sub">MONTAJE DE TELEVISIÓN · PERIODISMO DEPORTIVO</div>
+  </div>
+  <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">
+    <input type="file" id="fileVideos" accept="video/*" multiple style="display:none" onchange="cargarVideos(this)">
+    <button class="tbtn" onclick="document.getElementById('fileVideos').click()">＋ Subir vídeos</button>
+    <input type="file" id="fileMusica" accept="audio/*" multiple style="display:none" onchange="cargarMusica(this)">
+    <button class="tbtn" onclick="document.getElementById('fileMusica').click()">♪ Subir música</button>
+    <button class="tbtn oro" id="btnEmitir" onclick="emitir()">▶ Emitir pieza</button>
+    <button class="tbtn" id="btnEstudio" onclick="abrirEstudio()">🎬 Pieza entera</button>
+    <button class="tbtn" id="btnExportar" onclick="exportar()">⬇ Descargar vídeo</button>
+    <button class="tbtn" onclick="nuevoProyecto()">↺ Nuevo proyecto</button>
+    <span class="guardado" id="estadoGuardado"></span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="barra-rest" id="barraRestaurar" style="display:none">
+    <span id="restTexto"></span>
+    <div style="display:flex;gap:8px">
+      <button class="cab-btn oro" style="padding:7px 14px;font-size:12px" onclick="restaurarGuardado()">Continuar donde lo dejé</button>
+      <button class="cab-btn" style="padding:7px 14px;font-size:12px" onclick="empezarDeCero()">Empezar de cero</button>
+    </div>
+  </div>
+
+  <div class="videoteca">
+    <div class="vt-head"><span>VIDEOTECA</span><span id="vtCount"></span></div>
+    <div class="vt-body" id="vtBody">
+      <div class="vt-vacia">Subid vuestros vídeos. Un mismo clip se puede usar en varios bloques,
+        recortado en tramos distintos.</div>
+    </div>
+  </div>
+
+  <div class="musica" id="musicaPanel"></div>
+
+  <div class="esc-head">
+    <h2>ESTANTERÍA · vuestros bloques, en el orden de la pieza</h2>
+    <div class="total-dur" id="shCount"></div>
+  </div>
+  <div class="estanteria" id="estanteria"></div>
+
+  <div class="esc-head">
+    <h2>ESCALETA</h2>
+    <div class="total-dur">Duración total: <b id="durTotal">0:00</b></div>
+  </div>
+
+  <div id="escaleta"></div>
+
+  <div class="add-row">
+    <button class="add-btn cola" onclick="addBloque('cola')">＋ Añadir COLA · imágenes locutadas</button>
+    <button class="add-btn" onclick="addBloque('total')">＋ Añadir TOTAL · declaración</button>
+  </div>
+
+</div>
+
+<div class="cabina" id="cabina">
+  <button class="cab-cerrar" onclick="cerrarCabina()">✕ Cerrar</button>
+  <div class="cab-rec" id="cabRec"><span class="punto"></span><span class="resta" id="cabResta">0</span></div>
+  <div style="position:relative;width:min(96vw,1180px)">
+    <video class="cab-video" id="cabVideo" playsinline style="width:100%"></video>
+    <div class="rotulo" id="cabRotulo"><div class="rn" id="cabRotNom"></div><div class="rc" id="cabRotCar"></div></div>
+  </div>
+  <audio id="cabLoc"></audio>
+  <div class="cab-panel" id="cabPanel"></div>
+</div>
+<div class="cuenta" id="cuenta"></div>
+<div class="toast" id="toast"><span id="toastTxt"></span><button id="toastBtn"></button></div>
+
+<canvas id="lienzo" width="1280" height="720" style="display:none"></canvas>
+
+<div class="exp-panel" id="expPanel">
+  <h2 id="expTit">Generando el vídeo…</h2>
+  <p id="expTxt">El navegador solo puede grabar en tiempo real: la pieza se está reproduciendo y
+    grabando a la vez. No cierres esta pestaña.</p>
+  <div class="exp-barra"><div class="exp-prog" id="expProg"></div></div>
+  <button class="tbtn" id="expCerrar" onclick="cerrarExport()" style="display:none">Cerrar</button>
+</div>
+
+<!-- ============================================== EMISIÓN -->
+<div class="emision" id="emision">
+  <div class="em-barra"><div class="em-prog" id="emProg"></div></div>
+  <button class="em-salir" onclick="modoEmision==='estudio'?cerrarEstudio():pararEmision()">✕ Salir</button>
+  <div class="em-info" id="emInfo"></div>
+  <div class="em-stage" id="emStage">
+    <video class="emv" id="emVidA" playsinline preload="auto"></video>
+    <video class="emv" id="emVidB" playsinline preload="auto"></video>
+    <div class="rotulo" id="emRotulo"><div class="rn" id="emRotNom"></div><div class="rc" id="emRotCar"></div></div>
+  </div>
+  <audio id="emLocA"></audio>
+  <audio id="emLocB"></audio>
+  <audio id="emMus"></audio>
+  <audio id="emLocP"></audio>
+  <div class="estudio-panel" id="estudioPanel" style="display:none">
+    <div class="est-linea" id="estLinea"></div>
+    <div class="est-fila">
+      <button class="cab-btn" onclick="saltarA(0)" title="Al principio">⏮</button>
+      <button class="cab-btn" onclick="saltarA(tiempoGlobal-5)">−5 s</button>
+      <button class="cab-btn oro" id="estPlay" onclick="estudioPlay()">▶ Reproducir</button>
+      <button class="cab-btn" onclick="saltarA(tiempoGlobal+5)">+5 s</button>
+      <span class="est-t"><b id="estT">0:00.0</b> / <span id="estDur">0:00</span></span>
+      <button class="cab-btn rojo" id="estLocutar" onclick="locutarPieza()">🎙 Locutar la pieza entera</button>
+      <span class="est-nota" id="estLocEstado"></span>
+    </div>
+    <div class="est-ahora" id="estAhora"></div>
+    <div class="est-fila">
+      <span class="est-et">MÚSICA</span>
+      <button class="cab-btn" onclick="marcarMus('desde')">▼ entra aquí</button>
+      <button class="cab-btn" onclick="marcarMus('hasta')">▲ sale aquí</button>
+      <span class="est-et">RÓTULO</span>
+      <input class="est-in" id="estRotL1" placeholder="Texto del rótulo">
+      <input class="est-in" id="estRotL2" placeholder="Segunda línea">
+      <button class="cab-btn" onclick="marcarRotEstudio('desde')">▼ entra aquí</button>
+      <button class="cab-btn" onclick="marcarRotEstudio('hasta')">▲ sale aquí</button>
+    </div>
+    <div class="est-chips" id="estChips"></div>
+    <div class="est-ayuda">Pincha o arrastra sobre la línea para moverte por la pieza. Espacio reproduce y pausa, las flechas saltan 1 s (con Mayús, 5 s).</div>
+  </div>
+
+  <div class="em-fin" id="emFin" style="display:none">
+    <h2>Fin de la pieza</h2>
+    <p id="emFinDur"></p>
+    <button class="tbtn oro" onclick="emitir()">▶ Volver a emitir</button>
+    <button class="tbtn" onclick="pararEmision()">Salir</button>
+  </div>
+</div>
+
+<script>
+let clips = [];        // {id, nombre, url, dur}
+let musicas = [];      // {id, nombre, url}
+let musicaSel = '', musicaVol = 0.18;
+let musicaTramos = [];          // {desde, hasta, vol, musId}  — tiempos de la pieza entera
+let piezaLocURL = null, piezaLocBlob = null, piezaLocDur = 0;
+let modoEmision = 'pase';       // 'pase' | 'estudio'
+let tiempoGlobal = 0;
+let musTramoActual = -1;
+let fallidos = [];
+let bloques = [];      // {id, tipo, clipId, ini, fin, texto, rotulos[], locURL, locDur}
+                       // rotulo: {l1, l2, desde, hasta}  — segundos relativos al inicio del bloque
+let idc = 0, idb = 0;
+const AMBIENTE = 0.35;      // volumen del sonido ambiente bajo la locución
+const PRE = 0.12;           // segundos que el vídeo entrante rueda antes del corte
+const FUNDIDO = 0.03;       // fundido cruzado del sonido en cada corte
+const esc = x => String(x ?? '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const fmtd = s => { if(!isFinite(s) || s < 0) s = 0; const m = Math.floor(s/60), x = s % 60;
+  return m + ':' + (x < 10 ? '0' : '') + x.toFixed(1); };
+
+const fmt = s => {
+  if(!isFinite(s) || s < 0) s = 0;
+  const m = Math.floor(s/60), x = Math.round(s%60);
+  return m + ':' + String(x).padStart(2,'0');
+};
+
+// ==================================================== VIDEOTECA
+function cargarVideos(input){
+  [...input.files].forEach(f => {
+    const url = URL.createObjectURL(f);
+    const v = document.createElement('video');
+    v.preload = 'metadata';
+    v.onloadedmetadata = () => {
+      clips.push({id:++idc, nombre:f.name.replace(/\.[^.]+$/,''), url, dur:v.duration, blob:f});
+      pintarVideoteca(); pintarEscaleta(); guardarPronto();
+    };
+    v.onerror = () => { fallidos.push(f.name); pintarVideoteca(); };
+    v.src = url;
+  });
+  input.value = '';
+}
+
+function cargarMusica(input){
+  [...input.files].forEach(f => {
+    const url = URL.createObjectURL(f);
+    musicas.push({id:'m'+(++idc), nombre:f.name.replace(/\.[^.]+$/,''), url, blob:f});
+    if(!musicaSel) musicaSel = musicas[musicas.length-1].id;
+  });
+  input.value = '';
+  pintarMusica(); guardarPronto();
+}
+
+function pintarMusica(){
+  const el = document.getElementById('musicaPanel');
+  if(!musicas.length){
+    el.innerHTML = '<span class="vacia">Sin música. Podéis subir una pista para que suene por debajo ' +
+      'de toda la pieza — con la voz por encima, como en televisión.</span>';
+    return;
+  }
+  el.innerHTML = `
+    <span class="et">MÚSICA DE FONDO</span>
+    <select onchange="musicaSel=this.value">
+      <option value="">— sin música —</option>
+      ${musicas.map(m => `<option value="${m.id}" ${m.id===musicaSel?'selected':''}>${m.nombre}</option>`).join('')}
+    </select>
+    <span class="et">VOLUMEN</span>
+    <input type="range" min="0" max="60" value="${Math.round(musicaVol*100)}"
+      oninput="musicaVol=this.value/100; document.getElementById('musVal').textContent=this.value+'%'">
+    <span class="val" id="musVal">${Math.round(musicaVol*100)}%</span>
+    <span class="et">Suena bajo toda la pieza y se apaga al final</span>`;
+}
+
+function pintarVideoteca(){
+  const b = document.getElementById('vtBody');
+  document.getElementById('vtCount').textContent = clips.length ? clips.length + ' CLIPS' : '';
+  const aviso = fallidos.length
+    ? `<div class="vt-error">Este navegador no puede abrir: <b>${fallidos.join(', ')}</b>.
+        Probad a convertirlos a MP4 o a subirlos desde otro navegador.</div>` : '';
+  if(!clips.length){
+    b.innerHTML = aviso + '<div class="vt-vacia">Subid vuestros vídeos. Un mismo clip se puede usar en ' +
+                  'varios bloques, recortado en tramos distintos.</div>';
+    return;
+  }
+  b.innerHTML = clips.map(c => `
+    <div class="clip"><b>${c.nombre}</b><small>${fmt(c.dur)}</small>
+      <button class="x" onclick="quitarClip(${c.id})" title="Quitar">✕</button></div>`).join('') + aviso;
+}
+
+function quitarClip(id){
+  clips = clips.filter(c => c.id !== id);
+  bloques.forEach(b => { if(b.clipId === id) b.clipId = null; });
+  pintarVideoteca(); pintarEscaleta();
+}
+
+// ==================================================== ESCALETA
+function addBloque(tipo){
+  bloques.push({id:++idb, tipo, clipId: clips[0]?.id ?? null, ini:0, fin:null,
+                texto:'', rotulos:[], locURL:null, locDur:0,
+                vol: (tipo === 'cola' ? AMBIENTE : 1)});
+  pintarEscaleta();
+}
+let papelera = null, toastT = null;
+function avisar(txt, boton, fn){
+  const t = document.getElementById('toast'), b = document.getElementById('toastBtn');
+  document.getElementById('toastTxt').textContent = txt;
+  b.style.display = boton ? '' : 'none'; b.textContent = boton || '';
+  b.onclick = () => { t.classList.remove('on'); if(fn) fn(); };
+  t.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 8000);
+}
+function borrarBloque(i){
+  const b = bloques[i];
+  if(b.locURL && !confirm('Este bloque tiene una locución grabada. ¿Lo quitamos?')) return;
+  papelera = {b, i};
+  bloques.splice(i,1);
+  pintarEscaleta();
+  avisar('Bloque ' + (i+1) + ' quitado', 'Deshacer', () => {
+    if(!papelera) return;
+    bloques.splice(Math.min(papelera.i, bloques.length), 0, papelera.b);
+    papelera = null; pintarEscaleta();
+  });
+}
+function moverBloque(i,d){
+  const j = i + d;
+  if(j < 0 || j >= bloques.length) return;
+  [bloques[i], bloques[j]] = [bloques[j], bloques[i]];
+  pintarEscaleta();
+}
+function setTipo(i,v){
+  bloques[i].tipo = v;
+  bloques[i].vol = (v === 'cola' ? AMBIENTE : 1);   // el sonido por defecto cambia con el tipo
+  pintarEscaleta();
+}
+function setVol(i,v){ bloques[i].vol = parseFloat(v); pintarEscaleta(); }
+function setClip(i,v){
+  bloques[i].clipId = +v || null;
+  bloques[i].ini = 0; bloques[i].fin = null;
+  pintarEscaleta();
+}
+
+function durBloque(b){
+  const c = clips.find(x => x.id === b.clipId);
+  if(!c) return 0;
+  return Math.max(0, (b.fin ?? c.dur) - b.ini);
+}
+function durTotalPieza(){ return bloques.filter(b=>b.clipId).reduce((s,b) => s + durBloque(b), 0); }
+
+function marcar(i, cual){
+  const v = document.getElementById('v'+bloques[i].id);
+  if(!v) return;
+  if(cual === 'ini'){
+    bloques[i].ini = v.currentTime;
+    if(bloques[i].fin !== null && bloques[i].fin <= bloques[i].ini) bloques[i].fin = null;
+  } else {
+    bloques[i].fin = v.currentTime;
+    if(bloques[i].fin <= bloques[i].ini) bloques[i].ini = 0;
+  }
+  pintarEscaleta();
+}
+function verTramo(i){
+  const b = bloques[i];
+  const v = document.getElementById('v'+b.id);
+  const c = clips.find(x => x.id === b.clipId);
+  if(!v || !c) return;
+  const fin = b.fin ?? c.dur;
+  v.currentTime = b.ini; v.play();
+  const t = setInterval(() => {
+    if(v.currentTime >= fin || v.paused){ v.pause(); clearInterval(t); }
+  }, 60);
+}
+
+// ==================================================== RÓTULOS
+function addRotulo(i, quienHabla){
+  const b = bloques[i];
+  const d = durBloque(b);
+  b.rotulos.push(quienHabla
+    ? {l1:'', l2:'', desde:0.5, hasta:Math.min(5, d)}
+    : {l1:'', l2:'', desde:0, hasta:Math.min(4, d)});
+  pintarEscaleta();
+}
+function delRotulo(i, j){ bloques[i].rotulos.splice(j,1); pintarEscaleta(); }
+function setRot(i, j, campo, valor){
+  const r = bloques[i].rotulos[j];
+  r[campo] = (campo === 'desde' || campo === 'hasta') ? Math.max(0, parseFloat(valor)||0) : valor;
+}
+function marcarRot(i, j, campo){
+  const b = bloques[i];
+  const v = document.getElementById('v'+b.id);
+  if(!v) return;
+  const rel = Math.max(0, v.currentTime - b.ini);
+  b.rotulos[j][campo] = Math.round(rel*10)/10;
+  if(b.rotulos[j].hasta <= b.rotulos[j].desde) b.rotulos[j].hasta = b.rotulos[j].desde + 3;
+  pintarEscaleta();
+}
+
+// ==================================================== GUARDADO AUTOMÁTICO
+let db = null, guardarTimer = null, guardadoRoto = false;
+
+function dbAbrir(){
+  return new Promise((res, rej) => {
+    let req;
+    try{ req = indexedDB.open('LaPieza', 1); }
+    catch(e){ rej(e); return; }
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if(!d.objectStoreNames.contains('proyecto')) d.createObjectStore('proyecto');
+    };
+    req.onsuccess = () => res(req.result);
+    req.onerror = () => rej(req.error);
+    setTimeout(() => rej(new Error('sin respuesta')), 4000);
+  });
+}
+
+function guardarPronto(){
+  clearTimeout(guardarTimer);
+  guardarTimer = setTimeout(guardarAhora, 1200);
+}
+
+async function guardarAhora(){
+  if(guardadoRoto) return;
+  try{
+    if(!db) db = await dbAbrir();
+    const datos = {
+      fecha: Date.now(),
+      musicaSel, musicaVol, musicaTramos,
+      piezaLocBlob, piezaLocDur,
+      clips: clips.map(c => ({id:c.id, nombre:c.nombre, dur:c.dur, blob:c.blob})),
+      musicas: musicas.map(m => ({id:m.id, nombre:m.nombre, blob:m.blob})),
+      bloques: bloques.map(b => ({
+        id:b.id, tipo:b.tipo, clipId:b.clipId, ini:b.ini, fin:b.fin, texto:b.texto,
+        rotulos:b.rotulos, vol:b.vol, locDur:b.locDur, locBlob:b.locBlob || null
+      })),
+      idc, idb
+    };
+    await new Promise((res, rej) => {
+      const tx = db.transaction('proyecto','readwrite');
+      tx.objectStore('proyecto').put(datos, 'actual');
+      tx.oncomplete = res; tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error || new Error('abort'));
+    });
+    marcarGuardado(true);
+  }catch(e){
+    guardadoRoto = true;
+    marcarGuardado(false);
+  }
+}
+
+function marcarGuardado(ok){
+  const el = document.getElementById('estadoGuardado');
+  if(!el) return;
+  el.textContent = ok ? '✓ Guardado' : '⚠ Este navegador no guarda: descargad el vídeo antes de cerrar';
+  el.className = 'guardado' + (ok ? '' : ' mal');
+}
+
+async function hayGuardado(){
+  try{
+    if(!db) db = await dbAbrir();
+    return await new Promise((res, rej) => {
+      const tx = db.transaction('proyecto','readonly');
+      const r = tx.objectStore('proyecto').get('actual');
+      r.onsuccess = () => res(r.result || null);
+      r.onerror = () => rej(r.error);
+    });
+  }catch(e){ guardadoRoto = true; return null; }
+}
+
+function restaurar(d){
+  minis.clear();
+  clips = d.clips.map(c => ({...c, url: URL.createObjectURL(c.blob)}));
+  musicas = d.musicas.map(m => ({...m, url: URL.createObjectURL(m.blob)}));
+  bloques = d.bloques.map(b => ({
+    ...b,
+    vol: (b.vol > 0 && b.vol < 1) ? AMBIENTE : b.vol,
+    locURL: b.locBlob ? URL.createObjectURL(b.locBlob) : null
+  }));
+  musicaSel = d.musicaSel || ''; musicaVol = d.musicaVol ?? 0.18;
+  musicaTramos = d.musicaTramos || [];
+  piezaLocBlob = d.piezaLocBlob || null;
+  piezaLocDur = d.piezaLocDur || 0;
+  piezaLocURL = piezaLocBlob ? URL.createObjectURL(piezaLocBlob) : null;
+  idc = d.idc || clips.length; idb = d.idb || bloques.length;
+  document.getElementById('barraRestaurar').style.display = 'none';
+  pintarVideoteca(); pintarMusica(); pintarEscaleta();
+}
+
+async function borrarGuardado(){
+  try{
+    if(!db) db = await dbAbrir();
+    await new Promise(res => {
+      const tx = db.transaction('proyecto','readwrite');
+      tx.objectStore('proyecto').delete('actual');
+      tx.oncomplete = res; tx.onerror = res;
+    });
+  }catch(e){}
+}
+
+async function empezarDeCero(){
+  document.getElementById('barraRestaurar').style.display = 'none';
+  await borrarGuardado();
+}
+
+async function nuevoProyecto(){
+  if(!confirm('Se borra todo: vídeos, tramos, locuciones y rótulos. ¿Empezamos de cero?')) return;
+  bloques.forEach(b => { if(b.locURL) URL.revokeObjectURL(b.locURL); });
+  clips.forEach(c => URL.revokeObjectURL(c.url));
+  musicas.forEach(m => URL.revokeObjectURL(m.url));
+  clips = []; musicas = []; bloques = []; fallidos = []; minis.clear();
+  musicaSel = ''; musicaVol = 0.18; musicaTramos = [];
+  if(piezaLocURL) URL.revokeObjectURL(piezaLocURL);
+  piezaLocURL = null; piezaLocBlob = null; piezaLocDur = 0;
+  await borrarGuardado();
+  pintarVideoteca(); pintarMusica(); pintarEscaleta();
+}
+
+// ==================================================== CABINA
+let micStream = null, recLoc = null, chunksLoc = [], grabandoEn = -1;
+let vigilaLoc = null, tInicioLoc = 0, cabIdx = -1, cabOirAmb = false;
+
+function cabElems(){
+  return {
+    cab: document.getElementById('cabina'),
+    v: document.getElementById('cabVideo'),
+    panel: document.getElementById('cabPanel'),
+    rec: document.getElementById('cabRec'),
+    resta: document.getElementById('cabResta'),
+    cuenta: document.getElementById('cuenta')
+  };
+}
+
+function abrirCabina(i, modo){
+  const b = bloques[i];
+  const c = clips.find(x => x.id === b.clipId);
+  if(!c) return;
+  cabIdx = i;
+  const {cab, v, panel, rec} = cabElems();
+  cab.classList.add('on');
+  rec.classList.remove('on');
+  v.src = c.url;
+  v.muted = (modo === 'locutar');          // al marcar el tramo se oye el ambiente; al locutar, no
+  v.volume = 1;
+  v.controls = (modo === 'marcar');
+  v.onloadedmetadata = () => { v.currentTime = b.ini; };
+  pintarCabina(modo);
+}
+
+function pintarCabina(modo, sonandoAhora){
+  const b = bloques[cabIdx];
+  const c = clips.find(x => x.id === b.clipId);
+  const fin = b.fin ?? (c ? c.dur : 0);
+  const {panel} = cabElems();
+
+  if(modo === 'marcar'){
+    panel.innerHTML = `
+      <div class="cab-btns">
+        <button class="cab-btn" onclick="cabMarcar('ini')">Marcar ENTRADA</button>
+        <button class="cab-btn" onclick="cabMarcar('fin')">Marcar SALIDA</button>
+        <button class="cab-btn" onclick="cabVerTramo()">▶ Ver tramo</button>
+        ${b.tipo === 'cola' ? `<button class="cab-btn oro" onclick="abrirCabina(${cabIdx},'locutar')">🎙 Locutar este plano</button>` : ''}
+        <button class="cab-btn" onclick="verBloque(${cabIdx})">▶ Ver el bloque</button>
+      </div>
+      <div class="cab-marcas">Entrada <b>${fmt(b.ini)}</b> · Salida <b>${fmt(fin)}</b>
+        · dura <b>${fmt(durBloque(b))}</b></div>`;
+  } else if(modo === 'ver'){
+    const sonando = sonandoAhora === true;
+    const falta = b.tipo === 'cola' && !b.locURL;
+    panel.innerHTML = `
+      <div class="cab-btns">
+        ${sonando
+          ? `<button class="cab-btn rojo" onclick="cabParar()">■ Parar</button>`
+          : `<button class="cab-btn oro" onclick="cabReproducir()">▶ Ver el bloque tal cual quedará</button>`}
+        <button class="cab-btn" onclick="abrirCabina(${cabIdx},'marcar')">✂ Cambiar el tramo</button>
+        ${b.tipo === 'cola' ? `<button class="cab-btn" onclick="abrirCabina(${cabIdx},'locutar')">🎙 ${b.locURL?'Regrabar':'Grabar'} locución</button>` : ''}
+      </div>
+      <div class="cab-marcas">${b.tipo === 'cola' ? 'COLA' : 'TOTAL'} ·
+        dura <b>${fmt(durBloque(b))}</b>
+        ${b.tipo === 'cola' ? (b.locURL ? `· locución de <b>${fmt(b.locDur)}</b>` : '· <b style="color:#E8B54A">sin locución</b>') : ''}
+        · vídeo <b>${b.vol === 0 ? 'mudo' : (b.vol === 1 ? 'con sonido' : 'de ambiente')}</b>
+        ${(b.rotulos||[]).length ? `· <b>${b.rotulos.length}</b> rótulo${b.rotulos.length>1?'s':''}` : '· sin rótulos'}</div>
+      ${falta ? '<div class="cab-marcas" style="color:#E8B54A">Esta cola aún no tiene voz: se verá muda.</div>' : ''}`;
+  } else {
+    const txt = (b.texto || '').trim();
+    panel.innerHTML = `
+      <div class="cab-texto ${txt?'':'vacio'}">${txt
+        ? txt.replace(/</g,'&lt;')
+        : 'No habéis escrito el texto de la locución. Podéis improvisar, pero se nota.'}</div>
+      <div class="cab-btns">
+        <button class="cab-btn rojo" id="cabGrabar" onclick="grabarEnCabina()">● Grabar sobre la imagen</button>
+        <button class="cab-btn" onclick="abrirCabina(${cabIdx},'marcar')">↩ Volver a marcar</button>
+      </div>
+      <label class="cab-oir"><input type="checkbox" ${cabOirAmb ? 'checked' : ''}
+        onchange="cabOirAmb=this.checked"> Oír el ambiente mientras locuto (con auriculares, para que el micro no lo recoja)</label>
+      <div class="cab-marcas">El plano dura <b>${fmt(durBloque(b))}</b>
+        · empieza a leer cuando arranque la imagen</div>`;
+  }
+}
+
+function verBloque(i){ abrirCabina(i, 'ver'); setTimeout(() => cabReproducir(), 350); }
+
+let cabTimer = null, cabUltRot = '';
+
+function cabReproducir(){
+  const b = bloques[cabIdx];
+  const c = clips.find(x => x.id === b.clipId);
+  if(!c) return;
+  const fin = b.fin ?? c.dur;
+  const v = document.getElementById('cabVideo');
+  const a = document.getElementById('cabLoc');
+  const rot = document.getElementById('cabRotulo');
+
+  clearInterval(cabTimer);
+  cabUltRot = '';
+  rot.classList.remove('on');
+
+  const vol = (b.vol !== undefined ? b.vol : (b.tipo === 'cola' ? AMBIENTE : 1));
+  v.muted = (vol === 0);
+  v.volume = vol || 1;
+  a.pause();
+  if(b.tipo === 'cola' && b.locURL){ a.src = b.locURL; a.currentTime = 0; }
+
+  v.currentTime = b.ini;
+  v.play().catch(()=>{});
+  if(b.tipo === 'cola' && b.locURL) a.play().catch(()=>{});
+
+  cabTimer = setInterval(() => {
+    const rel = v.currentTime - b.ini;
+    const act = (b.rotulos||[]).find(r => rel >= r.desde && rel <= r.hasta && (r.l1 || r.l2));
+    const clave = act ? (act.l1 + '|' + act.l2) : '';
+    if(clave !== cabUltRot){
+      cabUltRot = clave;
+      if(act){
+        document.getElementById('cabRotNom').textContent = act.l1 || '';
+        document.getElementById('cabRotCar').textContent = act.l2 || '';
+        rot.classList.add('on');
+      } else rot.classList.remove('on');
+    }
+    if(v.currentTime >= fin || v.ended){
+      clearInterval(cabTimer);
+      v.pause(); a.pause();
+      rot.classList.remove('on');
+      pintarCabina('ver');
+    }
+  }, 70);
+  pintarCabina('ver', true);
+}
+
+function cabParar(){
+  clearInterval(cabTimer);
+  document.getElementById('cabVideo').pause();
+  document.getElementById('cabLoc').pause();
+  document.getElementById('cabRotulo').classList.remove('on');
+  pintarCabina('ver');
+}
+
+function cabMarcar(cual){
+  const b = bloques[cabIdx];
+  const {v} = cabElems();
+  if(cual === 'ini'){
+    b.ini = v.currentTime;
+    if(b.fin !== null && b.fin <= b.ini) b.fin = null;
+  } else {
+    b.fin = v.currentTime;
+    if(b.fin <= b.ini) b.ini = 0;
+  }
+  pintarCabina('marcar');
+  pintarEscaleta();
+}
+
+function cabVerTramo(){
+  const b = bloques[cabIdx];
+  const c = clips.find(x => x.id === b.clipId);
+  const {v} = cabElems();
+  const fin = b.fin ?? c.dur;
+  v.currentTime = b.ini; v.play();
+  const t = setInterval(() => {
+    if(v.currentTime >= fin || v.paused){ v.pause(); clearInterval(t); }
+  }, 60);
+}
+
+function cerrarCabina(){
+  if(grabandoEn !== -1) pararLoc();
+  clearInterval(cabTimer);
+  const al = document.getElementById('cabLoc'); if(al) al.pause();
+  const cr = document.getElementById('cabRotulo'); if(cr) cr.classList.remove('on');
+  const {cab, v, rec, cuenta} = cabElems();
+  v.pause(); v.removeAttribute('src'); v.load();
+  cab.classList.remove('on');
+  rec.classList.remove('on');
+  cuenta.classList.remove('on');
+  cabIdx = -1;
+}
+
+// ---------------------------------------------------- grabar la locución
+async function grabarEnCabina(){
+  const i = cabIdx;
+  if(grabandoEn === i){ pararLoc(); return; }
+  const b = bloques[i];
+  const c = clips.find(x => x.id === b.clipId);
+  const fin = b.fin ?? c.dur;
+  const {v, rec, resta, cuenta} = cabElems();
+
+  try{
+    if(!micStream || !micStream.active)
+      micStream = await navigator.mediaDevices.getUserMedia({audio:true});
+  }catch(e){
+    alert('El navegador ha bloqueado el micrófono. Descargad el archivo y abridlo con doble clic.');
+    return;
+  }
+
+  v.pause(); v.currentTime = b.ini;
+  v.muted = !cabOirAmb; v.volume = AMBIENTE;
+  const btn = document.getElementById('cabGrabar');
+  if(btn){ btn.textContent = '■ Parar'; }
+
+  await cuentaAtras(cuenta, 3);
+  if(cabIdx !== i) return;
+
+  chunksLoc = [];
+  recLoc = new MediaRecorder(micStream);
+  recLoc.ondataavailable = e => { if(e.data.size) chunksLoc.push(e.data); };
+  recLoc.onstop = () => {
+    clearInterval(vigilaLoc);
+    const medida = (Date.now() - tInicioLoc) / 1000;
+    const {v:vv, rec:rr} = cabElems();
+    vv.pause(); rr.classList.remove('on');
+    const blob = new Blob(chunksLoc, {type: recLoc.mimeType || 'audio/webm'});
+    if(b.locURL) URL.revokeObjectURL(b.locURL);
+    b.locBlob = blob;
+    b.locURL = URL.createObjectURL(blob);
+    const a = document.createElement('audio');
+    a.preload = 'metadata';
+    const cerrar = () => {
+      grabandoEn = -1;
+      pintarEscaleta();
+      if(cabIdx === i) pintarCabina('locutar');
+    };
+    a.onloadedmetadata = () => {
+      b.locDur = (isFinite(a.duration) && a.duration > 0) ? a.duration : medida;
+      cerrar();
+    };
+    a.onerror = () => { b.locDur = medida; cerrar(); };
+    a.src = b.locURL;
+  };
+
+  recLoc.start();
+  tInicioLoc = Date.now();
+  grabandoEn = i;
+  rec.classList.add('on');
+  v.currentTime = b.ini;
+  v.play().catch(()=>{});
+
+  clearInterval(vigilaLoc);
+  vigilaLoc = setInterval(() => {
+    if(grabandoEn !== i){ clearInterval(vigilaLoc); return; }
+    const quedan = Math.max(0, fin - v.currentTime);
+    resta.textContent = quedan.toFixed(1) + ' s';
+    if(v.currentTime >= fin || v.ended) pararLoc();
+  }, 80);
+}
+
+function pararLoc(){
+  if(recLoc && recLoc.state !== 'inactive') recLoc.stop();
+}
+
+function borrarLoc(i){
+  if(bloques[i].locURL) URL.revokeObjectURL(bloques[i].locURL);
+  bloques[i].locURL = null; bloques[i].locDur = 0;
+  pintarEscaleta();
+}
+
+function cuentaAtras(el, n){
+  return new Promise(res => {
+    el.classList.add('on');
+    let x = n;
+    el.textContent = x;
+    const t = setInterval(() => {
+      x--;
+      if(x <= 0){ clearInterval(t); el.classList.remove('on'); res(); }
+      else el.textContent = x;
+    }, 1000);
+  });
+}
+
+// ==================================================== PINTAR
+function pintarEscaleta(){
+  const cont = document.getElementById('escaleta');
+  if(!bloques.length){
+    cont.innerHTML = '<div class="vacio-esc">La escaleta está vacía.<br>' +
+      'Una pieza típica va <b>cola · total · cola</b>, pero podéis empezar por la declaración si lo pide la historia.</div>';
+    document.getElementById('durTotal').textContent = '0:00';
+    pintarEstanteria();
+    return;
+  }
+
+  cont.innerHTML = bloques.map((b,i) => {
+    const c = clips.find(x => x.id === b.clipId);
+    const fin = b.fin ?? (c ? c.dur : 0);
+    const opciones = clips.map(x =>
+      `<option value="${x.id}" ${x.id===b.clipId?'selected':''}>${x.nombre}</option>`).join('');
+    const d = durBloque(b);
+
+    const izq = c ? `
+      <video class="b-video" id="v${b.id}" src="${c.url}" controls preload="metadata"></video>
+      <div class="marcas">
+        <button class="marca-btn" onclick="marcar(${i},'ini')">Marcar ENTRADA</button>
+        <button class="marca-btn" onclick="marcar(${i},'fin')">Marcar SALIDA</button>
+        <button class="mini-btn" onclick="verBloque(${i})">▶ Ver el bloque</button>
+        <button class="mini-btn" onclick="abrirCabina(${i},'marcar')">⤢ Ampliar y marcar</button>
+      </div>
+      <div class="marca-val">Entrada ${fmt(b.ini)} · Salida ${fmt(fin)}</div>`
+    : `<div class="vacio-esc" style="padding:20px 12px">Elegid un clip de la videoteca</div>`;
+
+    const rotHTML = `
+      <div class="rot-caja">
+        <div class="rot-cab">
+          <span class="etq" style="margin:0">RÓTULOS — se ponen y se quitan cuando queráis</span>
+          <div style="display:flex;gap:5px">
+            ${b.tipo==='total' ? `<button class="mini-btn" onclick="addRotulo(${i},true)">+ Quien habla</button>` : ''}
+            <button class="mini-btn" onclick="addRotulo(${i},false)">+ Rótulo</button>
+          </div>
+        </div>
+        ${b.rotulos.length ? b.rotulos.map((r,j) => `
+          <div class="rot-fila">
+            <input class="rot-in" placeholder="${b.tipo==='total'?'Nombre':'Texto del rótulo'}"
+              value="${(r.l1||'').replace(/"/g,'&quot;')}" oninput="setRot(${i},${j},'l1',this.value)">
+            <input class="rot-in" placeholder="${b.tipo==='total'?'Cargo':'Segunda línea (opcional)'}"
+              value="${(r.l2||'').replace(/"/g,'&quot;')}" oninput="setRot(${i},${j},'l2',this.value)">
+            <div class="rot-tiempos">
+              <button class="rot-t" onclick="marcarRot(${i},${j},'desde')" title="Poner aquí">▼ desde</button>
+              <input class="rot-num" type="number" step="0.1" min="0" value="${r.desde}"
+                oninput="setRot(${i},${j},'desde',this.value)">
+              <button class="rot-t" onclick="marcarRot(${i},${j},'hasta')" title="Quitar aquí">▲ hasta</button>
+              <input class="rot-num" type="number" step="0.1" min="0" value="${r.hasta}"
+                oninput="setRot(${i},${j},'hasta',this.value)">
+              <button class="mini-btn" onclick="delRotulo(${i},${j})">✕</button>
+            </div>
+          </div>`).join('')
+        : '<div class="rot-vacio">Sin rótulos en este bloque</div>'}
+      </div>`;
+
+    let der;
+    if(b.tipo === 'cola'){
+      const desfase = b.locDur ? (b.locDur - d) : 0;
+      const est = b.locURL
+        ? `<span class="loc-est ${Math.abs(desfase)>1.5?'sin':''}">Locución grabada: <b>${fmt(b.locDur)}</b>
+             · el plano dura ${fmt(d)}</span>`
+        : `<span class="loc-est sin"><b>Sin grabar</b> · el plano dura ${fmt(d)}</span>`;
+      der = `
+      <div>
+        <span class="etq">LOCUCIÓN — el texto que vais a leer sobre estas imágenes</span>
+        <textarea class="campo" rows="3" oninput="bloques[${i}].texto=this.value"
+          placeholder="Escribid primero el texto, luego grabadlo…">${b.texto.replace(/</g,'&lt;')}</textarea>
+        <div class="loc-caja">
+          <div class="loc-fila">
+            <button class="loc-btn" onclick="abrirCabina(${i},'locutar')">
+              ${b.locURL ? '● Regrabar en la cabina' : '● Locutar en la cabina'}</button>
+            ${b.locURL ? `<button class="mini-btn" onclick="borrarLoc(${i})">Borrar</button>` : ''}
+            ${est}
+          </div>
+          ${b.locURL ? `<audio controls src="${b.locURL}"></audio>` : ''}
+          ${b.locURL && Math.abs(desfase) > 1.5 ? `<div class="aviso-loc">${desfase > 0
+              ? 'La locución es más larga que el plano: alargad la salida o volved a grabar más corto.'
+              : 'El plano es más largo que la locución: sobra imagen muda al final.'}</div>` : ''}
+        </div>
+        ${rotHTML}
+      </div>`;
+    } else {
+      der = `
+      <div>
+        <span class="etq">QUÉ DICE — para tenerlo por escrito</span>
+        <textarea class="campo" rows="3" oninput="bloques[${i}].texto=this.value"
+          placeholder="Transcripción de la declaración…">${b.texto.replace(/</g,'&lt;')}</textarea>
+        ${rotHTML}
+      </div>`;
+    }
+
+    return `
+      <div class="bloque ${b.tipo}" id="blq${b.id}">
+        <div class="b-head">
+          <div class="b-num">${i+1}</div>
+          <select class="b-tipo-sel" onchange="setTipo(${i},this.value)">
+            <option value="cola" ${b.tipo==='cola'?'selected':''}>COLA · imágenes locutadas</option>
+            <option value="total" ${b.tipo==='total'?'selected':''}>TOTAL · declaración</option>
+          </select>
+          <select class="b-tipo-sel" onchange="setClip(${i},this.value)">
+            <option value="">— clip —</option>${opciones}
+          </select>
+          <select class="son-sel" onchange="setVol(${i},this.value)" title="Sonido del vídeo">
+            <option value="0" ${b.vol===0?'selected':''}>🔇 Mudo</option>
+            <option value="${AMBIENTE}" ${(b.vol>0 && b.vol<1)?'selected':''}>🔉 Ambiente</option>
+            <option value="1" ${b.vol>=1?'selected':''}>🔊 Sonido completo</option>
+          </select>
+          <div class="b-dur">${fmt(d)}</div>
+          <div class="b-acc">
+            <button class="mini-btn" onclick="moverBloque(${i},-1)" ${i===0?'disabled':''}>↑</button>
+            <button class="mini-btn" onclick="moverBloque(${i},1)" ${i===bloques.length-1?'disabled':''}>↓</button>
+            <button class="mini-btn" onclick="borrarBloque(${i})">✕</button>
+          </div>
+        </div>
+        <div class="b-body"><div>${izq}</div>${der}</div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('durTotal').textContent = fmt(durTotalPieza());
+  pintarEstanteria();
+  guardarPronto();
+}
+
+// ==================================================== ESTANTERÍA
+const minis = new Map();       // "clip|inicio" -> miniatura (texto), '' si falla, null si está en cola
+let minisCola = [], minisOcupado = false, minisVideo = null, dragDesde = -1, audioMini = null;
+
+function miniatura(clipId, ini){
+  const key = clipId + '|' + Math.round((ini || 0) * 10);
+  const v = minis.get(key);
+  if(v !== undefined) return v;
+  minis.set(key, null);
+  minisCola.push({key, clipId, ini: ini || 0});
+  procesarMinis();
+  return null;
+}
+
+function procesarMinis(){
+  if(minisOcupado || !minisCola.length) return;
+  minisOcupado = true;
+  const job = minisCola.shift();
+  const c = clips.find(x => x.id === job.clipId);
+  const seguir = () => { minisOcupado = false; procesarMinis(); };
+  if(!c){ minis.set(job.key, ''); seguir(); return; }
+  if(!minisVideo){
+    minisVideo = document.createElement('video');
+    minisVideo.muted = true; minisVideo.preload = 'auto'; minisVideo.playsInline = true;
+  }
+  const v = minisVideo;
+  let hecho = false;
+  const acabar = url => {
+    if(hecho) return; hecho = true; clearTimeout(tm);
+    v.onseeked = null; v.onloadedmetadata = null;
+    minis.set(job.key, url || '');
+    if(url && dragDesde < 0) pintarEstanteria();
+    seguir();
+  };
+  const tm = setTimeout(() => acabar(''), 4000);
+  v.onseeked = () => {
+    try{
+      const cv = document.createElement('canvas'); cv.width = 256; cv.height = 144;
+      const x = cv.getContext('2d'); x.fillStyle = '#000'; x.fillRect(0, 0, 256, 144);
+      const e = Math.min(256 / v.videoWidth, 144 / v.videoHeight);
+      const w = v.videoWidth * e, h = v.videoHeight * e;
+      x.drawImage(v, (256 - w) / 2, (144 - h) / 2, w, h);
+      acabar(cv.toDataURL('image/jpeg', 0.72));
+    }catch(err){ acabar(''); }
+  };
+  const ir = () => { v.currentTime = Math.max(0.05, Math.min(job.ini, (v.duration || job.ini) - 0.05)); };
+  if(v.dataset.url !== c.url){ v.dataset.url = c.url; v.onloadedmetadata = ir; v.src = c.url; }
+  else ir();
+}
+
+function pintarEstanteria(){
+  const el = document.getElementById('estanteria');
+  if(!el) return;
+  document.getElementById('shCount').innerHTML = bloques.length
+    ? `<b>${bloques.length}</b> bloque${bloques.length === 1 ? '' : 's'} · <b>${fmt(durTotalPieza())}</b>` : '';
+  if(!bloques.length){
+    el.innerHTML = '<div class="sh-vacia">Aquí se colocan los bloques según los vais creando. Arrastradlos para cambiar el orden.</div>';
+    return;
+  }
+  el.innerHTML = bloques.map((b,i) => {
+    const c = clips.find(x => x.id === b.clipId);
+    const foto = c ? miniatura(c.id, b.ini) : '';
+    const key = c ? c.id + '|' + Math.round((b.ini || 0) * 10) : '';
+    const voz = b.tipo === 'cola' ? (b.locURL ? '🎙 locución de ' + fmt(b.locDur) : 'sin locución') : 'declaración';
+    return `
+      <div class="sh-card ${b.tipo} ${b.tipo === 'cola' && !b.locURL ? 'sinvoz' : ''}" draggable="true"
+           ondragstart="shDragStart(event,${i})" ondragover="shDragOver(event,${i})"
+           ondragleave="shDragLeave(event)" ondrop="shDrop(event,${i})" ondragend="shDragEnd()">
+        <div class="sh-img" onclick="irABloque(${i})" title="Ir a este bloque en la escaleta">
+          ${foto ? `<img src="${foto}" alt="">` : `<div class="sh-noimg" data-k="${key}"></div>`}
+          <span class="sh-num">${i + 1}</span>
+          <span class="sh-tipo">${b.tipo === 'cola' ? 'COLA' : 'TOTAL'}</span>
+          <span class="sh-dur">${fmt(durBloque(b))}</span>
+        </div>
+        <div class="sh-nom" title="${esc(c ? c.nombre : '')}">${c ? esc(c.nombre) : '— sin clip —'}</div>
+        <div class="sh-voz">${voz}</div>
+        <div class="sh-acc">
+          <button class="mini-btn" title="Ver el bloque" onclick="verBloque(${i})">▶</button>
+          ${b.locURL ? `<button class="mini-btn" title="Oír la locución" onclick="oirLoc(${i})">🎙</button>` : ''}
+          <button class="mini-btn" title="Mover a la izquierda" onclick="moverBloque(${i},-1)" ${i === 0 ? 'disabled' : ''}>←</button>
+          <button class="mini-btn" title="Mover a la derecha" onclick="moverBloque(${i},1)" ${i === bloques.length - 1 ? 'disabled' : ''}>→</button>
+          <button class="mini-btn" title="Quitar" onclick="borrarBloque(${i})">✕</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function irABloque(i){
+  const el = document.getElementById('blq' + bloques[i].id);
+  if(!el) return;
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+  el.classList.remove('destello'); void el.offsetWidth; el.classList.add('destello');
+}
+function oirLoc(i){
+  if(audioMini){ audioMini.pause(); }
+  audioMini = new Audio(bloques[i].locURL); audioMini.play().catch(()=>{});
+}
+function shDragStart(e, i){
+  dragDesde = i; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(i));
+  e.currentTarget.classList.add('arrastrando');
+}
+function shDragOver(e, i){
+  if(dragDesde < 0) return;
+  e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+  const r = e.currentTarget.getBoundingClientRect();
+  const despues = (e.clientX - r.left) > r.width / 2;
+  e.currentTarget.classList.toggle('drop-antes', !despues);
+  e.currentTarget.classList.toggle('drop-despues', despues);
+}
+function shDragLeave(e){ e.currentTarget.classList.remove('drop-antes','drop-despues'); }
+function shDrop(e, i){
+  e.preventDefault();
+  if(dragDesde < 0) return;
+  const r = e.currentTarget.getBoundingClientRect();
+  let dest = (e.clientX - r.left) > r.width / 2 ? i + 1 : i;
+  const de = dragDesde; dragDesde = -1;
+  if(dest > de) dest--;
+  if(dest !== de){ const [b] = bloques.splice(de, 1); bloques.splice(dest, 0, b); }
+  pintarEscaleta();
+}
+function shDragEnd(){
+  dragDesde = -1;
+  document.querySelectorAll('.sh-card').forEach(c => c.classList.remove('arrastrando','drop-antes','drop-despues'));
+}
+
+// ============================== AUDIO Y MOTOR DE REPRODUCCIÓN
+// Dos vídeos (A y B) se relevan. Mientras uno emite, el otro ya está colocado en el primer fotograma
+// del bloque siguiente y empieza a rodar unas décimas antes del corte. En el corte solo se cambia
+// de uno a otro, con un fundido cruzado de sonido muy corto. No se recarga nada entre bloques.
+let ac = null, gV = {}, gL = {}, gMus = null, gLocP = null, destExport = null;
+const SLOT = {};
+const M = {gen:0, val:[], previos:[], i:0, act:'A', timer:null, alAcabar:null, opts:{}, esperando:false, n:0};
+let emitiendo = false, exportando = false;
+let rotVisible = false, rotDatos = {n:'',c:''}, ultimoRot = '';
+let grabandoPieza = false, recPieza = null, chunksPieza = [], tIniPieza = 0;
+let pendienteMus = null, pendienteRot = null, musSaliendo = false;
+
+function otro(k){ return k === 'A' ? 'B' : 'A'; }
+function clipDe(b){ return clips.find(x => x.id === b.clipId); }
+function finDe(b){ const c = clipDe(b); return b.fin ?? (c ? c.dur : 0); }
+function gananciaBloque(b){ return (b.vol !== undefined ? b.vol : (b.tipo === 'cola' ? AMBIENTE : 1)); }
+function bloquesValidos(){ return bloques.filter(b => b.clipId && clipDe(b)); }
+function vActivo(){ return SLOT[M.act].v; }
+function fotoDe(s){ return s.ft !== null ? s.ft : s.v.currentTime; }
+
+function initSlots(){
+  ['A','B'].forEach(k => {
+    const v = document.getElementById('emVid' + k), a = document.getElementById('emLoc' + k);
+    const s = {v, a, i:-1, listo:false, usaLoc:false, lead:0, pend:null, corriendo:false, ft:null, promesa:Promise.resolve()};
+    if(v.requestVideoFrameCallback){          // segundo del último fotograma realmente mostrado
+      const cb = (ahora, meta) => { s.ft = meta.mediaTime; v.requestVideoFrameCallback(cb); };
+      v.requestVideoFrameCallback(cb);
+    }
+    v.addEventListener('loadedmetadata', () => {
+      if(s.pend !== null){ const p = s.pend; s.pend = null; try{ v.currentTime = p; }catch(e){} }
+    });
+    SLOT[k] = s;
+  });
+}
+
+function grafo(){
+  if(ac) return;
+  ac = new (window.AudioContext || window.webkitAudioContext)();
+  destExport = ac.createMediaStreamDestination();
+  const conectar = g => { g.connect(ac.destination); g.connect(destExport); return g; };
+  ['A','B'].forEach(k => {
+    gV[k] = conectar(ac.createGain());
+    gL[k] = conectar(ac.createGain());
+    ac.createMediaElementSource(SLOT[k].v).connect(gV[k]);
+    ac.createMediaElementSource(SLOT[k].a).connect(gL[k]);
+  });
+  gMus = conectar(ac.createGain());
+  gLocP = conectar(ac.createGain());
+  ac.createMediaElementSource(document.getElementById('emMus')).connect(gMus);
+  ac.createMediaElementSource(document.getElementById('emLocP')).connect(gLocP);
+}
+
+// ---------------------------------------------------- música
+function musicaContinua(t){                       // sin tramos, una pista de fondo durante toda la pieza
+  const m = document.getElementById('emMus');
+  const pista = musicas.find(x => x.id === musicaSel);
+  if(!pista){ gMus.gain.value = 0; m.pause(); return; }
+  if(m.dataset.url !== pista.url){ m.dataset.url = pista.url; m.src = pista.url; }
+  m.loop = true;
+  try{ m.currentTime = t; }catch(e){}
+  gMus.gain.cancelScheduledValues(ac.currentTime); gMus.gain.value = musicaVol;
+  m.play().catch(()=>{});
+}
+
+// con tramos definidos, la música entra y sale sola según el reloj de la pieza
+function actualizarMusica(t, forzar){
+  if(!gMus || !musicaTramos.length) return;
+  const m = document.getElementById('emMus');
+  const idx = musicaTramos.findIndex(x => t >= x.desde && t < x.hasta);
+  const tr = musicaTramos[idx];
+  const T = ac.currentTime;
+  if(idx !== musTramoActual || forzar){
+    musTramoActual = idx; musSaliendo = false;
+    gMus.gain.cancelScheduledValues(T);
+    if(idx === -1){
+      gMus.gain.setValueAtTime(gMus.gain.value, T);
+      gMus.gain.linearRampToValueAtTime(0, T + 0.4);
+      setTimeout(() => { if(musTramoActual === -1) m.pause(); }, 450);
+      return;
+    }
+    const pista = musicas.find(x => x.id === tr.musId) || musicas.find(x => x.id === musicaSel);
+    if(!pista){ gMus.gain.value = 0; return; }
+    if(m.dataset.url !== pista.url){ m.dataset.url = pista.url; m.src = pista.url; }
+    m.loop = true;
+    const dentro = t - tr.desde;
+    try{ m.currentTime = Math.max(0, dentro); }catch(e){}
+    gMus.gain.setValueAtTime(0, T);
+    gMus.gain.linearRampToValueAtTime(tr.vol ?? musicaVol, T + (dentro < 0.3 ? 0.6 : 0.08));
+    m.play().catch(()=>{});
+  } else if(tr && !musSaliendo && t > tr.hasta - 0.6){          // fundido de salida justo antes del final del tramo
+    musSaliendo = true;
+    gMus.gain.cancelScheduledValues(T);
+    gMus.gain.setValueAtTime(gMus.gain.value, T);
+    gMus.gain.linearRampToValueAtTime(0, T + Math.max(0.1, tr.hasta - t));
+  }
+}
+
+function apagarMusica(rapido){
+  const m = document.getElementById('emMus');
+  if(!gMus) return;
+  try{
+    const t = ac.currentTime;
+    gMus.gain.cancelScheduledValues(t);
+    gMus.gain.setValueAtTime(gMus.gain.value, t);
+    gMus.gain.linearRampToValueAtTime(0, t + (rapido ? 0.2 : 1.4));
+  }catch(e){}
+  setTimeout(() => m.pause(), rapido ? 250 : 1500);
+}
+
+// ---------------------------------------------------- posición en la pieza
+function recalcularPrevios(){
+  M.previos = []; let acc = 0;
+  M.val.forEach(b => { M.previos.push(acc); acc += durBloque(b); });
+}
+
+// en qué bloque cae un instante de la pieza y en qué segundo del bloque
+function bloqueEnTiempo(t){
+  const val = bloquesValidos();
+  let acc = 0;
+  for(let i = 0; i < val.length; i++){
+    const d = durBloque(val[i]);
+    if(t < acc + d || i === val.length - 1)
+      return {i, b:val[i], rel: Math.min(Math.max(0, t - acc), Math.max(0, d - 0.04)), inicio: acc, dur: d};
+    acc += d;
+  }
+  return null;
+}
+
+// ---------------------------------------------------- preparar y relevar los vídeos
+// Deja el hueco k con el bloque i colocado en el segundo rel (o algo antes, si conLead, para que
+// llegue en marcha al corte). Devuelve una promesa que se cumple cuando el fotograma está listo.
+function situar(k, i, rel, conLead){
+  const s = SLOT[k], b = M.val[i], c = clipDe(b), v = s.v;
+  s.i = i; s.listo = false; s.corriendo = false; s.ft = null;
+  s.lead = conLead ? Math.min(PRE, b.ini + rel) : 0;
+  const objetivo = b.ini + rel - s.lead;
+  s.usaLoc = !!(b.tipo === 'cola' && b.locURL && !M.opts.grabando && !piezaLocURL);
+  s.a.pause();
+  if(s.usaLoc){
+    if(s.a.dataset.url !== b.locURL){ s.a.dataset.url = b.locURL; s.a.src = b.locURL; }
+    try{ s.a.currentTime = 0; }catch(e){}
+  }
+  s.promesa = new Promise(res => {
+    let hecho = false;
+    const fin = () => {
+      if(hecho) return; hecho = true;
+      v.removeEventListener('seeked', alBuscar); v.removeEventListener('canplay', alBuscar);
+      s.listo = true; res();
+    };
+    // listo = buscado de verdad y con el fotograma ya decodificado (en clips pesados puede tardar)
+    const alBuscar = () => {
+      if(!v.seeking && v.readyState >= 2 && Math.abs(v.currentTime - objetivo) < 0.3) fin();
+    };
+    v.addEventListener('seeked', alBuscar);
+    v.addEventListener('canplay', alBuscar);
+    setTimeout(fin, 20000);
+    if(v.dataset.url !== c.url){ v.dataset.url = c.url; s.pend = objetivo; v.src = c.url; }
+    else { try{ v.currentTime = objetivo; }catch(e){ fin(); } }
+  });
+  return s.promesa;
+}
+
+function mostrar(k){
+  SLOT[k].v.classList.add('vivo');
+  SLOT[otro(k)].v.classList.remove('vivo');
+}
+
+function ganancias(k, i){
+  const b = M.val[i], T = ac.currentTime;
+  gV[k].gain.cancelScheduledValues(T); gV[k].gain.value = gananciaBloque(b);
+  gL[k].gain.cancelScheduledValues(T); gL[k].gain.value = SLOT[k].usaLoc ? 1 : 0;
+}
+
+function arrancarSlot(k){
+  const s = SLOT[k];
+  s.corriendo = true;
+  s.v.play().catch(()=>{});
+  if(s.usaLoc) s.a.play().catch(()=>{});
+}
+
+function precargarSiguiente(){
+  const n = M.i + 1;
+  if(n >= M.val.length) return;
+  const k = otro(M.act);
+  gV[k].gain.cancelScheduledValues(ac.currentTime); gV[k].gain.value = 0;
+  gL[k].gain.cancelScheduledValues(ac.currentTime); gL[k].gain.value = 0;
+  situar(k, n, 0, true);
+}
+
+function pintarInfo(){
+  const b = M.val[M.i];
+  if(b && modoEmision !== 'estudio')
+    document.getElementById('emInfo').textContent = `${M.i + 1}/${M.val.length} · ${b.tipo.toUpperCase()}`;
+}
+
+function pintarRotuloEn(b, rel){
+  const rot = document.getElementById('emRotulo');
+  const act = (b.rotulos||[]).find(r => rel >= r.desde && rel <= r.hasta && (r.l1 || r.l2));
+  const clave = act ? (act.l1 + '|' + act.l2) : '';
+  if(clave === ultimoRot) return;
+  ultimoRot = clave;
+  if(act){
+    rotDatos = {n: act.l1 || '', c: act.l2 || ''};
+    document.getElementById('emRotNom').textContent = rotDatos.n;
+    document.getElementById('emRotCar').textContent = rotDatos.c;
+    rot.classList.add('on'); rotVisible = true;
+  } else {
+    rot.classList.remove('on'); rotVisible = false;
+  }
+}
+
+function pausarTodo(){
+  clearInterval(M.timer); M.timer = null; M.gen++; M.esperando = false;
+  ['A','B'].forEach(k => { const s = SLOT[k]; s.v.pause(); s.a.pause(); s.corriendo = false; });
+  document.getElementById('emLocP').pause();
+  document.getElementById('emMus').pause();
+  if(gMus){ gMus.gain.cancelScheduledValues(ac.currentTime); gMus.gain.value = 0; }
+  musTramoActual = -2; musSaliendo = false;
+}
+
+// Arranca la pieza en el segundo t. `antes` se ejecuta cuando todo está preparado y justo antes
+// de dar al play (sirve para empezar a grabar sin perder ni un fotograma).
+async function reproducirDesde(t, alAcabar, opts, antes){
+  const val = bloquesValidos();
+  if(!val.length) return;
+  pausarTodo();
+  const gen = ++M.gen;
+  M.val = val; M.alAcabar = alAcabar; M.opts = opts || {}; M.n = 0;
+  recalcularPrevios();
+  const p = bloqueEnTiempo(t);
+  M.i = p.i;
+  const k = M.act;
+  await situar(k, p.i, p.rel, false);
+  if(gen !== M.gen) return;
+  mostrar(k);
+  ganancias(k, p.i);
+  const lp = document.getElementById('emLocP');
+  const conLocP = !!piezaLocURL && !M.opts.grabando;
+  gLocP.gain.value = conLocP ? 1 : 0;
+  if(conLocP){
+    if(lp.dataset.url !== piezaLocURL){ lp.dataset.url = piezaLocURL; lp.src = piezaLocURL; }
+    try{ lp.currentTime = t; }catch(e){}
+  }
+  if(antes){ await antes(); if(gen !== M.gen) return; }
+  emitiendo = true;
+  ultimoRot = null;
+  pintarInfo();
+  arrancarSlot(k);
+  if(conLocP) lp.play().catch(()=>{});
+  if(musicaTramos.length) actualizarMusica(t, true); else musicaContinua(t);
+  precargarSiguiente();
+  M.timer = setInterval(tick, 15);
+  tick();
+}
+
+function tick(){
+  if(M.esperando || !M.val.length) return;
+  const b = M.val[M.i], s = SLOT[M.act], v = s.v;
+  const fin = finDe(b);
+  const rel = Math.max(0, v.currentTime - b.ini);
+  const avance = M.previos[M.i] + rel;
+  tiempoGlobal = avance;
+  pintarRotuloEn(b, rel);
+  actualizarMusica(avance);
+  const total = durTotalPieza();
+  const pct = total ? Math.min(100, avance / total * 100) : 0;
+  document.getElementById('emProg').style.width = pct + '%';
+  if(exportando) document.getElementById('expProg').style.width = pct + '%';
+  if(modoEmision === 'estudio' && (M.n++ % 4 === 0)) pintarEstudio(true);
+
+  const restante = fin - v.currentTime;
+  const n = M.i + 1;
+  if(n < M.val.length){                              // el siguiente calienta unas décimas antes del corte
+    const sn = SLOT[otro(M.act)];
+    if(sn.listo && sn.i === n && !sn.corriendo && restante <= sn.lead + 0.04){
+      sn.corriendo = true; sn.v.play().catch(()=>{});
+    }
+    // el corte espera (como mucho 100 ms) a que el vídeo entrante muestre su primer fotograma marcado
+    if(restante <= 0.02 && !v.ended && sn.corriendo && fotoDe(sn) < M.val[n].ini - 0.02 && restante > -0.1) return;
+  }
+  if(restante <= 0.02 || v.ended) corte();
+}
+
+function corte(){
+  const n = M.i + 1;
+  if(n >= M.val.length){ finalizarMotor(); return; }
+  const kv = M.act, kn = otro(kv), so = SLOT[kv], sn = SLOT[kn];
+  if(!(sn.listo && sn.i === n)){                     // aún no está listo: se queda el último fotograma
+    if(!M.esperando){
+      M.esperando = true; so.v.pause();
+      const gen = M.gen;
+      sn.promesa.then(() => { if(gen === M.gen) M.esperando = false; });
+    }
+    return;
+  }
+  if(!sn.corriendo){ sn.corriendo = true; sn.v.play().catch(()=>{}); }
+  if(sn.usaLoc) sn.a.play().catch(()=>{});
+  mostrar(kn);
+  const T = ac.currentTime, b = M.val[n];
+  const fade = (g, hasta) => {
+    g.cancelScheduledValues(T); g.setValueAtTime(g.value, T); g.linearRampToValueAtTime(hasta, T + FUNDIDO);
+  };
+  fade(gV[kv].gain, 0); fade(gL[kv].gain, 0);
+  gV[kn].gain.cancelScheduledValues(T); gV[kn].gain.setValueAtTime(0, T);
+  gV[kn].gain.linearRampToValueAtTime(gananciaBloque(b), T + FUNDIDO);
+  gL[kn].gain.cancelScheduledValues(T); gL[kn].gain.value = sn.usaLoc ? 1 : 0;
+  M.act = kn; M.i = n;
+  ultimoRot = null;
+  pintarInfo();
+  const gen = M.gen;
+  setTimeout(() => {                                 // el vídeo saliente se apaga cuando acaba el fundido
+    if(gen !== M.gen) return;
+    so.v.pause(); so.a.pause(); so.corriendo = false;
+    precargarSiguiente();
+  }, 70);
+}
+
+function finalizarMotor(){
+  const cb = M.alAcabar;
+  clearInterval(M.timer); M.timer = null; M.gen++;
+  ['A','B'].forEach(k => { SLOT[k].v.pause(); SLOT[k].a.pause(); });
+  document.getElementById('emLocP').pause();
+  emitiendo = false;
+  if(cb) cb();
+}
+
+// deja la pieza parada mostrando el fotograma del segundo t (para moverse por ella)
+function verEn(t){
+  const val = bloquesValidos();
+  if(!val.length) return;
+  const total = durTotalPieza();
+  t = Math.max(0, Math.min(t, Math.max(0, total - 0.04)));
+  M.val = val; recalcularPrevios();
+  const p = bloqueEnTiempo(t);
+  M.i = p.i; tiempoGlobal = t;
+  situar(M.act, p.i, p.rel, false);
+  mostrar(M.act);
+  ultimoRot = null; pintarRotuloEn(val[p.i], p.rel);
+  pintarEstudio(true);
+}
+
+// ==================================================== EMISIÓN
+function emitir(){
+  if(!bloquesValidos().length){ alert('Añadid al menos un bloque con su clip.'); return; }
+  modoEmision = 'pase';
+  document.getElementById('estudioPanel').style.display = 'none';
+  document.getElementById('emision').classList.remove('estudio');
+  grafo(); ac.resume();
+  document.getElementById('emision').classList.add('on');
+  document.getElementById('emFin').style.display = 'none';
+  document.getElementById('emStage').style.display = 'block';
+  reproducirDesde(0, finEmision, {});
+}
+
+function finEmision(){
+  apagarMusica(false);
+  document.getElementById('emStage').style.display = 'none';
+  document.getElementById('emRotulo').classList.remove('on');
+  document.getElementById('emProg').style.width = '100%';
+  document.getElementById('emFinDur').textContent = 'Duración: ' + fmt(durTotalPieza());
+  document.getElementById('emFin').style.display = 'block';
+}
+
+function pararEmision(){
+  emitiendo = false;
+  pausarTodo();
+  if(grabandoPieza) pararLocPieza();
+  ['A','B'].forEach(k => {
+    const s = SLOT[k];
+    s.v.removeAttribute('src'); s.v.load(); s.v.dataset.url = ''; s.v.classList.remove('vivo');
+    s.i = -1; s.listo = false;
+  });
+  document.getElementById('emStage').style.display = 'block';
+  document.getElementById('emision').classList.remove('on');
+  document.getElementById('emRotulo').classList.remove('on');
+  document.getElementById('emProg').style.width = '0';
+}
+
+document.addEventListener('keydown', e => {
+  const abierto = document.getElementById('emision').classList.contains('on');
+  const enCampo = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '');
+  if(e.key === 'Escape'){
+    if(abierto && !exportando){ modoEmision === 'estudio' ? cerrarEstudio() : pararEmision(); }
+    else if(cabIdx !== -1) cerrarCabina();
+    return;
+  }
+  if(abierto && modoEmision === 'estudio' && !enCampo){
+    if(e.code === 'Space'){ e.preventDefault(); estudioPlay(); }
+    else if(e.key === 'ArrowLeft'){ e.preventDefault(); saltarA(tiempoGlobal - (e.shiftKey ? 5 : 1)); }
+    else if(e.key === 'ArrowRight'){ e.preventDefault(); saltarA(tiempoGlobal + (e.shiftKey ? 5 : 1)); }
+    else if(e.key === 'Home'){ e.preventDefault(); saltarA(0); }
+  }
+});
+
+// ==================================================== ESTUDIO: LA PIEZA ENTERA
+function abrirEstudio(){
+  if(!bloquesValidos().length){ alert('Añadid al menos un bloque con su clip.'); return; }
+  modoEmision = 'estudio';
+  grafo(); ac.resume();
+  const em = document.getElementById('emision');
+  em.classList.add('on','estudio');
+  document.getElementById('emFin').style.display = 'none';
+  document.getElementById('estudioPanel').style.display = 'flex';
+  document.getElementById('emStage').style.display = 'block';
+  document.getElementById('emInfo').textContent = 'MESA DE MONTAJE';
+  document.getElementById('emProg').style.width = '0';
+  tiempoGlobal = 0;
+  M.act = 'A';
+  pintarEstudio();
+  verEn(0);
+}
+
+function estudioPlay(){
+  if(emitiendo){ pausarEstudio(); return; }
+  const total = durTotalPieza();
+  let t = tiempoGlobal;
+  if(t >= total - 0.1) t = 0;
+  reproducirDesde(t, () => { apagarMusica(false); tiempoGlobal = total; pintarEstudio(); }, {});
+  pintarEstudio();
+}
+
+function pausarEstudio(){
+  if(grabandoPieza) pararLocPieza();
+  emitiendo = false;
+  const t = tiempoGlobal;
+  pausarTodo();
+  verEn(t);
+  pintarEstudio();
+}
+
+// salta a un instante; si estaba sonando, sigue sonando desde ahí
+function saltarA(t){
+  const total = durTotalPieza();
+  t = Math.max(0, Math.min(t, Math.max(0, total - 0.05)));
+  if(emitiendo) reproducirDesde(t, () => { apagarMusica(false); tiempoGlobal = total; pintarEstudio(); }, {});
+  else verEn(t);
+}
+
+function cerrarEstudio(){
+  emitiendo = false;
+  pausarTodo();
+  modoEmision = 'pase';
+  document.getElementById('emision').classList.remove('on','estudio');
+  document.getElementById('estudioPanel').style.display = 'none';
+  document.getElementById('emRotulo').classList.remove('on');
+  guardarPronto();
+}
+
+// arrastrar por la línea de tiempo
+function iniciarScrub(){
+  const linea = document.getElementById('estLinea');
+  let arrastrando = false, estabaSonando = false, pendiente = null, raf = 0;
+  const tDe = e => {
+    const r = linea.getBoundingClientRect();
+    return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * durTotalPieza();
+  };
+  linea.addEventListener('pointerdown', e => {
+    if(modoEmision !== 'estudio') return;
+    try{ linea.setPointerCapture(e.pointerId); }catch(err){}
+    arrastrando = true; estabaSonando = emitiendo;
+    if(emitiendo) pausarEstudio();
+    verEn(tDe(e));
+  });
+  linea.addEventListener('pointermove', e => {
+    if(!arrastrando) return;
+    pendiente = tDe(e);
+    if(!raf) raf = requestAnimationFrame(() => { raf = 0; if(pendiente !== null) verEn(pendiente); });
+  });
+  const soltar = () => {
+    if(!arrastrando) return;
+    arrastrando = false;
+    if(pendiente !== null){ verEn(pendiente); pendiente = null; }
+    pintarEstudio();
+    if(estabaSonando) estudioPlay();
+  };
+  linea.addEventListener('pointerup', soltar);
+  linea.addEventListener('pointercancel', soltar);
+}
+
+// ---------------------------------------------------- marcar música y rótulos
+function marcarMus(cual){
+  if(!musicas.length){ alert('Subid primero una pista de música.'); return; }
+  const t = Math.round(tiempoGlobal * 10) / 10;
+  if(cual === 'desde'){
+    pendienteMus = {desde:t, hasta:null, vol:musicaVol, musId: musicaSel || musicas[0].id};
+  } else {
+    if(!pendienteMus){ alert('Marcad primero por dónde entra.'); return; }
+    if(t <= pendienteMus.desde){ alert('La salida tiene que ir después de la entrada.'); return; }
+    pendienteMus.hasta = t;
+    musicaTramos.push(pendienteMus);
+    musicaTramos.sort((a,b) => a.desde - b.desde);
+    pendienteMus = null;
+    musTramoActual = -2;
+  }
+  pintarEstudio(); guardarPronto();
+}
+
+function delMus(j){ musicaTramos.splice(j,1); musTramoActual = -2; pintarEstudio(); guardarPronto(); }
+
+function marcarRotEstudio(cual){
+  const t = Math.round(tiempoGlobal * 10) / 10;
+  const p = bloqueEnTiempo(t);
+  if(!p) return;
+  if(cual === 'desde'){
+    const l1 = document.getElementById('estRotL1').value.trim();
+    const l2 = document.getElementById('estRotL2').value.trim();
+    if(!l1 && !l2){ alert('Escribid antes el texto del rótulo.'); return; }
+    const r = {l1, l2, desde:p.rel, hasta:p.dur};
+    p.b.rotulos.push(r);
+    pendienteRot = {b:p.b, r};
+  } else {
+    if(!pendienteRot){ alert('Marcad primero por dónde entra.'); return; }
+    pendienteRot.r.hasta = (p.b === pendienteRot.b)
+      ? Math.max(pendienteRot.r.desde + 0.3, p.rel)
+      : durBloque(pendienteRot.b);
+    pendienteRot = null;
+    document.getElementById('estRotL1').value = '';
+    document.getElementById('estRotL2').value = '';
+  }
+  pintarEstudio(); pintarEscaleta();
+  if(!emitiendo) verEn(tiempoGlobal);
+}
+
+function delRotGlobal(bi, j){
+  const val = bloquesValidos();
+  val[bi].rotulos.splice(j,1);
+  pintarEstudio(); pintarEscaleta();
+  if(!emitiendo) verEn(tiempoGlobal);
+}
+
+// ---------------------------------------------------- locutar la pieza entera
+async function locutarPieza(){
+  if(grabandoPieza){ pararLocPieza(); pausarEstudio(); return; }
+  try{
+    if(!micStream || !micStream.active)
+      micStream = await navigator.mediaDevices.getUserMedia({audio:true});
+  }catch(e){
+    alert('El navegador ha bloqueado el micrófono. Descargad el archivo y abridlo con doble clic.');
+    return;
+  }
+  if(emitiendo) pausarEstudio();
+  await cuentaAtras(document.getElementById('cuenta'), 3);
+
+  chunksPieza = [];
+  recPieza = new MediaRecorder(micStream);
+  recPieza.ondataavailable = e => { if(e.data.size) chunksPieza.push(e.data); };
+  recPieza.onstop = () => {
+    const medida = (Date.now() - tIniPieza) / 1000;
+    const blob = new Blob(chunksPieza, {type: recPieza.mimeType || 'audio/webm'});
+    if(piezaLocURL) URL.revokeObjectURL(piezaLocURL);
+    piezaLocBlob = blob;
+    piezaLocURL = URL.createObjectURL(blob);
+    piezaLocDur = medida;
+    grabandoPieza = false;
+    pintarEstudio(); guardarPronto();
+  };
+  grabandoPieza = true;
+  pintarEstudio();
+  // se graba mientras corre la pieza, con las locuciones de bloque y la de pieza calladas
+  reproducirDesde(0, () => { pararLocPieza(); apagarMusica(false); tiempoGlobal = durTotalPieza(); pintarEstudio(); },
+    {grabando:true}, () => { recPieza.start(); tIniPieza = Date.now(); });
+}
+
+function pararLocPieza(){
+  if(recPieza && recPieza.state !== 'inactive') recPieza.stop();
+  grabandoPieza = false;
+}
+
+function borrarLocPieza(){
+  if(piezaLocURL) URL.revokeObjectURL(piezaLocURL);
+  piezaLocURL = null; piezaLocBlob = null; piezaLocDur = 0;
+  pintarEstudio(); guardarPronto();
+}
+
+// ---------------------------------------------------- pintar la mesa
+function textoAhora(t){
+  const p = bloqueEnTiempo(t);
+  if(!p) return '';
+  const partes = [`Bloque ${p.i + 1} · ${p.b.tipo === 'cola' ? 'COLA' : 'TOTAL'}`];
+  const idx = musicaTramos.findIndex(x => t >= x.desde && t < x.hasta);
+  const pista = musicas.find(x => x.id === musicaSel);
+  partes.push(idx >= 0 ? '♪ suena música' : (musicaTramos.length ? '♪ sin música' : (pista ? '♪ música de fondo' : '♪ sin música')));
+  const act = (p.b.rotulos||[]).find(r => p.rel >= r.desde && p.rel <= r.hasta && (r.l1 || r.l2));
+  partes.push(act ? '▌ rótulo «' + esc(act.l1 || act.l2) + '»' : 'sin rótulo');
+  return partes.join(' · ');
+}
+
+function pintarEstudio(soloReloj){
+  const total = durTotalPieza() || 1;
+  document.getElementById('estT').textContent = fmtd(tiempoGlobal);
+  document.getElementById('estDur').textContent = fmt(total);
+  const aguja = document.getElementById('agujaEst');
+  if(aguja) aguja.style.left = (Math.min(tiempoGlobal, total) / total * 100) + '%';
+  document.getElementById('estAhora').innerHTML = textoAhora(tiempoGlobal);
+  if(soloReloj) return;
+
+  document.getElementById('estPlay').textContent = grabandoPieza ? '❚❚ Pausa' : (emitiendo ? '❚❚ Pausa' : '▶ Reproducir');
+  document.getElementById('estLocutar').textContent = grabandoPieza
+    ? '■ Parar la locución' : (piezaLocURL ? '🎙 Regrabar la pieza entera' : '🎙 Locutar la pieza entera');
+  document.getElementById('estLocEstado').innerHTML = piezaLocURL
+    ? `Locución de pieza grabada (${fmt(piezaLocDur)}) — silencia las de cada bloque.
+       <button class="chip" style="border:0;padding:2px 8px" onclick="borrarLocPieza()">Quitarla</button>`
+    : '';
+
+  // línea de tiempo con tres carriles (bloques, rótulos y música) y regla de segundos
+  const val = bloquesValidos();
+  let acc = 0, html = '<div class="est-lane rot"><i>RÓTULOS</i></div><div class="est-lane mus"><i>MÚSICA</i></div>';
+  val.forEach((b,i) => {
+    const d = durBloque(b);
+    html += `<div class="est-blq ${b.tipo}" style="left:${acc/total*100}%;width:${d/total*100}%">
+               <span>${i + 1} · ${b.tipo === 'cola' ? 'COLA' : 'TOTAL'}</span></div>`;
+    (b.rotulos||[]).forEach(r => {
+      if(!(r.l1 || r.l2)) return;
+      const de = (acc + r.desde) / total * 100, an = Math.max(0.6, (r.hasta - r.desde) / total * 100);
+      html += `<div class="est-rot" style="left:${de}%;width:${an}%"></div>`;
+    });
+    acc += d;
+  });
+  musicaTramos.forEach(t => {
+    html += `<div class="est-mus" style="left:${t.desde/total*100}%;width:${Math.max(0.6,(t.hasta-t.desde)/total*100)}%"></div>`;
+  });
+  const paso = total <= 30 ? 5 : total <= 90 ? 10 : total <= 240 ? 30 : 60;
+  for(let s = 0; s <= total; s += paso)
+    html += `<div class="est-tick" style="left:${s/total*100}%"><span>${fmt(s)}</span></div>`;
+  html += `<div class="est-aguja" id="agujaEst" style="left:${Math.min(tiempoGlobal,total)/total*100}%"></div>`;
+  document.getElementById('estLinea').innerHTML = html;
+
+  // etiquetas de música y rótulos, se pincha para saltar a ellas
+  let chips = musicaTramos.map((t,j) =>
+    `<span class="chip mus"><a onclick="saltarA(${t.desde})">♪ ${fmt(t.desde)}–${fmt(t.hasta)}</a>
+      <button onclick="delMus(${j})">✕</button></span>`).join('');
+  if(pendienteMus) chips += `<span class="chip mus">♪ desde ${fmt(pendienteMus.desde)} — falta marcar la salida</span>`;
+  let accd = 0;
+  val.forEach((b,bi) => {
+    (b.rotulos||[]).forEach((r,j) => {
+      if(!(r.l1 || r.l2)) return;
+      chips += `<span class="chip rot"><a onclick="saltarA(${accd + r.desde})">▌ ${esc((r.l1||r.l2).slice(0,22))} · ${fmt(accd + r.desde)}–${fmt(accd + r.hasta)}</a>
+        <button onclick="delRotGlobal(${bi},${j})">✕</button></span>`;
+    });
+    accd += durBloque(b);
+  });
+  document.getElementById('estChips').innerHTML = chips ||
+    '<span class="est-nota" style="color:#7C87AD">Sin música ni rótulos todavía. Colócate en el punto exacto y pulsa «entra aquí».</span>';
+}
+
+// ==================================================== EXPORTAR VÍDEO
+let grabadorPieza = null, trozosPieza = [];
+
+async function exportar(){
+  if(!bloquesValidos().length){ alert('Añadid al menos un bloque con su clip.'); return; }
+  const dur = durTotalPieza();
+  if(!confirm(`El vídeo se graba en tiempo real: tardará unos ${Math.ceil(dur)} segundos, `
+    + `los que dura la pieza. No cierres la pestaña. ¿Seguimos?`)) return;
+
+  grafo(); ac.resume();
+  const lienzo = document.getElementById('lienzo');
+  const ctx = lienzo.getContext('2d');
+
+  document.getElementById('expPanel').classList.add('on');
+  document.getElementById('expTit').textContent = 'Generando el vídeo…';
+  document.getElementById('expCerrar').style.display = 'none';
+  document.getElementById('expProg').style.width = '0';
+
+  const stream = lienzo.captureStream(30);
+  destExport.stream.getAudioTracks().forEach(t => stream.addTrack(t));
+
+  let mime = 'video/webm';
+  for(const m of ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm']){
+    if(MediaRecorder.isTypeSupported(m)){ mime = m; break; }
+  }
+  trozosPieza = [];
+  grabadorPieza = new MediaRecorder(stream, {mimeType:mime, videoBitsPerSecond:2500000});
+  grabadorPieza.ondataavailable = e => { if(e.data.size) trozosPieza.push(e.data); };
+  grabadorPieza.onstop = () => {
+    const blob = new Blob(trozosPieza, {type:'video/webm'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'pieza_' + Date.now() + '.webm';
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 2000);
+    document.getElementById('expTit').textContent = 'Vídeo descargado';
+    document.getElementById('expTxt').textContent =
+      'Se ha guardado en formato webm. Se ve en cualquier navegador y en VLC.';
+    document.getElementById('expProg').style.width = '100%';
+    document.getElementById('expCerrar').style.display = 'inline-block';
+  };
+
+  const W = lienzo.width, H = lienzo.height;
+  function dibujar(){
+    if(!exportando) return;
+    ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H);
+    const v = vActivo();
+    if(v && v.videoWidth){
+      const e = Math.min(W/v.videoWidth, H/v.videoHeight);
+      const w = v.videoWidth*e, h = v.videoHeight*e;
+      ctx.drawImage(v, (W-w)/2, (H-h)/2, w, h);
+    }
+    if(rotVisible && (rotDatos.n || rotDatos.c)){
+      const x = W*0.05, base = H*0.80;
+      ctx.font = 'bold 40px Arial, Helvetica, sans-serif';
+      const wn = ctx.measureText(rotDatos.n).width;
+      ctx.font = '22px Arial, Helvetica, sans-serif';
+      const wc = ctx.measureText(rotDatos.c).width;
+      const anch = Math.max(wn, wc) + 56;
+      ctx.fillStyle = 'rgba(200,16,46,.94)';
+      ctx.fillRect(x, base, anch, rotDatos.c ? 92 : 64);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 40px Arial, Helvetica, sans-serif';
+      ctx.fillText(rotDatos.n, x+28, base+48);
+      if(rotDatos.c){
+        ctx.font = '22px Arial, Helvetica, sans-serif';
+        ctx.fillText(rotDatos.c, x+28, base+78);
+      }
+    }
+    requestAnimationFrame(dibujar);
+  }
+
+  modoEmision = 'pase';
+  document.getElementById('estudioPanel').style.display = 'none';
+  document.getElementById('emision').classList.remove('estudio');
+  document.getElementById('emision').classList.add('on');
+  document.getElementById('emFin').style.display = 'none';
+  document.getElementById('emStage').style.display = 'block';
+  exportando = true;
+  reproducirDesde(0, () => {
+    setTimeout(() => {
+      exportando = false; emitiendo = false;
+      if(grabadorPieza && grabadorPieza.state !== 'inactive') grabadorPieza.stop();
+      pararEmision();
+    }, 400);
+  }, {}, () => { grabadorPieza.start(); dibujar(); });
+}
+
+function cerrarExport(){ document.getElementById('expPanel').classList.remove('on'); }
+
+
+
+let guardadoPendiente = null;
+
+async function arrancar(){
+  pintarVideoteca(); pintarMusica(); pintarEscaleta();
+  const d = await hayGuardado();
+  if(d && (d.bloques?.length || d.clips?.length)){
+    guardadoPendiente = d;
+    const f = new Date(d.fecha);
+    document.getElementById('restTexto').innerHTML =
+      `Hay un trabajo guardado del <b>${f.toLocaleDateString()} a las ${String(f.getHours()).padStart(2,'0')}:${String(f.getMinutes()).padStart(2,'0')}</b>` +
+      ` — ${d.bloques.length} bloque${d.bloques.length===1?'':'s'} y ${d.clips.length} vídeo${d.clips.length===1?'':'s'}.`;
+    document.getElementById('barraRestaurar').style.display = 'flex';
+  }
+  if(guardadoRoto) marcarGuardado(false);
+}
+function restaurarGuardado(){ if(guardadoPendiente) restaurar(guardadoPendiente); }
+
+initSlots();
+iniciarScrub();
+arrancar();
+</script>
+</body>
+</html>
