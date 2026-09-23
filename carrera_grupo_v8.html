@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>La Carrera de la Redacción · Equipo</title>
+<style>
+:root{--red:#C8102E;--ink:#1B1B1F;--paper:#fff;--bg:#F3F1EC;--muted:#6B6B72;--border:#D8D8DC;--green:#1E7A45;--gold:#E8B54A;--team:#C8102E}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg)}
+body{font-family:Arial,Helvetica,sans-serif;color:var(--ink);min-height:100vh;-webkit-tap-highlight-color:transparent}
+.top{background:var(--ink);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:5}
+.top .t1{font-size:14px;font-weight:800;letter-spacing:.04em}
+.top .t2{font-size:11px;color:var(--gold);letter-spacing:.06em}
+.chip{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px}
+.dot{width:16px;height:16px;border-radius:50%;background:var(--team);border:2px solid #fff;flex:none}
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 60px}
+.card{background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}
+h1{font-size:24px;line-height:1.2;margin-bottom:8px}
+h2{font-size:19px;line-height:1.3;margin-bottom:12px}
+p{line-height:1.45}
+.muted{color:var(--muted);font-size:14px}
+label{display:block;font-weight:700;font-size:13px;margin:14px 0 6px}
+input,textarea{width:100%;border:2px solid var(--border);border-radius:10px;padding:13px;font-size:17px;font-family:inherit;color:var(--ink);background:#fff}
+input:focus,textarea:focus{outline:none;border-color:var(--team)}
+textarea{min-height:130px;resize:vertical;line-height:1.4}
+.btn{display:block;width:100%;border:none;border-radius:12px;padding:16px;font-size:18px;font-weight:800;font-family:inherit;color:#fff;background:var(--red);cursor:pointer;margin-top:16px}
+.btn:disabled{opacity:.45}
+.btn.team{background:var(--team)}
+.err{color:var(--red);font-weight:700;font-size:14px;margin-top:10px;min-height:18px}
+.progress{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:700;margin-bottom:8px}
+.track{height:14px;border-radius:8px;background:#e4e1da;position:relative;overflow:visible;margin-bottom:16px}
+.track i{position:absolute;left:0;top:0;bottom:0;border-radius:8px;background:var(--team);transition:width .5s}
+.track b{position:absolute;top:-3px;width:4px;height:20px;background:var(--ink);border-radius:2px}
+.qtag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;padding:4px 10px;border-radius:20px;background:var(--ink);color:#fff;margin-bottom:12px}
+.qimg{display:block;max-width:100%;max-height:240px;margin:0 auto 14px;border-radius:10px}
+.opts{display:grid;gap:10px}
+.opt{border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:700;font-family:inherit;color:#fff;text-align:left;cursor:pointer;min-height:60px;display:flex;gap:10px;align-items:center}
+.opt:nth-child(1){background:#C8102E}.opt:nth-child(2){background:#1565C0}.opt:nth-child(3){background:#B7791F}.opt:nth-child(4){background:#2E7D32}
+.opt .s{font-size:20px;flex:none;width:24px;text-align:center}
+.opt.dim{opacity:.3}
+.opt.right{outline:4px solid var(--ink);opacity:1}
+.fb{border-radius:14px;padding:22px;text-align:center;color:#fff;font-weight:800;margin-bottom:14px}
+.fb.ok{background:var(--green)}
+.fb.ko{background:var(--red)}
+.fb .big{font-size:28px;margin-bottom:6px}
+.fb .sm{font-size:15px;font-weight:600;line-height:1.4}
+.task{background:#FFF7E0;border:2px solid var(--gold);border-radius:12px;padding:16px;font-size:17px;line-height:1.45;font-weight:600;margin-bottom:6px}
+.note{background:#FDECEE;border-left:5px solid var(--red);padding:12px;border-radius:8px;margin:12px 0;font-weight:600}
+.count{text-align:right;font-size:12px;color:var(--muted);margin-top:4px}
+.center{text-align:center}
+.bigicon{font-size:56px;margin-bottom:10px}
+.pulse{animation:pl 1.4s infinite}
+@keyframes pl{50%{opacity:.35}}
+.hidden{display:none!important}
+.rank{list-style:none;margin-top:12px}
+.rank li{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--border);font-weight:700}
+.rank li .n{width:26px;text-align:right;color:var(--muted)}
+.rank li .p{margin-left:auto;font-size:13px;color:var(--muted)}
+.rank li.me{background:#FFF7E0}
+</style>
+</head>
+<body>
+<div class="top">
+  <div><div class="t1">LA CARRERA DE LA REDACCIÓN</div><div class="t2" id="codeLbl">EQUIPO</div></div>
+  <div class="chip hidden" id="teamChip"><span class="dot"></span><span id="teamName"></span></div>
+</div>
+<div class="wrap">
+
+  <!-- Unirse -->
+  <section id="sJoin" class="card">
+    <h1>Entrad en la carrera</h1>
+    <p class="muted">Un solo móvil u ordenador por redacción.</p>
+    <label for="inCode">Código de la carrera</label>
+    <input id="inCode" maxlength="6" autocomplete="off" autocapitalize="characters" placeholder="Ej. KPRT" style="text-transform:uppercase;letter-spacing:.2em;font-weight:800">
+    <label for="inName">Nombre de vuestra redacción</label>
+    <input id="inName" maxlength="28" autocomplete="off" placeholder="Ej. El Faro de Somosaguas">
+    <div id="apiBox" class="hidden">
+      <label for="inApi">Dirección del servidor</label>
+      <input id="inApi" placeholder="https://script.google.com/macros/s/.../exec">
+    </div>
+    <button class="btn" id="bJoin">Entrar</button>
+    <div class="err" id="joinErr"></div>
+  </section>
+
+  <!-- Esperando salida -->
+  <section id="sLobby" class="card center hidden">
+    <div class="bigicon pulse">🏁</div>
+    <h1>Estáis dentro</h1>
+    <p class="muted">Mirad la pantalla del proyector. La carrera empieza cuando la profesora dé la salida.</p>
+  </section>
+
+  <!-- Carrera -->
+  <section id="sRace" class="hidden">
+    <div class="progress"><span id="posLbl">Casilla 0 de 20</span><span id="rankLbl"></span></div>
+    <div class="track" id="myTrack"><i id="myBar" style="width:0"></i></div>
+
+    <div id="qBox" class="card">
+      <span class="qtag" id="qTag">PREGUNTA</span>
+      <img id="qImg" class="qimg hidden" alt="">
+      <h2 id="qText"></h2>
+      <div class="opts" id="qOpts"></div>
+      <div id="qShort" class="hidden">
+        <input id="inShort" autocomplete="off" placeholder="Escribid la respuesta">
+        <button class="btn team" id="bShort">Responder</button>
+      </div>
+    </div>
+
+    <div id="fbBox" class="hidden"></div>
+
+    <div id="stopBox" class="card hidden">
+      <span class="qtag" style="background:var(--gold);color:var(--ink)" id="stopTag">PARADA DE REDACCIÓN</span>
+      <div class="task" id="stopTask"></div>
+      <div id="stopNote" class="note hidden"></div>
+      <div id="stopWrite">
+        <label for="inText">Vuestro texto</label>
+        <textarea id="inText" maxlength="500" placeholder="Escribid aquí"></textarea>
+        <div class="count"><span id="cnt">0</span>/500</div>
+        <button class="btn team" id="bSend">Enviar a la jefa de redacción</button>
+      </div>
+      <div id="stopWait" class="center hidden" style="padding:10px 0">
+        <div class="bigicon pulse">✍️</div>
+        <h2>Texto enviado</h2>
+        <p class="muted">La jefa de redacción lo está revisando. Si lo publica, seguís corriendo y ganáis una casilla.</p>
+      </div>
+    </div>
+    <div class="err" id="raceErr"></div>
+  </section>
+
+  <!-- Final -->
+  <section id="sOver" class="card center hidden">
+    <div class="bigicon" id="overIcon">🏆</div>
+    <h1 id="overTitle"></h1>
+    <p class="muted" id="overSub"></p>
+    <ul class="rank" id="overRank" style="text-align:left"></ul>
+  </section>
+</div>
+
+<script>
+// ═══════════ CONFIGURACIÓN ═══════════
+// Si pegas aquí la dirección /exec del servidor, los equipos no tendrán que escribirla nunca.
+const API_URL = "";
+
+const BANCO = [{"id": "M02", "q": "¿Quién dirigirá La Séptima tras dejar RTVE?", "o": ["Javier Ruiz", "Jesús Cintora", "Àngels Barceló", "Gonzalo Miró"], "c": 0}, {"id": "M03", "q": "¿Quién promueve La Séptima?", "o": ["José Miguel Contreras", "Pedro J. Ramírez", "Jaume Roures", "Juan Luis Cebrián"], "c": 0}, {"id": "M04", "q": "¿Quién presenta ahora 'Mañaneros' en La 1?", "o": ["Jesús Cintora", "Javier Ruiz", "Pablo Motos", "Silvia Intxaurrondo"], "c": 0}, {"id": "M06", "q": "¿Quién presenta a diario 'Malas lenguas' desde esta temporada?", "o": ["Gonzalo Miró", "Jesús Cintora", "Javier Ruiz", "David Broncano"], "c": 0}, {"id": "M08", "q": "¿Quién preside RTVE?", "o": ["José Pablo López", "José Miguel Contreras", "Rosa María Mateo", "Javier Ruiz"], "c": 0}, {"id": "M09", "q": "¿Qué ha decidido RTVE sobre Eurovisión 2027?", "o": ["Mantener su ausencia, como en 2026", "Volver al festival", "Organizar el festival en España", "Enviar a Broncano como presentador"], "c": 0}, {"id": "M13", "q": "¿Qué órgano del Congreso ha retirado de forma definitiva la credencial de prensa a Vito Quiles?", "o": ["La Mesa del Congreso", "El Tribunal Supremo", "La Junta Electoral Central", "La Asociación de la Prensa"], "c": 0}, {"id": "M15", "q": "¿Qué hizo el PP en la votación de la retirada de credencial a Vito Quiles?", "o": ["Se abstuvo", "Votó a favor", "Votó en contra", "No se presentó"], "c": 0}, {"id": "M18", "q": "¿Cuántos años tiene Mari Carmen, la vecina desahuciada en Madrid?", "o": ["87", "67", "77", "97"], "c": 0}, {"id": "M19", "q": "¿Desde qué año vivía Mari Carmen en su piso de la calle Alcalde Sáinz de Baranda?", "o": ["1956", "1976", "1996", "2006"], "c": 0}, {"id": "M21", "q": "¿Quién es la dueña del edificio del que han desahuciado a Mari Carmen?", "o": ["Una pequeña inmobiliaria, Urbagestión", "La Comunidad de Madrid", "Un familiar de Mari Carmen", "El Ayuntamiento de Madrid"], "c": 0}, {"id": "M22", "q": "¿Qué colectivo organizó la resistencia al desahucio de Mari Carmen?", "o": ["Sindicato de Inquilinas", "Cáritas", "Hazte Oír", "Manos Limpias"], "c": 0}, {"id": "M23", "q": "¿Qué partido gana en estimación de voto en el CIS de septiembre?", "o": ["PSOE", "PP", "Vox", "Sumar"], "c": 0}, {"id": "M24", "q": "¿Qué porcentaje de voto da el CIS de septiembre a Vox?", "o": ["16,6 %", "8,2 %", "25,5 %", "31 %"], "c": 0}, {"id": "M25", "q": "¿Qué preocupa más a los españoles según el CIS de septiembre?", "o": ["La vivienda", "La inmigración", "El paro", "La corrupción"], "c": 0}, {"id": "M26", "q": "¿Qué líder recibe la mejor nota en el CIS de septiembre?", "o": ["Pedro Sánchez", "Alberto Núñez Feijóo", "Yolanda Díaz", "Santiago Abascal"], "c": 0}, {"id": "M29", "q": "¿Ante quién será juzgada Begoña Gómez?", "o": ["Un jurado popular", "El Tribunal Supremo", "El Tribunal Constitucional", "Un tribunal militar"], "c": 0}, {"id": "M30", "q": "¿Qué tribunal juzgará a Begoña Gómez?", "o": ["La Audiencia Provincial de Madrid", "La Audiencia Nacional", "El Tribunal Supremo", "El Tribunal de Cuentas"], "c": 0}, {"id": "M31", "q": "¿De qué delitos acusa el juez Peinado a Begoña Gómez al enviarla a juicio?", "o": ["Tráfico de influencias y malversación", "Blanqueo y fraude fiscal", "Cohecho y prevaricación", "Revelación de secretos"], "c": 0}, {"id": "M32", "q": "¿A cuántos años de cárcel condenó el Supremo a José Luis Ábalos en el caso mascarillas?", "o": ["24", "9", "14", "30"], "c": 0}, {"id": "M33", "q": "¿A cuántos años de cárcel condenó el Supremo a Koldo García?", "o": ["19", "24", "4", "12"], "c": 0}, {"id": "M34", "q": "¿Qué condenado del caso mascarillas se libró de entrar en prisión?", "o": ["Víctor de Aldama", "José Luis Ábalos", "Koldo García", "Santos Cerdán"], "c": 0}, {"id": "M35", "q": "¿Qué ha decidido el Tribunal Constitucional sobre la malversación del procés?", "o": ["Que entra en la amnistía", "Que queda fuera de la amnistía", "Que debe juzgarla el Supremo", "Que se repita el juicio"], "c": 0}, {"id": "M40", "q": "¿Con el modelo de qué ciudad comparó Sánchez su forma de gobernar?", "o": ["Nueva York", "París", "Londres", "Lisboa"], "c": 0}, {"id": "M41", "q": "¿Quién dirige el CIS?", "o": ["José Félix Tezanos", "Pedro Sánchez", "Narciso Michavila", "José Pablo López"], "c": 0}, {"id": "F01", "img": "fotos/ana_vazquez.jpg", "q": "¿Quién es la diputada del PP que mostró un spray de pimienta en el Congreso?", "o": ["Ana Vázquez", "Cuca Gamarra", "Ester Muñoz", "Macarena Montesinos"], "c": 0}, {"id": "F02", "img": "fotos/armengol.jpg", "q": "¿Quién es la presidenta del Congreso que expulsó a Ana Vázquez por llevar gas pimienta?", "o": ["Francina Armengol", "Yolanda Díaz", "Cuca Gamarra", "Pilar Alegría"], "c": 0}, {"id": "F03", "img": "fotos/marlaska.jpg", "q": "¿Quién es el ministro del Interior al que Ana Vázquez persigue en cada sesión de control?", "o": ["Fernando Grande-Marlaska", "José Manuel Albares", "Óscar Puente", "Félix Bolaños"], "c": 0}, {"id": "F04", "img": "fotos/vivas.jpg", "q": "¿Quién es el presidente de Ceuta que pidió declarar la emergencia nacional?", "o": ["Juan Jesús Vivas", "Juan José Imbroda", "Fernando Grande-Marlaska", "Fernando Clavijo"], "c": 0}, {"img": "fotos/calama.jpg", "q": "¿Quién es el juez de la Audiencia Nacional que pidió a Zapatero explicar el origen de sus joyas?", "o": ["José Luis Calama", "Santiago Pedraz", "Juan Carlos Peinado", "Manuel García-Castellón"], "c": 0, "id": "F05"}, {"img": "fotos/pedraz.jpg", "q": "¿Quién es el juez que investiga la trama de hidrocarburos ligada al caso Koldo?", "o": ["Santiago Pedraz", "José Luis Calama", "Pablo Llarena", "Juan Carlos Peinado"], "c": 0, "id": "F06"}, {"img": "fotos/colau.jpg", "q": "¿Quién es la exalcaldesa de Barcelona que exigió al Gobierno plantar cara a los fondos buitre tras el desahucio de Mari Carmen?", "o": ["Ada Colau", "Yolanda Díaz", "Ione Belarra", "Mónica García"], "c": 0, "id": "F07"}, {"img": "fotos/puente.jpg", "q": "¿Quién es el ministro de Transportes que respondió a Colau en X por el desahucio de Mari Carmen?", "o": ["Óscar Puente", "Félix Bolaños", "Ernest Urtasun", "Pablo Bustinduy"], "c": 0, "id": "F08"}, {"img": "fotos/delcy.jpg", "q": "¿Quién es la dirigente venezolana que escondió el puño en alto junto a Trump en apoyo a Maduro?", "o": ["Delcy Rodríguez", "María Corina Machado", "Cilia Flores", "Claudia Sheinbaum"], "c": 0, "id": "F09"}, {"img": "fotos/felipe_gonzalez.jpg", "q": "¿Quién es el expresidente del Gobierno socialista de la foto?", "o": ["Felipe González", "Alfonso Guerra", "José Luis Rodríguez Zapatero", "Joaquín Almunia"], "c": 0, "id": "F10"}, {"img": "fotos/aznar.jpg", "q": "¿Quién es el expresidente del Gobierno del PP de la foto?", "o": ["José María Aznar", "Mariano Rajoy", "Manuel Fraga", "Esperanza Aguirre"], "c": 0, "id": "F11"}, {"img": "fotos/feijoo.jpg", "q": "¿Quién es el líder del PP de la foto?", "o": ["Alberto Núñez Feijóo", "Pablo Casado", "Mariano Rajoy", "Juanma Moreno"], "c": 0, "id": "F12"}, {"img": "fotos/soto_ivars.jpg", "q": "¿Quién es el escritor y columnista de la foto?", "o": ["Juan Soto Ivars", "Jorge Bustos", "David Jiménez", "Arturo Pérez-Reverte"], "c": 0, "id": "F13"}, {"img": "fotos/matias_prats.jpg", "q": "¿Quién es el veterano presentador de Antena 3 Noticias de la foto?", "o": ["Matías Prats", "Vicente Vallés", "Pedro Piqueras", "Carlos Franganillo"], "c": 0, "id": "F14"}, {"img": "fotos/pepa_bueno.jpg", "q": "¿Quién es la periodista que dirigió El País entre 2021 y 2025?", "o": ["Pepa Bueno", "Àngels Barceló", "Ana Pastor", "Soledad Gallego-Díaz"], "c": 0, "id": "F15"}, {"img": "fotos/franganillo.jpg", "q": "¿Quién es el periodista que dejó el Telediario de TVE por los informativos de Telecinco?", "o": ["Carlos Franganillo", "Vicente Vallés", "Matías Prats", "Pedro Piqueras"], "c": 0, "id": "F16"}, {"img": "fotos/jorge_bustos.jpg", "q": "¿Quién es el jefe de Opinión de El Mundo?", "o": ["Jorge Bustos", "Juan Soto Ivars", "Rafael Latorre", "Joaquín Manso"], "c": 0, "id": "F17"}, {"img": "fotos/aimar_bretos.jpg", "q": "¿Quién es el periodista que dirige ahora «Hoy por hoy» en la Cadena SER?", "o": ["Aimar Bretos", "José Luis Sastre", "Carlos Alsina", "Àngels Barceló"], "c": 0, "id": "F18"}, {"id": "F19", "img": "fotos/santaolalla.jpg", "q": "¿Quién es la tertuliana que tendrá su propio programa en La Séptima?", "o": ["Sarah Santaolalla", "Rocío Delgado", "Esther Palomera", "Adela González"], "c": 0}, {"id": "T09", "q": "En el periodismo declarativo, el periodista actúa como...", "o": ["Un altavoz", "Un vigilante", "Un mediador", "Un testigo"], "c": 0}, {"id": "T10", "q": "¿Qué hace la polarización mediática?", "o": ["Divide a la audiencia y reduce el debate común", "Aumenta los lectores críticos", "Obliga a citar dos fuentes", "Elimina la publicidad"], "c": 0}, {"id": "T11", "q": "¿Cómo se llama la palabra que suaviza la realidad, como «daños colaterales»?", "o": ["Eufemismo", "Disfemismo", "Metáfora", "Hipérbole"], "c": 0}, {"id": "T12", "q": "«Daños colaterales» es el eufemismo de...", "o": ["Víctimas civiles", "Ataque aéreo", "Retirada de tropas", "Pérdidas económicas"], "c": 0}, {"id": "T13", "q": "¿Cómo llamaría el bando contrario a una «reestructuración» en una empresa?", "o": ["Despidos", "Crisis", "Modernización", "Privatización"], "c": 0}, {"id": "T14", "q": "¿Cómo llamaría el bando contrario a una «reforma»?", "o": ["Recorte", "Regulación", "Oportunidad", "Persuasión"], "c": 0}, {"id": "T15", "q": "¿Cómo llamaría el bando contrario a una «modernización» de un servicio público?", "o": ["Privatización", "Reforma", "Regulación", "Despidos"], "c": 0}, {"id": "T16", "q": "¿Cómo llamaría el bando contrario a la «inteligencia» de un Estado?", "o": ["Espionaje", "Persuasión", "Resistencia", "Manipulación"], "c": 0}, {"id": "T17", "q": "Si uno de los dos titulares de enfoque opuesto es falso, ¿qué es?", "o": ["Manipulación", "Enfoque", "Encuadre", "Agenda"], "c": 0}, {"id": "T26", "q": "¿Qué partido sufrió el robo en su sede que destapó el Watergate?", "o": ["El Partido Demócrata", "El Partido Republicano", "El Partido Verde", "El Partido Libertario"], "c": 0}, {"id": "T28", "q": "¿Qué hacen las fuentes documentales según la clase de fuentes?", "o": ["Prueban", "Emocionan", "Fundamentan", "Opinan"], "c": 0}, {"id": "T29", "q": "¿Qué aportan los testigos presenciales?", "o": ["Emocionan y dan tono humano", "Prueban los hechos", "Dan rango", "Dan exclusividad"], "c": 0}, {"id": "T30", "q": "Número de fuentes: «una mínimo, dos mejor...»", "o": ["Tres ideal", "Cuatro obligatorio", "Cinco perfecto", "Una basta"], "c": 0}, {"id": "T31", "q": "¿Qué es el periodismo oficialista?", "o": ["Publicar la versión de una fuente secundaria sin contrastar", "El que hacen los medios públicos", "El que cita al Gobierno con nombre y apellidos", "El que se publica en el BOE"], "c": 0}, {"id": "T32", "q": "¿Cuál de estas es una fuente secundaria?", "o": ["Una agencia de noticias", "Un testigo presencial", "Un documento oficial original", "El protagonista del hecho"], "c": 0}, {"id": "T38", "q": "¿A qué presidente derribó el Watergate?", "o": ["Richard Nixon", "Gerald Ford", "John F. Kennedy", "Jimmy Carter"], "c": 0}];   // preguntas de opciones (y de foto)
+const CORTAS = [{"id": "U05", "q": "¿Con qué otro nombre se conoce a la prensa que vigila al poder? El... poder", "r": ["cuarto poder", "cuarto"], "s": "El cuarto poder"}, {"id": "U06", "q": "¿Cómo se titula la película de 1976 sobre el Watergate?", "r": ["Todos los hombres del presidente", "All the President's Men"], "s": "Todos los hombres del presidente"}, {"id": "U07", "q": "Completa la frase de clase: «Sin fuentes no hay periodismo, lo que hay es...»", "r": ["opinion"], "s": "Opinión"}, {"id": "U08", "q": "Completa la frase de clase: «La calidad de tu trabajo es la calidad de tus...»", "r": ["fuentes"], "s": "Fuentes"}, {"id": "U09", "q": "¿Cómo llamaría el bando contrario a un «rehén»?", "r": ["secuestrado"], "s": "Secuestrado"}, {"id": "U10", "q": "¿Cómo llamaría el bando contrario a una «intervención militar»?", "r": ["invasion"], "s": "Invasión"}, {"id": "U12", "q": "¿Cuál era el apellido de la propietaria del Washington Post durante el Watergate?", "r": ["Graham", "Katharine Graham"], "s": "Katharine Graham"}, {"id": "U13", "q": "¿Cuál era el apellido del alto cargo del FBI conocido como Garganta Profunda?", "r": ["Felt", "Mark Felt"], "s": "Mark Felt"}, {"id": "U14", "q": "¿Qué objeto del balcón servía de señal para citar a Garganta Profunda?", "r": ["maceta", "tiesto"], "s": "Una maceta"}];  // preguntas de escribir la respuesta
+
+// ═══════════ UTILIDADES ═══════════
+const $ = id => document.getElementById(id);
+const qs = new URLSearchParams(location.search);
+function lsGet(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function norm(s){
+  return " " + String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")
+    .replace(/[^a-z0-9ñ]+/g," ").replace(/\b(el|la|los|las|the|un|una|de|del)\b/g," ")
+    .replace(/\s+/g," ").trim() + " ";
+}
+// Acepta la respuesta exacta, la respuesta dentro de una frase corta
+// o solo parte del nombre si incluye el apellido (la última palabra).
+function correctaCorta(resp, variantes){
+  const r = norm(resp);
+  if (r.trim().length === 0) return false;
+  const rt = r.trim().split(" ");
+  return variantes.some(v => {
+    const n = norm(v); if (!n.trim()) return false;
+    if (r === n || (r.includes(n) && r.length <= n.length + 22)) return true;
+    const nt = n.trim().split(" ");
+    return nt.length > 1 && rt.every(w => nt.includes(w)) && rt.includes(nt[nt.length - 1]);
+  });
+}
+
+let API = API_URL || qs.get("api") || lsGet("carrera_api", "");
+async function api(params, intentos){
+  intentos = intentos || 3;
+  for (let i = 0; i < intentos; i++){
+    try{
+      const r = await fetch(API, { method:"POST", body: JSON.stringify(params) });
+      const j = await r.json();
+      if (j.error) throw Object.assign(new Error(j.error), { server:true });
+      return j;
+    }catch(e){
+      if (e.server || i === intentos - 1) throw e;
+      await new Promise(res => setTimeout(res, 700 * (i + 1)));
+    }
+  }
+}
+async function getState(){
+  const r = await fetch(API + (API.includes("?") ? "&" : "?") + "a=state&c=" + S.code + "&_=" + Date.now());
+  const j = await r.json(); if (j.error) throw new Error(j.error); return j;
+}
+
+// ═══════════ ESTADO ═══════════
+let S = { code:"", team:null, n:0 };   // n = número de respuestas enviadas
+let G = null, TEAMS = [];
+let fase = "join";      // join | lobby | q | fb | stop | over
+let pregunta = null, cola = null, extra = [];
+let bloqueo = false;
+
+function sesionKey(){ return "carrera_ses_" + S.code; }
+function guardarSesion(){ lsSet(sesionKey(), { team:S.team, n:S.n, cola:cola }); }
+
+function mostrar(id){
+  ["sJoin","sLobby","sRace","sOver"].forEach(s => $(s).classList.toggle("hidden", s !== id));
+}
+
+function pintarEquipo(){
+  if (!S.team) return;
+  document.documentElement.style.setProperty("--team", S.team.color);
+  $("teamName").textContent = S.team.name;
+  $("teamChip").classList.remove("hidden");
+  $("codeLbl").textContent = "CARRERA " + S.code;
+}
+
+function pintarProgreso(){
+  if (!G || !S.team) return;
+  const meta = G.meta, pos = S.team.pos;
+  $("posLbl").textContent = "Casilla " + pos + " de " + meta;
+  $("myBar").style.width = Math.min(100, 100 * pos / meta) + "%";
+  const tr = $("myTrack"); tr.querySelectorAll("b").forEach(b => b.remove());
+  G.stops.forEach(s => { const b = document.createElement("b"); b.style.left = "calc(" + (100 * s / meta) + "% - 2px)"; b.title = "Parada"; tr.appendChild(b); });
+  if (TEAMS.length){
+    const orden = TEAMS.slice().sort((a,b) => b.pos - a.pos);
+    const puesto = orden.findIndex(t => t.id === S.team.id) + 1;
+    $("rankLbl").textContent = puesto ? puesto + "º de " + TEAMS.length : "";
+  }
+}
+
+// ═══════════ PREGUNTAS ═══════════
+// ── Retos del quiosco: a cada equipo le toca un medio y sus dos preguntas ──
+const RETO_PASO1 = 3, RETO_PASO2 = 9;   // en qué pregunta sale cada paso
+function retoDelEquipo(){
+  const retos = [...new Set(extra.filter(x => x.reto != null).map(x => x.reto))].sort((a,b) => a - b);
+  if (!retos.length || !S.team) return null;
+  const num = (parseInt(String(S.team.id).replace(/\D/g, ""), 10) || 1) - 1;
+  return retos[num % retos.length];
+}
+function prepararCola(){
+  const normales = extra.filter(x => x.reto == null);
+  const mc = [...BANCO, ...normales.filter(x => x.o)].map(x => x.id);
+  const cs = [...CORTAS, ...normales.filter(x => x.r)].map(x => x.id);
+  cola = { mc: shuffle(mc), cs: shuffle(cs), i: 0 };
+}
+function buscar(id){ return [...BANCO, ...CORTAS, ...extra].find(x => x.id === id); }
+function siguiente(){
+  if (!cola) prepararCola();
+  cola.i++;
+  const reto = retoDelEquipo();
+  if (reto != null && (cola.i === RETO_PASO1 || cola.i === RETO_PASO2)){
+    const paso = cola.i === RETO_PASO1 ? 1 : 2;
+    const r = extra.find(x => x.reto === reto && x.paso === paso);
+    if (r){ guardarSesion(); return r; }
+  }
+  const tocaCorta = cola.i % 4 === 0 && cola.cs.length;
+  const lista = tocaCorta ? cola.cs : cola.mc;
+  const id = lista.shift(); lista.push(id);
+  guardarSesion();
+  return buscar(id) || buscar(cola.mc[0]);
+}
+
+// Las fotos se cargan de la carpeta "fotos". Si una no está, esa pregunta se salta.
+const fotosMalas = new Set();
+function cargaFoto(src){
+  return new Promise(res => {
+    if (fotosMalas.has(src)) return res(false);
+    const im = new Image(); let hecho = false;
+    const fin = ok => { if (hecho) return; hecho = true; if (!ok) fotosMalas.add(src); res(ok); };
+    im.onload = () => fin(true); im.onerror = () => fin(false);
+    setTimeout(() => fin(false), 4000);
+    im.src = src;
+  });
+}
+
+async function mostrarPregunta(){
+  fase = "q"; bloqueo = true;
+  let p = siguiente(), intentos = 0;
+  while (p.img && !p.img.startsWith("data:") && !(await cargaFoto(p.img)) && intentos++ < 30) p = siguiente();
+  if (p.img && fotosMalas.has(p.img)) p = buscar(cola.cs[0]) || p;
+  bloqueo = false;
+  pregunta = p;
+  if (p.o && p.orden == null){
+    // baraja las opciones para que la correcta no esté siempre en el mismo sitio
+    const idx = shuffle(p.o.map((_, i) => i));
+    pregunta = Object.assign({}, p, { o: idx.map(i => p.o[i]), c: idx.indexOf(p.c), orden: 1 });
+  }
+  $("fbBox").classList.add("hidden");
+  $("stopBox").classList.add("hidden");
+  $("qBox").classList.remove("hidden");
+  $("qText").textContent = pregunta.q;
+  if (pregunta.img){ $("qImg").src = pregunta.img; $("qImg").classList.remove("hidden"); }
+  else { $("qImg").classList.add("hidden"); $("qImg").removeAttribute("src"); }
+  const opts = $("qOpts"); opts.innerHTML = "";
+  if (pregunta.o){
+    $("qTag").textContent = "ELIGE LA RESPUESTA";
+    $("qShort").classList.add("hidden"); opts.classList.remove("hidden");
+    const sym = ["▲","◆","●","■"];
+    pregunta.o.forEach((o, i) => {
+      const b = document.createElement("button"); b.className = "opt";
+      b.innerHTML = "<span class='s'>" + sym[i] + "</span><span>" + esc(o) + "</span>";
+      b.onclick = () => responder(i === pregunta.c, i);
+      opts.appendChild(b);
+    });
+  } else {
+    $("qTag").textContent = pregunta.reto != null ? "RETO DEL QUIOSCO · " + String(pregunta.medio || "").toUpperCase() : "ESCRIBE LA RESPUESTA";
+    opts.classList.add("hidden"); $("qShort").classList.remove("hidden");
+    $("inShort").value = ""; setTimeout(() => $("inShort").focus(), 50);
+  }
+  window.scrollTo(0, 0);
+}
+
+function solucion(){
+  if (pregunta.o) return pregunta.o[pregunta.c];
+  return pregunta.s || pregunta.r[0];
+}
+
+async function responder(bien, idx){
+  if (bloqueo || fase !== "q") return;
+  bloqueo = true; fase = "fb";
+  S.n++; guardarSesion();
+  if (pregunta.o){
+    [...$("qOpts").children].forEach((b, i) => { if (i === pregunta.c) b.classList.add("right"); else b.classList.add("dim"); });
+  }
+  const antes = S.team.pos;
+  // actualización optimista
+  if (bien) S.team.pos++; else S.team.pos = Math.max(S.team.floor, S.team.pos - 1);
+  pintarProgreso();
+  const fb = $("fbBox");
+  fb.className = "fb " + (bien ? "ok" : "ko");
+  fb.innerHTML = bien
+    ? "<div class='big'>✓ ¡Correcto!</div><div class='sm'>Avanzáis una casilla</div>"
+    : "<div class='big'>✗ Fallo</div><div class='sm'>La respuesta era <b>" + esc(solucion()) + "</b>.<br>" + (antes > S.team.floor ? "Retrocedéis una casilla." : "No podéis retroceder más.") + "</div>";
+  fb.classList.remove("hidden");
+  let resp = null;
+  const envio = api({ a: bien ? "ok" : "ko", c: S.code, t: S.team.id, n: S.n }, 4)
+    .then(r => { resp = r; })
+    .catch(e => { $("raceErr").textContent = "Problema de conexión, seguid jugando."; });
+  await Promise.all([envio, new Promise(r => setTimeout(r, bien ? 900 : 2300))]);
+  if (resp){ $("raceErr").textContent = ""; S.team = resp.team; if (resp.status) G.status = resp.status; guardarSesion(); }
+  pintarProgreso();
+  continuar();
+}
+
+function continuar(){
+  if (G.status === "over"){ finalizar(); return; }
+  if (S.team.phase === "run") mostrarPregunta();
+  else mostrarParada();
+}
+
+// ═══════════ PARADAS ═══════════
+function mostrarParada(){
+  fase = "stop";
+  $("qBox").classList.add("hidden");
+  $("fbBox").classList.add("hidden");
+  $("stopBox").classList.remove("hidden");
+  const k = S.team.stop;
+  $("stopTag").textContent = "PARADA DE REDACCIÓN " + (k + 1) + " DE " + G.stops.length;
+  $("stopTask").textContent = G.tasks[k] || "";
+  const esperando = S.team.phase === "review";
+  $("stopWrite").classList.toggle("hidden", esperando);
+  $("stopWait").classList.toggle("hidden", !esperando);
+  if (S.team.phase === "revise"){
+    $("stopNote").innerHTML = "✎ La jefa de redacción os lo devuelve. Reescribidlo." + (S.team.note ? "<br>" + esc(S.team.note) : "");
+    $("stopNote").classList.remove("hidden");
+    if (!$("inText").value) $("inText").value = S.team.texts[k] || "";
+  } else {
+    $("stopNote").classList.add("hidden");
+  }
+  $("cnt").textContent = $("inText").value.length;
+}
+
+$("inText").addEventListener("input", () => { $("cnt").textContent = $("inText").value.length; });
+$("bSend").onclick = async () => {
+  const t = $("inText").value.trim();
+  if (!t){ $("raceErr").textContent = "Escribid el texto antes de enviarlo."; return; }
+  $("bSend").disabled = true; $("raceErr").textContent = "";
+  try{
+    const r = await api({ a:"send", c:S.code, t:S.team.id, text:t });
+    S.team = r.team; guardarSesion(); $("inText").value = "";
+    mostrarParada();
+  }catch(e){ $("raceErr").textContent = e.message || "No se ha podido enviar, probad otra vez."; }
+  $("bSend").disabled = false;
+};
+
+// ═══════════ FINAL ═══════════
+function finalizar(){
+  fase = "over"; mostrar("sOver");
+  const orden = TEAMS.slice().sort((a,b) => (b.pos - a.pos) || (a.finishedAt||9e15) - (b.finishedAt||9e15) || (b.ok - a.ok));
+  const ganador = TEAMS.find(t => t.id === G.winner) || orden[0];
+  const yo = S.team && ganador && ganador.id === S.team.id;
+  $("overIcon").textContent = yo ? "🏆" : "🏁";
+  $("overTitle").textContent = yo ? "¡Habéis ganado la carrera!" : (ganador ? "Gana " + ganador.name : "Carrera terminada");
+  const puesto = orden.findIndex(t => S.team && t.id === S.team.id) + 1;
+  $("overSub").textContent = puesto ? "Vuestra redacción termina en el puesto " + puesto + " de " + orden.length + "." : "";
+  $("overRank").innerHTML = orden.map((t, i) =>
+    "<li class='" + (S.team && t.id === S.team.id ? "me" : "") + "'><span class='n'>" + (i+1) + "º</span><span class='dot' style='background:" + t.color + "'></span>" + esc(t.name) + "<span class='p'>casilla " + t.pos + "</span></li>").join("");
+}
+
+// ═══════════ SONDEO ═══════════
+async function sondeo(){
+  if (!S.code || !S.team) return;
+  try{
+    const st = await getState();
+    G = st.game; TEAMS = st.teams;
+    const yo = TEAMS.find(t => t.id === S.team.id);
+    if (fase === "lobby" && G.status !== "lobby"){ if (yo) S.team = yo; empezar(); }
+    else if (fase === "stop" && yo && yo.phase !== S.team.phase){
+      S.team = yo; guardarSesion();
+      if (yo.phase === "run"){
+        // publicado
+        $("stopBox").classList.add("hidden");
+        const fb = $("fbBox"); fb.className = "fb ok";
+        fb.innerHTML = "<div class='big'>📰 ¡Publicado!</div><div class='sm'>Ganáis una casilla de premio</div>";
+        fb.classList.remove("hidden"); fase = "fb"; pintarProgreso();
+        setTimeout(continuar, 1600);
+      } else mostrarParada();
+    }
+    else if (fase === "q" && yo && yo.pos !== S.team.pos && !bloqueo){ S.team.pos = yo.pos; }
+    if (G.status === "over" && fase !== "over" && fase !== "fb") finalizar();
+    if (fase === "over") finalizar();
+    pintarProgreso();
+  }catch(e){ /* reintenta en el siguiente sondeo */ }
+}
+function ritmo(){
+  const ms = fase === "stop" || fase === "lobby" ? 2000 : 3500;
+  setTimeout(async () => { await sondeo(); ritmo(); }, ms);
+}
+
+function empezar(){
+  mostrar("sRace"); pintarProgreso();
+  if (G.status === "over") return finalizar();
+  continuar();
+}
+
+// ═══════════ UNIRSE ═══════════
+async function cargarExtra(){
+  try{ const r = await api({ a:"qs", c:S.code }); extra = r.qs || []; }catch(e){ extra = []; }
+}
+
+async function entrar(){
+  const code = $("inCode").value.toUpperCase().replace(/[^A-Z]/g, "");
+  const name = $("inName").value.trim();
+  if (!API){ API = $("inApi").value.trim(); }
+  if (!API){ $("apiBox").classList.remove("hidden"); $("joinErr").textContent = "Falta la dirección del servidor. Pedídsela a la profesora."; return; }
+  if (!code || !name){ $("joinErr").textContent = "Escribid el código y el nombre de la redacción."; return; }
+  lsSet("carrera_api", API);
+  $("bJoin").disabled = true; $("joinErr").textContent = "";
+  try{
+    S.code = code;
+    const r = await api({ a:"join", c:code, name:name });
+    const prev = lsGet(sesionKey(), null);
+    S.team = r.team;
+    if (prev && prev.team && prev.team.id === r.team.id){ S.n = Math.max(prev.n || 0, r.team.seq || 0); cola = prev.cola; }
+    else { S.n = r.team.seq || 0; cola = null; }
+    await cargarExtra();
+    guardarSesion();
+    const st = await getState(); G = st.game; TEAMS = st.teams;
+    pintarEquipo();
+    if (G.status === "lobby"){ fase = "lobby"; mostrar("sLobby"); }
+    else empezar();
+    ritmo();
+  }catch(e){
+    $("joinErr").textContent = e.message || "No se ha podido conectar.";
+    $("bJoin").disabled = false;
+  }
+}
+$("bJoin").onclick = entrar;
+$("inName").addEventListener("keydown", e => { if (e.key === "Enter") entrar(); });
+$("bShort").onclick = () => { if (fase === "q" && !pregunta.o && $("inShort").value.trim()) responder(correctaCorta($("inShort").value, pregunta.r)); };
+$("inShort").addEventListener("keydown", e => { if (e.key === "Enter") $("bShort").click(); });
+
+// Al abrir: rellena el código del enlace y recupera la sesión si se recarga la página.
+(function init(){
+  const c = (qs.get("c") || "").toUpperCase();
+  if (c) $("inCode").value = c;
+  if (!API) $("apiBox").classList.remove("hidden");
+  if (c){
+    const prev = lsGet("carrera_ses_" + c, null);
+    if (prev && prev.team && API){ $("inName").value = prev.team.name; entrar(); }
+  }
+})();
+</script>
+</body>
+</html>
