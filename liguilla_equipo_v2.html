@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>La Liguilla · Equipo</title>
+<style>
+:root{--ink:#10231A;--green:#0F6E56;--grass:#1a472a;--gold:#E8B54A;--red:#C8102E;--bg:#EEF3EF;--muted:#66706A;--border:#D5DDD7;--team:#0F6E56}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg)}
+body{font-family:Arial,Helvetica,sans-serif;color:var(--ink);min-height:100vh;-webkit-tap-highlight-color:transparent}
+.top{background:var(--grass);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:5}
+.top .t1{font-size:14px;font-weight:800;letter-spacing:.04em}
+.top .t2{font-size:11px;color:var(--gold);letter-spacing:.06em}
+.chip{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--team);border:2px solid #fff;flex:none;display:inline-block}
+.wrap{max-width:560px;margin:0 auto;padding:14px 16px 60px}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:12px}
+h1{font-size:23px;line-height:1.2;margin-bottom:8px}
+h2{font-size:19px;line-height:1.3;margin-bottom:12px}
+p{line-height:1.45}
+.muted{color:var(--muted);font-size:14px}
+label{display:block;font-weight:700;font-size:13px;margin:14px 0 6px}
+input{width:100%;border:2px solid var(--border);border-radius:10px;padding:13px;font-size:17px;font-family:inherit;color:var(--ink);background:#fff}
+input:focus{outline:none;border-color:var(--green)}
+.btn{display:block;width:100%;border:none;border-radius:12px;padding:15px;font-size:18px;font-weight:800;font-family:inherit;color:#fff;background:var(--green);cursor:pointer;margin-top:14px}
+.btn:disabled{opacity:.45}
+.err{color:var(--red);font-weight:700;font-size:14px;margin-top:10px;min-height:18px}
+.hidden{display:none!important}
+.center{text-align:center}
+.bigicon{font-size:52px;margin-bottom:8px}
+.pulse{animation:pl 1.4s infinite}@keyframes pl{50%{opacity:.35}}
+/* marcador */
+.board{background:var(--ink);color:#fff;border-radius:14px;padding:12px 14px;margin-bottom:12px}
+.board .jl{font-size:11px;letter-spacing:.08em;color:var(--gold);font-weight:800;margin-bottom:6px;text-align:center}
+.board .row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.board .nm{font-weight:800;font-size:15px;display:flex;align-items:center;gap:6px}
+.board .nm.r{justify-content:flex-end;text-align:right}
+.board .sc{font-size:34px;font-weight:900;letter-spacing:.06em}
+.board .sub{font-size:12px;color:#c8d3cc;text-align:center;margin-top:4px}
+.rank{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:12px}
+.rank .rk{font-size:30px;font-weight:900;color:var(--green);min-width:52px;text-align:center}
+.rank .rt{font-weight:800}
+.rank .rs{font-size:13px;color:var(--muted)}
+/* preguntas */
+.qtag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;padding:4px 10px;border-radius:20px;background:var(--ink);color:#fff;margin-bottom:12px}
+.opts{display:grid;gap:10px}
+.opt{border:none;border-radius:12px;padding:15px;font-size:16px;font-weight:700;font-family:inherit;color:#fff;text-align:left;cursor:pointer;min-height:58px;display:flex;gap:10px;align-items:center}
+.opt:nth-child(1){background:#C8102E}.opt:nth-child(2){background:#1565C0}.opt:nth-child(3){background:#B7791F}.opt:nth-child(4){background:#2E7D32}
+.opt .s{font-size:20px;width:24px;text-align:center;flex:none}
+.opt.dim{opacity:.3}.opt.right{outline:4px solid var(--ink);opacity:1}
+.fb{border-radius:12px;padding:16px;text-align:center;color:#fff;font-weight:800;margin-top:12px}
+.fb.ok{background:var(--green)}.fb.ko{background:var(--red)}
+.fb .big{font-size:24px}.fb .sm{font-size:14px;font-weight:600;margin-top:4px}
+/* penaltis */
+.role{display:inline-block;padding:4px 12px;border-radius:8px;font-size:13px;font-weight:800;margin-bottom:10px}
+.role.s{background:#E1F5EE;color:#0F6E56}.role.k{background:#FAEEDA;color:#633806}
+.grid4{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cell{border:2px solid #d8e0da;border-radius:14px;background:#f5f8f6;cursor:pointer;padding:18px 8px;text-align:center;font-size:14px;font-weight:700;color:#445;user-select:none}
+.cell .arr{font-size:32px;display:block;margin-bottom:4px}
+.dots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+.dots span{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.18);font-size:11px;display:flex;align-items:center;justify-content:center}
+.dots .g{background:#2ecc71}.dots .f{background:#e74c3c}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{color:var(--muted);font-size:11px;text-align:center;padding:6px 3px;border-bottom:1px solid var(--border)}
+.tbl td{padding:7px 3px;border-bottom:1px solid var(--border);text-align:center}
+.tbl td.n{text-align:left;font-weight:700}
+.tbl tr.me{background:#FFF7E0}
+/* CAMPO */
+#campo-wrap{position:relative;border-radius:14px;overflow:hidden;margin-bottom:1rem;line-height:0}
+#campo-svg{display:block;width:100%;height:auto}
+#result-overlay{position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);text-align:center;opacity:0;transition:opacity .5s;pointer-events:none}
+#result-overlay.show{opacity:1}
+.ro-text{font-size:44px;font-weight:900;letter-spacing:.04em;text-shadow:0 3px 14px rgba(0,0,0,.85);white-space:nowrap}
+
+/* ANIMACIONES BALÓN */
+.ab-TL{animation:bTL .8s .2s cubic-bezier(.2,.8,.4,1) forwards}
+.ab-TR{animation:bTR .8s .2s cubic-bezier(.2,.8,.4,1) forwards}
+.ab-BL{animation:bBL .8s .2s cubic-bezier(.2,.8,.4,1) forwards}
+.ab-BR{animation:bBR .8s .2s cubic-bezier(.2,.8,.4,1) forwards}
+@keyframes bTL{to{transform:translate(-104px,-162px) scale(.38)}}
+@keyframes bTR{to{transform:translate(104px,-162px) scale(.38)}}
+@keyframes bBL{to{transform:translate(-104px,-80px) scale(.5)}}
+@keyframes bBR{to{transform:translate(104px,-80px) scale(.5)}}
+
+/* ANIMACIONES PORTERO */
+.ak-TL{animation:kTL .65s .1s ease-out forwards}
+.ak-TR{animation:kTR .65s .1s ease-out forwards}
+.ak-BL{animation:kBL .55s .1s ease-out forwards}
+.ak-BR{animation:kBR .55s .1s ease-out forwards}
+@keyframes kTL{to{transform:translate(-78px,-38px) rotate(-54deg)}}
+@keyframes kTR{to{transform:translate(78px,-38px) rotate(54deg)}}
+@keyframes kBL{to{transform:translate(-58px,20px) rotate(-24deg)}}
+@keyframes kBR{to{transform:translate(58px,20px) rotate(24deg)}}
+
+/* PATADA */
+.ak2{animation:kick2 .45s .1s ease-out forwards}
+@keyframes kick2{0%{transform:rotate(0deg)}45%{transform:rotate(-62deg)}100%{transform:rotate(-44deg)}}
+
+</style>
+</head>
+<body>
+<div class="top">
+  <div><div class="t1">LA LIGUILLA</div><div class="t2" id="codeLbl">EQUIPO</div></div>
+  <div class="chip hidden" id="teamChip"><span class="dot" id="teamDot"></span><span id="teamName"></span></div>
+</div>
+<div class="wrap">
+  <section id="sJoin" class="card">
+    <h1>Entrad en la liguilla</h1>
+    <p class="muted">Un solo móvil u ordenador por equipo.</p>
+    <label for="inCode">Código</label>
+    <input id="inCode" maxlength="6" autocomplete="off" autocapitalize="characters" placeholder="Ej. KPRT" style="text-transform:uppercase;letter-spacing:.2em;font-weight:800">
+    <label for="inName">Nombre del equipo</label>
+    <input id="inName" maxlength="24" autocomplete="off" placeholder="Ej. Los Galácticos">
+    <button class="btn" id="bJoin">Entrar</button>
+    <div class="err" id="joinErr"></div>
+  </section>
+
+  <section id="sGame" class="hidden">
+    <div class="rank" id="rankBox"><div class="rk" id="rankBig">–</div><div><div class="rt" id="rankTxt"></div><div class="rs" id="rankSub"></div></div></div>
+    <div id="boardBox"></div>
+    <div id="mainBox"></div>
+    <div class="err" id="gameErr"></div>
+  </section>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbyPJknlj4LvnztpfG8KW9IStpOB9Df-Tabs3wiTTotr6F42ggz-KCGizZsHzKEeY0YISA/exec";
+const BANCO = [{"id": "N01", "cat": "Noticias", "q": "¿Qué selección ganó el Mundial de fútbol de 2026?", "o": ["España", "Argentina", "Francia", "Brasil"], "c": 0}, {"id": "N02", "cat": "Noticias", "q": "¿Contra quién jugó España la final del Mundial 2026?", "o": ["Argentina", "Francia", "Inglaterra", "Portugal"], "c": 0}, {"id": "N03", "cat": "Noticias", "q": "¿Quién marcó el gol de España en la final del Mundial 2026?", "o": ["Ferran Torres", "Lamine Yamal", "Mikel Oyarzabal", "Nico Williams"], "c": 0}, {"id": "N04", "cat": "Noticias", "q": "¿Cuándo llegó el gol de España en la final del Mundial 2026?", "o": ["En la prórroga", "En el primer minuto", "En el descuento de la primera parte", "En la tanda de penaltis"], "c": 0}, {"id": "N05", "cat": "Noticias", "q": "¿En qué estadio se jugó la final del Mundial 2026?", "o": ["MetLife Stadium (Nueva York/Nueva Jersey)", "Estadio Azteca (Ciudad de México)", "SoFi Stadium (Los Ángeles)", "BC Place (Vancouver)"], "c": 0}, {"id": "N06", "cat": "Noticias", "q": "¿Cuántos Mundiales masculinos de fútbol tiene ya España?", "o": ["Dos", "Uno", "Tres", "Cuatro"], "c": 0}, {"id": "N07", "cat": "Noticias", "q": "¿Quién es el seleccionador de España campeón del mundo en 2026?", "o": ["Luis de la Fuente", "Vicente del Bosque", "Luis Enrique", "Julen Lopetegui"], "c": 0}, {"id": "N08", "cat": "Noticias", "q": "¿Qué ciclista español ganó la Vuelta a España 2026?", "o": ["Enric Mas", "Juan Ayuso", "Carlos Rodríguez", "Alejandro Valverde"], "c": 0}, {"id": "N09", "cat": "Noticias", "q": "¿En qué equipo corre Enric Mas, ganador de la Vuelta 2026?", "o": ["Movistar", "UAE Emirates", "Visma", "Ineos"], "c": 0}, {"id": "N10", "cat": "Noticias", "q": "¿Quién quedó segundo en la Vuelta a España 2026?", "o": ["Primoz Roglic", "Tadej Pogacar", "Jonas Vingegaard", "Remco Evenepoel"], "c": 0}, {"id": "N11", "cat": "Noticias", "q": "¿Quién ganó el Gran Premio de San Marino de MotoGP en Misano 2026?", "o": ["Marc Márquez", "Jorge Martín", "Pedro Acosta", "Francesco Bagnaia"], "c": 0}, {"id": "N12", "cat": "Noticias", "q": "¿Qué tuvo de histórico el GP de Misano 2026 de MotoGP?", "o": ["Seis españoles en los seis primeros puestos", "Ganó una mujer por primera vez", "Se corrió de noche", "No terminó nadie"], "c": 0}, {"id": "N13", "cat": "Noticias", "q": "¿Con qué fabricante corre Marc Márquez en MotoGP?", "o": ["Ducati", "Honda", "Yamaha", "KTM"], "c": 0}, {"id": "N14", "cat": "Noticias", "q": "¿A quién daría el Balón de Oro Luis de la Fuente, según dijo en septiembre?", "o": ["A un español", "A Messi", "A Mbappé", "A Haaland"], "c": 0}, {"id": "H01", "cat": "Historia", "q": "¿Dónde ganó España su primer Mundial de fútbol?", "o": ["Sudáfrica 2010", "Alemania 2006", "Brasil 2014", "Corea y Japón 2002"], "c": 0}, {"id": "H02", "cat": "Historia", "q": "¿Quién marcó el gol de la final del Mundial 2010?", "o": ["Andrés Iniesta", "David Villa", "Fernando Torres", "Xavi Hernández"], "c": 0}, {"id": "H03", "cat": "Historia", "q": "¿Contra quién ganó España la final del Mundial 2010?", "o": ["Países Bajos", "Alemania", "Italia", "Portugal"], "c": 0}, {"id": "H04", "cat": "Historia", "q": "¿Qué selección ganó la Eurocopa 2024?", "o": ["España", "Inglaterra", "Francia", "Alemania"], "c": 0}, {"id": "H05", "cat": "Historia", "q": "¿Qué selección ganó el Mundial femenino de 2023?", "o": ["España", "Inglaterra", "Estados Unidos", "Suecia"], "c": 0}, {"id": "H06", "cat": "Historia", "q": "¿Quién marcó el gol de España en la final del Mundial femenino 2023?", "o": ["Olga Carmona", "Alexia Putellas", "Aitana Bonmatí", "Jenni Hermoso"], "c": 0}, {"id": "H07", "cat": "Historia", "q": "¿Dónde se jugó el primer Mundial de fútbol, en 1930?", "o": ["Uruguay", "Italia", "Brasil", "Francia"], "c": 0}, {"id": "H08", "cat": "Historia", "q": "¿En qué año se celebraron los Juegos Olímpicos de Barcelona?", "o": ["1992", "1988", "1996", "1982"], "c": 0}, {"id": "H09", "cat": "Historia", "q": "¿Cómo se llamaba la mascota de los Juegos de Barcelona 92?", "o": ["Cobi", "Naranjito", "Pelusín", "Curro"], "c": 0}, {"id": "H10", "cat": "Historia", "q": "¿Cómo se llamaba la mascota del Mundial de España 1982?", "o": ["Naranjito", "Cobi", "Curro", "Pique"], "c": 0}, {"id": "H11", "cat": "Historia", "q": "¿Qué países organizarán el Mundial de 2030 junto a España?", "o": ["Portugal y Marruecos", "Francia e Italia", "Portugal y Argelia", "Marruecos y Túnez"], "c": 0}, {"id": "H12", "cat": "Historia", "q": "¿Dónde se celebrarán los Juegos Olímpicos de 2028?", "o": ["Los Ángeles", "Brisbane", "París", "Madrid"], "c": 0}, {"id": "H13", "cat": "Historia", "q": "¿Contra qué selección marcó Maradona la «mano de Dios» en México 86?", "o": ["Inglaterra", "Alemania", "Italia", "Bélgica"], "c": 0}, {"id": "H14", "cat": "Historia", "q": "¿En qué Mundial se usó el VAR por primera vez?", "o": ["Rusia 2018", "Brasil 2014", "Catar 2022", "Sudáfrica 2010"], "c": 0}, {"id": "H15", "cat": "Historia", "q": "¿Cuántas Copas de Europa (Champions) tiene el Real Madrid?", "o": ["15", "13", "11", "17"], "c": 0}, {"id": "H16", "cat": "Historia", "q": "¿Qué narrador gritó «¡Iniesta de mi vida!» en la final de 2010?", "o": ["José Antonio Camacho", "Andrés Montes", "José María García", "Manolo Lama"], "c": 0}, {"id": "H17", "cat": "Historia", "q": "¿Qué periodista popularizó la expresión «tiki-taka»?", "o": ["Andrés Montes", "José Ramón de la Morena", "Josep Pedrerol", "Paco González"], "c": 0}, {"id": "H18", "cat": "Historia", "q": "¿Cuál es el diario deportivo más antiguo de los que se publican hoy en España?", "o": ["Mundo Deportivo", "Marca", "As", "Sport"], "c": 0}, {"id": "H19", "cat": "Historia", "q": "¿Qué mide una maratón?", "o": ["42,195 km", "40 km", "21,097 km", "50 km"], "c": 0}, {"id": "D01", "cat": "Deportistas", "q": "¿Cuántos Roland Garros ganó Rafa Nadal?", "o": ["14", "10", "12", "16"], "c": 0}, {"id": "D02", "cat": "Deportistas", "q": "¿Dónde se retiró Rafa Nadal, en noviembre de 2024?", "o": ["En la Copa Davis de Málaga", "En Roland Garros", "En el Open de Madrid", "En Wimbledon"], "c": 0}, {"id": "D03", "cat": "Deportistas", "q": "¿Cuántos Tours de Francia seguidos ganó Miguel Induráin?", "o": ["Cinco", "Tres", "Cuatro", "Siete"], "c": 0}, {"id": "D04", "cat": "Deportistas", "q": "¿Con qué escudería fue Fernando Alonso campeón del mundo de Fórmula 1?", "o": ["Renault", "Ferrari", "McLaren", "Aston Martin"], "c": 0}, {"id": "D05", "cat": "Deportistas", "q": "¿Cuántos anillos de la NBA ganó Pau Gasol?", "o": ["Dos", "Uno", "Tres", "Ninguno"], "c": 0}, {"id": "D06", "cat": "Deportistas", "q": "¿En qué deporte fue campeona olímpica Carolina Marín?", "o": ["Bádminton", "Tenis", "Squash", "Natación"], "c": 0}, {"id": "D07", "cat": "Deportistas", "q": "¿Cuántos Balones de Oro ganó Alexia Putellas?", "o": ["Dos", "Uno", "Tres", "Cuatro"], "c": 0}, {"id": "D08", "cat": "Deportistas", "q": "¿Quién ganó el Balón de Oro femenino en 2023, 2024 y 2025?", "o": ["Aitana Bonmatí", "Alexia Putellas", "Salma Paralluelo", "Sam Kerr"], "c": 0}, {"id": "D09", "cat": "Deportistas", "q": "¿Cuántos Balones de Oro tiene Leo Messi?", "o": ["Ocho", "Seis", "Cinco", "Diez"], "c": 0}, {"id": "D10", "cat": "Deportistas", "q": "¿Quién tiene el récord mundial de los 100 metros lisos (9,58)?", "o": ["Usain Bolt", "Carl Lewis", "Tyson Gay", "Noah Lyles"], "c": 0}, {"id": "D11", "cat": "Deportistas", "q": "¿Cuántas medallas de oro olímpicas ganó Michael Phelps?", "o": ["23", "18", "28", "14"], "c": 0}, {"id": "D12", "cat": "Deportistas", "q": "¿Cuántos Mundiales ganó Pelé?", "o": ["Tres", "Dos", "Uno", "Cuatro"], "c": 0}, {"id": "D13", "cat": "Deportistas", "q": "¿Cuántos anillos de la NBA ganó Michael Jordan con los Bulls?", "o": ["Seis", "Cinco", "Cuatro", "Siete"], "c": 0}, {"id": "D14", "cat": "Deportistas", "q": "¿Qué Grand Slam ganó Carlos Alcaraz en 2022, el primero de su carrera?", "o": ["US Open", "Wimbledon", "Roland Garros", "Open de Australia"], "c": 0}, {"id": "D15", "cat": "Deportistas", "q": "¿En qué deporte destaca Kilian Jornet?", "o": ["Carreras de montaña", "Esquí de fondo", "Escalada en roca", "Triatlón"], "c": 0}, {"id": "D16", "cat": "Deportistas", "q": "¿En qué deporte ganó Saúl Craviotto sus medallas olímpicas?", "o": ["Piragüismo", "Remo", "Vela", "Natación"], "c": 0}, {"id": "D17", "cat": "Deportistas", "q": "¿Qué golfista español ganó el Masters de Augusta en 2023?", "o": ["Jon Rahm", "Sergio García", "Seve Ballesteros", "José María Olazábal"], "c": 0}, {"id": "D18", "cat": "Deportistas", "q": "¿En qué prueba fue campeón olímpico Fermín Cacho en Barcelona 92?", "o": ["1.500 metros", "Maratón", "800 metros", "5.000 metros"], "c": 0}, {"id": "D19", "cat": "Deportistas", "q": "¿Qué nadadora española fue campeona olímpica de 200 mariposa en Río 2016?", "o": ["Mireia Belmonte", "Teresa Perales", "Ona Carbonell", "Gemma Mengual"], "c": 0}, {"id": "D20", "cat": "Deportistas", "q": "¿Quién presenta «El Chiringuito de Jugones»?", "o": ["Josep Pedrerol", "Manu Carreño", "Paco González", "Juanma Castaño"], "c": 0}, {"id": "R01", "cat": "Deportes", "q": "¿Cuántos jugadores tiene en el campo cada equipo de balonmano?", "o": ["Siete", "Seis", "Cinco", "Once"], "c": 0}, {"id": "R02", "cat": "Deportes", "q": "¿Cuántos jugadores tiene en pista cada equipo de voleibol?", "o": ["Seis", "Cinco", "Siete", "Cuatro"], "c": 0}, {"id": "R03", "cat": "Deportes", "q": "¿Sobre qué superficie se juega Wimbledon?", "o": ["Hierba", "Tierra batida", "Pista dura", "Moqueta"], "c": 0}, {"id": "R04", "cat": "Deportes", "q": "¿De qué color es el maillot del líder de la Vuelta a España?", "o": ["Rojo", "Amarillo", "Rosa", "Verde"], "c": 0}, {"id": "R05", "cat": "Deportes", "q": "¿De qué color es el maillot del líder del Giro de Italia?", "o": ["Rosa", "Amarillo", "Rojo", "Azul"], "c": 0}, {"id": "R06", "cat": "Deportes", "q": "¿Cuántos puntos vale un ensayo en rugby?", "o": ["Cinco", "Tres", "Siete", "Dos"], "c": 0}, {"id": "R07", "cat": "Deportes", "q": "¿Cuántos torneos forman el Grand Slam de tenis?", "o": ["Cuatro", "Tres", "Cinco", "Seis"], "c": 0}, {"id": "R08", "cat": "Deportes", "q": "¿Cuánto dura un partido de baloncesto FIBA sin prórroga?", "o": ["40 minutos", "48 minutos", "60 minutos", "36 minutos"], "c": 0}, {"id": "R09", "cat": "Deportes", "q": "¿Cuántos jugadores tiene en el agua cada equipo de waterpolo?", "o": ["Siete", "Seis", "Cinco", "Ocho"], "c": 0}, {"id": "R10", "cat": "Deportes", "q": "¿Qué deporte se juega con «stick» y una pelota pequeña sobre hierba artificial?", "o": ["Hockey", "Críquet", "Pádel", "Lacrosse"], "c": 0}, {"id": "R11", "cat": "Deportes", "q": "En tenis, ¿cómo se llama un saque que el rival no llega a tocar?", "o": ["Ace", "Let", "Break", "Drop"], "c": 0}, {"id": "R12", "cat": "Deportes", "q": "¿Cada cuántos años se celebran los Juegos Olímpicos de verano?", "o": ["Cuatro", "Dos", "Tres", "Cinco"], "c": 0}, {"id": "N15", "cat": "Noticias", "q": "¿Qué equipo ganó la Champions League 2026?", "o": ["PSG", "Arsenal", "Real Madrid", "Bayern de Múnich"], "c": 0}, {"id": "N16", "cat": "Noticias", "q": "¿Cómo se decidió la final de la Champions 2026 entre PSG y Arsenal?", "o": ["En la tanda de penaltis", "En los 90 minutos", "Con un gol de oro", "En la prórroga, sin penaltis"], "c": 0}];
+
+const $ = id => document.getElementById(id);
+const qs = new URLSearchParams(location.search);
+function lsGet(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function rng(seed){ let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function barajar(arr, seed){ const r = rng(seed), a = arr.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+// Misma pregunta y mismo orden de opciones para los dos equipos del partido
+function preguntaSemilla(seed, idx){
+  const orden = barajar(BANCO.map((_, i) => i), seed);
+  const q = BANCO[orden[idx % orden.length]];
+  const perm = barajar([0,1,2,3].slice(0, q.o.length), seed + idx * 7919);
+  return { id:q.id, cat:q.cat, q:q.q, o:perm.map(i => q.o[i]), c:perm.indexOf(q.c) };
+}
+
+let API = API_URL || qs.get("api") || lsGet("liga_api", "");
+async function api(p, tries){
+  tries = tries || 3;
+  for (let i = 0; i < tries; i++){
+    try{
+      const r = await fetch(API, { method:"POST", body: JSON.stringify(p) });
+      const j = await r.json(); if (j.error) throw Object.assign(new Error(j.error), { server:true }); return j;
+    }catch(e){ if (e.server || i === tries - 1) throw e; await new Promise(r => setTimeout(r, 700 * (i + 1))); }
+  }
+}
+
+let S = { code:"", team:null };
+let L = null, TEAMS = [], MATCHES = [];
+let vista = "", ocupado = false;
+let local = { key:"", step:"q", ans:null, shown:-1 };   // estado de la pantalla del partido
+
+function nombre(id){ const t = TEAMS.find(x => x.id === id); return t ? t.name : "?"; }
+function color(id){ const t = TEAMS.find(x => x.id === id); return t ? t.color : "#999"; }
+
+// ── clasificación ──
+function tabla(){
+  const t = {}; TEAMS.forEach(e => t[e.id] = { id:e.id, name:e.name, color:e.color, pj:0, g:0, e:0, p:0, gf:0, gc:0, pts:0 });
+  MATCHES.filter(m => m.closed).forEach(m => {
+    const A = t[m.a], B = t[m.b]; if (!A || !B) return;
+    A.pj++; B.pj++; A.gf += m.sa; A.gc += m.sb; B.gf += m.sb; B.gc += m.sa;
+    if (m.sa > m.sb){ A.g++; B.p++; A.pts += 3; } else if (m.sb > m.sa){ B.g++; A.p++; B.pts += 3; } else { A.e++; B.e++; A.pts++; B.pts++; }
+  });
+  return Object.values(t).sort((x, y) => (y.pts - x.pts) || ((y.gf - y.gc) - (x.gf - x.gc)) || (y.gf - x.gf) || x.name.localeCompare(y.name));
+}
+function tablaHTML(){
+  return "<table class='tbl'><thead><tr><th></th><th style='text-align:left'>Equipo</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>DG</th><th>Pts</th></tr></thead><tbody>" +
+    tabla().map((r, i) => "<tr class='" + (S.team && r.id === S.team.id ? "me" : "") + "'><td>" + (i+1) + "</td><td class='n'><span class='dot' style='background:" + r.color + ";border:none;width:10px;height:10px'></span> " + esc(r.name) + "</td><td>" + r.pj + "</td><td>" + r.g + "</td><td>" + r.e + "</td><td>" + r.p + "</td><td>" + (r.gf - r.gc) + "</td><td><b>" + r.pts + "</b></td></tr>").join("") + "</tbody></table>";
+}
+function pintarPuesto(){
+  const tb = tabla(), i = tb.findIndex(r => r.id === S.team.id), yo = tb[i];
+  $("rankBig").textContent = (i + 1) + "º";
+  $("rankTxt").textContent = "Vais " + (i + 1) + "º de " + tb.length + " en la liguilla";
+  $("rankSub").textContent = yo ? yo.pts + (yo.pts === 1 ? " punto" : " puntos") + " · " + yo.pj + " jugados" : "";
+}
+
+// ── partido actual ──
+function miPartido(){
+  if (!L || L.round < 0) return null;
+  return MATCHES.find(m => m.r === L.round && (m.a === S.team.id || m.b === S.team.id)) || null;
+}
+function lado(m){ return m.a === S.team.id ? "a" : "b"; }
+function rival(m){ return m.a === S.team.id ? m.b : m.a; }
+
+function pintarMarcador(m){
+  if (!m){ $("boardBox").innerHTML = ""; return; }
+  const yo = lado(m), j = L.jor[m.r] || {};
+  const tipo = { preguntas:"PREGUNTAS", penaltis:"PENALTIS", prueba:"PRUEBA" }[m.type];
+  let sub = "";
+  if (m.type === "preguntas") sub = "Vosotros " + m["i" + yo] + "/" + m.n + " · Rival " + m["i" + (yo === "a" ? "b" : "a")] + "/" + m.n;
+  if (m.type === "penaltis"){
+    const d = s => m.pen.shots.filter(x => x.s === s).map(x => "<span class='" + (x.goal ? "g" : "f") + "'>" + (x.goal ? "⚽" : "✗") + "</span>").join("");
+    sub = "<div class='dots'>" + d(m.a === S.team.id ? "a" : "b") + "</div>";
+  }
+  if (m.closed) sub = "Partido terminado";
+  $("boardBox").innerHTML = "<div class='board'><div class='jl'>JORNADA " + (m.r + 1) + " · " + tipo + "</div><div class='row'>" +
+    "<div class='nm'><span class='dot' style='background:" + color(m.a) + "'></span>" + esc(nombre(m.a)) + "</div>" +
+    "<div class='sc'>" + m.sa + "–" + m.sb + "</div>" +
+    "<div class='nm r'>" + esc(nombre(m.b)) + "<span class='dot' style='background:" + color(m.b) + "'></span></div></div>" +
+    "<div class='sub'>" + sub + "</div></div>";
+}
+
+function pintar(){
+  if (!L) return;
+  pintarPuesto();
+  const m = miPartido();
+  const main = $("mainBox");
+  if (L.status === "lobby"){
+    $("boardBox").innerHTML = "";
+    if (vista !== "lobby"){ vista = "lobby"; main.innerHTML = "<div class='card center'><div class='bigicon pulse'>🏟️</div><h2>Estáis dentro</h2><p class='muted'>Esperad a que la profesora haga el sorteo del calendario.</p></div>"; }
+    return;
+  }
+  if (L.status === "over"){
+    $("boardBox").innerHTML = "";
+    const tb = tabla(), i = tb.findIndex(r => r.id === S.team.id);
+    vista = "over";
+    main.innerHTML = "<div class='card center'><div class='bigicon'>" + (i === 0 ? "🏆" : "🏁") + "</div><h2>" + (i === 0 ? "¡Campeones de la liguilla!" : "Liguilla terminada") + "</h2><p class='muted'>Termináis en el puesto " + (i + 1) + " de " + tb.length + ".</p></div><div class='card'>" + tablaHTML() + "</div>";
+    return;
+  }
+  // entre jornadas
+  if (!L.playing || !m){
+    pintarMarcador(L.playing ? null : m);
+    const sig = L.round + 1 < L.rounds.length ? L.rounds[L.round + 1].find(p => p.includes(S.team.id)) : null;
+    let prox = "";
+    if (L.playing && !m) prox = "<div class='card center'><div class='bigicon'>☕</div><h2>Esta jornada descansáis</h2><p class='muted'>Aprovechad para mirar la clasificación.</p></div>";
+    else if (sig){ const r = sig[0] === S.team.id ? sig[1] : sig[0]; prox = "<div class='card center'><p class='muted'>Próxima jornada</p><h2>" + (r ? "Contra " + esc(nombre(r)) : "Descansáis") + "</h2><p class='muted'>Esperad a que la profesora dé comienzo.</p></div>"; }
+    const key = "espera" + L.round + (L.playing ? "p" : "") + JSON.stringify(tabla().map(r => r.pts)) + (sig ? sig.join() : "");
+    if (vista !== key){ vista = key; main.innerHTML = prox + "<div class='card'><h2>Clasificación</h2>" + tablaHTML() + "</div>"; }
+    return;
+  }
+  pintarMarcador(m);
+  if (m.type === "preguntas") pintarPreguntas(m);
+  else if (m.type === "penaltis") pintarPenaltis(m);
+  else pintarPrueba(m);
+}
+
+// ── jornada de preguntas: cada acierto es un gol ──
+function pintarPreguntas(m){
+  const yo = lado(m), idx = m["i" + yo];
+  const key = "q" + m.r + "_" + idx;
+  if (idx >= m.n){
+    if (vista !== key){ vista = key; $("mainBox").innerHTML = "<div class='card center'><div class='bigicon pulse'>⏳</div><h2>¡Terminado!</h2><p class='muted'>Esperad a que acabe el rival. El marcador de arriba se actualiza solo.</p></div>"; }
+    return;
+  }
+  if (vista === key || ocupado) return;
+  vista = key;
+  const q = preguntaSemilla(L.seed + m.r * 101, m.r * m.n + idx);
+  const sym = ["▲","◆","●","■"];
+  $("mainBox").innerHTML = "<div class='card'><span class='qtag'>PREGUNTA " + (idx + 1) + " DE " + m.n + " · " + esc(q.cat || "") + "</span><h2>" + esc(q.q) + "</h2><div class='opts'>" +
+    q.o.map((o, i) => "<button class='opt' data-i='" + i + "'><span class='s'>" + sym[i] + "</span><span>" + esc(o) + "</span></button>").join("") + "</div><div id='fbq'></div></div>";
+  $("mainBox").querySelectorAll(".opt").forEach(b => b.onclick = async () => {
+    if (ocupado) return; ocupado = true;
+    const i = +b.dataset.i, bien = i === q.c;
+    $("mainBox").querySelectorAll(".opt").forEach((x, j) => x.classList.add(j === q.c ? "right" : "dim"));
+    $("fbq").innerHTML = "<div class='fb " + (bien ? "ok" : "ko") + "'><div class='big'>" + (bien ? "⚽ ¡Gol!" : "✗ Fallo") + "</div>" + (bien ? "" : "<div class='sm'>Era: " + esc(q.o[q.c]) + "</div>") + "</div>";
+    try{ const r = await api({ a:"ans", c:S.code, t:S.team.id, r:m.r, i:m.i, q:idx, ok: bien ? 1 : 0 }, 4); actualizaPartido(r.match); }
+    catch(e){ $("gameErr").textContent = "Problema de conexión, seguid."; }
+    await new Promise(r => setTimeout(r, bien ? 700 : 1600));
+    ocupado = false; pintar();
+  });
+}
+
+// ── jornada de penaltis ──
+const DIRS = [{id:"TL",label:"Arriba izquierda",arrow:"↖"},{id:"TR",label:"Arriba derecha",arrow:"↗"},{id:"BL",label:"Abajo izquierda",arrow:"↙"},{id:"BR",label:"Abajo derecha",arrow:"↘"}];
+function lanzadorDe(m, k){ const f = m.pen.first; return k % 2 === 0 ? f : (f === "a" ? "b" : "a"); }
+function pintarPenaltis(m){
+  const yo = lado(m), k = m.pen.k;
+  // primero se enseña el último tiro, si no se ha visto
+  const ult = m.pen.shots[m.pen.shots.length - 1];
+  const vistoKey = "penvisto_" + S.code + "_" + m.r;
+  const visto = lsGet(vistoKey, -1);
+  if (ult && ult.k > visto){
+    if (vista === "anim" + ult.k) return;
+    vista = "anim" + ult.k; ocupado = true;
+    const miTiro = ult.s === yo;
+    const txt = ult.goal ? (miTiro ? "¡Gol vuestro!" : "Gol del rival") : (miTiro ? "Os la han parado" : "¡Parada vuestra!");
+    $("mainBox").innerHTML = "<div class='card'>" + campo(ult.shoot, ult.keep, ult.goal, true) +
+      "<p class='center' style='font-weight:800;font-size:18px'>" + txt + "</p></div>";
+    setTimeout(() => { const o = document.getElementById("result-overlay"); if (o) o.classList.add("show"); }, 1000);
+    setTimeout(() => { lsSet(vistoKey, ult.k); ocupado = false; vista = ""; pintar(); }, 3600);
+    return;
+  }
+  if (m.closed){
+    const gano = m["s" + yo] > m["s" + (yo === "a" ? "b" : "a")];
+    const key = "penfin" + m.r; if (vista === key) return; vista = key;
+    $("mainBox").innerHTML = "<div class='card center'><div class='bigicon'>" + (gano ? "🏆" : "🧤") + "</div><h2>" + (gano ? "¡Ganáis la tanda!" : "Perdéis la tanda") + "</h2><p class='muted'>Esperad a la siguiente jornada.</p></div>";
+    return;
+  }
+  const soyLanzador = lanzadorDe(m, k) === yo;
+  if (m.pen.pick[yo]){
+    const key = "penesp" + k; if (vista === key) return; vista = key;
+    $("mainBox").innerHTML = "<div class='card center'><div class='bigicon pulse'>⏳</div><h2>Elección guardada</h2><p class='muted'>Esperando al rival…</p></div>";
+    return;
+  }
+  const key = "pen" + m.r + "_" + k;
+  if (local.key !== key){ local = { key, step:"dir", ans:false }; }
+  const vkey = key + local.step;
+  if (vista === vkey || ocupado) return;
+  vista = vkey;
+  const rol = soyLanzador ? "<span class='role s'>⚽ Lanzáis</span>" : "<span class='role k'>🧤 Paráis</span>";
+  const numTiro = "Penalti " + (Math.floor(k / 2) + 1) + (k >= 10 ? " · muerte súbita" : "");
+  if (local.step === "q"){
+    const q = preguntaSemilla(L.seed + 5000 + m.r * 101 + m.i * 13, k);
+    const sym = ["▲","◆","●","■"];
+    $("mainBox").innerHTML = "<div class='card'>" + rol + " <span class='muted'>" + numTiro + "</span>" +
+      "<p class='muted' style='margin:6px 0 12px'>" + (soyLanzador ? "Si acertáis, el portero no podrá estirarse." : "Si acertáis y el lanzador falla, os estiráis y cubrís todo vuestro lado.") + "</p>" +
+      "<h2>" + esc(q.q) + "</h2><div class='opts'>" + q.o.map((o, i) => "<button class='opt' data-i='" + i + "'><span class='s'>" + sym[i] + "</span><span>" + esc(o) + "</span></button>").join("") + "</div><div id='fbq'></div></div>";
+    $("mainBox").querySelectorAll(".opt").forEach(b => b.onclick = async () => {
+      if (ocupado) return; ocupado = true;
+      const bien = +b.dataset.i === q.c;
+      $("mainBox").querySelectorAll(".opt").forEach((x, j) => x.classList.add(j === q.c ? "right" : "dim"));
+      $("fbq").innerHTML = "<div class='fb " + (bien ? "ok" : "ko") + "'><div class='big'>" + (bien ? "✓ Acierto" : "✗ Fallo") + "</div></div>";
+      await new Promise(r => setTimeout(r, 1200));
+      local.ans = bien; local.step = "dir"; ocupado = false; vista = ""; pintar();
+    });
+  } else {
+    $("mainBox").innerHTML = "<div class='card'>" + rol + " <span class='muted'>" + numTiro + "</span><h2 style='margin-top:8px'>" + (soyLanzador ? "¿A qué esquina disparáis?" : "¿A qué lado os tiráis?") + "</h2><div class='grid4'>" +
+      DIRS.map(d => "<div class='cell' data-d='" + d.id + "'><span class='arr'>" + d.arrow + "</span>" + d.label + "</div>").join("") + "</div></div>";
+    $("mainBox").querySelectorAll(".cell").forEach(c => c.onclick = async () => {
+      if (ocupado) return; ocupado = true;
+      try{ const r = await api({ a:"pen", c:S.code, t:S.team.id, r:m.r, i:m.i, k, ok: local.ans ? 1 : 0, dir:c.dataset.d }, 4); actualizaPartido(r.match); }
+      catch(e){ $("gameErr").textContent = e.message || "Problema de conexión, volved a elegir."; }
+      ocupado = false; vista = ""; pintar();
+    });
+  }
+}
+
+// ── jornada de prueba: los dos equipos apuntan el resultado y, si coincide, vale ──
+function pintarPrueba(m){
+  const j = L.jor[m.r] || {}, yo = lado(m), otro = yo === "a" ? "b" : "a";
+  const mio = m.rep && m.rep[yo], suyo = m.rep && m.rep[otro];
+  const estado = m.closed ? "c" : m.conflict ? "x" : mio ? "e" : "f";
+  const key = "prueba" + m.r + estado + (mio ? mio.sa + "-" + mio.sb : "");
+  if (vista === key || ocupado) return; vista = key;
+  let h = "<div class='card'><span class='qtag' style='background:var(--gold);color:var(--ink)'>PRUEBA</span><p style='font-size:17px;font-weight:700;line-height:1.45'>" + esc(j.task || "Atentos a la profesora.") + "</p></div>";
+  if (m.closed) h += "<div class='card center'><div class='bigicon'>✅</div><h2>Resultado guardado</h2><p class='muted'>Lo tenéis en el marcador de arriba.</p></div>";
+  else if (estado === "e") h += "<div class='card center'><div class='bigicon pulse'>⏳</div><h2>Resultado enviado</h2><p class='muted'>Esperando a que " + esc(nombre(rival(m))) + " apunte el suyo. Si coincide, vale.</p></div>";
+  else {
+    const prev = mio ? (yo === "a" ? [mio.sa, mio.sb] : [mio.sb, mio.sa]) : [0, 0];
+    h += "<div class='card'>" + (estado === "x" ? "<p style='color:var(--red);font-weight:800;margin-bottom:10px'>⚠️ No coincide con lo que ha apuntado " + esc(nombre(rival(m))) + ". Poneos de acuerdo y volved a enviarlo, o llamad a la profesora.</p>" : "") +
+      "<h2>¿Cómo ha quedado?</h2><label>" + esc(S.team.name) + " (vosotros)</label><input id='rNos' type='number' min='0' max='99' value='" + prev[0] + "' inputmode='numeric'>" +
+      "<label>" + esc(nombre(rival(m))) + "</label><input id='rEllos' type='number' min='0' max='99' value='" + prev[1] + "' inputmode='numeric'>" +
+      "<button class='btn' id='bRep'>Enviar resultado</button></div>";
+  }
+  $("mainBox").innerHTML = h;
+  const b = $("bRep");
+  if (b) b.onclick = async () => {
+    ocupado = true; b.disabled = true;
+    try{ const r = await api({ a:"rep", c:S.code, t:S.team.id, r:m.r, i:m.i, nos:+$("rNos").value || 0, ellos:+$("rEllos").value || 0 }, 4); actualizaPartido(r.match); }
+    catch(e){ $("gameErr").textContent = e.message || "No se ha podido enviar."; }
+    ocupado = false; vista = ""; pintar();
+  };
+}
+
+function actualizaPartido(m){ if (!m) return; const i = MATCHES.findIndex(x => x.r === m.r && x.i === m.i); if (i >= 0) MATCHES[i] = m; else MATCHES.push(m); }
+
+// ── sondeo ──
+async function sondeo(){
+  try{
+    const r = await fetch(API, { method:"POST", body: JSON.stringify({ a:"state", c:S.code }) });
+    const st = await r.json(); if (st.error) throw new Error(st.error);
+    L = st.league; TEAMS = st.teams; MATCHES = st.matches;
+    $("gameErr").textContent = "";
+    if (!ocupado) pintar(); else pintarMarcador(miPartido());
+  }catch(e){ }
+}
+function bucle(){ setTimeout(async () => { await sondeo(); bucle(); }, L && L.playing ? 1800 : 3000); }
+
+async function entrar(){
+  const code = $("inCode").value.toUpperCase().replace(/[^A-Z]/g, ""), name = $("inName").value.trim();
+  if (!API){ $("joinErr").textContent = "Falta la dirección del servidor. Pedídsela a la profesora."; return; }
+  if (!code || !name){ $("joinErr").textContent = "Escribid el código y el nombre del equipo."; return; }
+  lsSet("liga_api", API);
+  $("bJoin").disabled = true; $("joinErr").textContent = "";
+  try{
+    S.code = code;
+    const r = await api({ a:"join", c:code, name });
+    S.team = r.team; lsSet("liga_ses_" + code, { team:r.team });
+    document.documentElement.style.setProperty("--team", r.team.color);
+    $("teamDot").style.background = r.team.color; $("teamName").textContent = r.team.name;
+    $("teamChip").classList.remove("hidden"); $("codeLbl").textContent = "LIGUILLA " + code;
+    $("sJoin").classList.add("hidden"); $("sGame").classList.remove("hidden");
+    await sondeo(); bucle();
+  }catch(e){ $("joinErr").textContent = e.message || "No se ha podido conectar."; $("bJoin").disabled = false; }
+}
+$("bJoin").onclick = entrar;
+$("inName").addEventListener("keydown", e => { if (e.key === "Enter") entrar(); });
+(function init(){
+  const c = (qs.get("c") || "").toUpperCase();
+  if (c){ $("inCode").value = c; const prev = lsGet("liga_ses_" + c, null); if (prev && prev.team && API){ $("inName").value = prev.team.name; entrar(); } }
+})();
+
+function campo(shootDir, keepDir, isGoal, animating) {
+  const bc  = animating && shootDir ? 'ab-'+shootDir : '';
+  const kc  = animating && keepDir  ? 'ak-'+keepDir  : '';
+  const kic = animating ? 'ak2' : '';
+  const ovShow  = (!animating && isGoal !== null) ? 'show' : '';
+  const ovText  = isGoal ? '¡GOOOL!' : '¡Parada!';
+  const ovColor = isGoal ? '#00ff88' : '#ffd700';
+
+  const CC = ['#c0392b','#2471a3','#f39c12','#7d3c98','#1e8449','#1abc9c','#e74c3c','#2e86c1','#f0f3f4','#d4e6f1','#f9e79f','#884ea0'];
+  let crowd = '';
+  for (let row=0; row<3; row++) {
+    for (let col=0; col<40; col++) {
+      const x = col*13 + (row%2===1?6:0);
+      if (x+12 > 520) continue;
+      const y = 7 + row*16;
+      const c = CC[(col*3+row*7+13) % CC.length];
+      crowd += `<rect x="${x}" y="${y+5}" width="11" height="10" rx="2" fill="${c}"/>`;
+      crowd += `<ellipse cx="${x+5.5}" cy="${y+3}" rx="4.5" ry="4" fill="#f0c090"/>`;
+    }
+  }
+
+  const nets = Array.from({length:15},(_,i)=>`<line x1="150" y1="${62+i*7}" x2="370" y2="${62+i*7}" stroke="rgba(255,255,255,.22)" stroke-width=".7"/>`).join('')
+             + Array.from({length:19},(_,i)=>`<line x1="${150+i*12}" y1="62" x2="${150+i*12}" y2="162" stroke="rgba(255,255,255,.22)" stroke-width=".7"/>`).join('');
+
+  return `<div id="campo-wrap">
+<svg id="campo-svg" viewBox="0 0 520 295" xmlns="http://www.w3.org/2000/svg" overflow="hidden">
+  <rect width="520" height="295" fill="#5c9fd4"/>
+  <rect width="520" height="55" fill="#4a88bc"/>
+  ${crowd}
+  <rect x="0" y="148" width="520" height="14" fill="#040420"/>
+  <text x="50"  y="158.5" font-size="8" fill="white" font-weight="700" font-family="Arial,sans-serif" letter-spacing="1.8">LIGUILLA DE DEPORTES</text>
+  <text x="270" y="158.5" font-size="8" fill="white" font-weight="700" font-family="Arial,sans-serif" letter-spacing="1.8">LIGUILLA DE DEPORTES</text>
+  <rect x="0" y="160" width="520" height="135" fill="#38a84e"/>
+  <rect x="0"   y="160" width="52" height="135" fill="rgba(0,0,0,.05)"/>
+  <rect x="104" y="160" width="52" height="135" fill="rgba(0,0,0,.05)"/>
+  <rect x="208" y="160" width="52" height="135" fill="rgba(0,0,0,.05)"/>
+  <rect x="312" y="160" width="52" height="135" fill="rgba(0,0,0,.05)"/>
+  <rect x="416" y="160" width="52" height="135" fill="rgba(0,0,0,.05)"/>
+  <polygon points="95,208 148,162 372,162 425,208" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1.5"/>
+  <line x1="95" y1="208" x2="425" y2="208" stroke="rgba(255,255,255,.6)" stroke-width="1.5"/>
+  <polygon points="175,183 192,162 328,162 345,183" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+  <line x1="175" y1="183" x2="345" y2="183" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+  <path d="M198,216 Q260,237 322,216" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.5"/>
+  <clipPath id="nc"><rect x="150" y="62" width="220" height="100"/></clipPath>
+  <g clip-path="url(#nc)"><rect x="150" y="62" width="220" height="100" fill="rgba(200,220,255,.12)"/>${nets}</g>
+  <rect x="144" y="60" width="8"   height="104" rx="4" fill="#f0f0f0"/>
+  <rect x="368" y="60" width="8"   height="104" rx="4" fill="#f0f0f0"/>
+  <rect x="144" y="60" width="232" height="8"   rx="4" fill="#f0f0f0"/>
+  <rect x="148" y="60" width="3" height="104" fill="rgba(0,0,0,.2)" rx="1.5"/>
+  <rect x="372" y="60" width="3" height="104" fill="rgba(0,0,0,.2)" rx="1.5"/>
+
+  <!-- PORTERO -->
+  <g id="keeper-group" style="transform-origin:260px 122px" class="${kc}">
+    <ellipse cx="260" cy="161" rx="18" ry="3.5" fill="rgba(0,0,0,.18)"/>
+    <ellipse cx="253" cy="159" rx="9"  ry="3.5" fill="#111"/>
+    <ellipse cx="267" cy="159" rx="9"  ry="3.5" fill="#111"/>
+    <rect x="249.5" y="142" width="7" height="18" rx="3.5" fill="#f5f5f5"/>
+    <rect x="263.5" y="142" width="7" height="18" rx="3.5" fill="#f5f5f5"/>
+    <rect x="249" y="131" width="9"  height="13" rx="3" fill="#1a237e"/>
+    <rect x="262" y="131" width="9"  height="13" rx="3" fill="#1a237e"/>
+    <rect x="247" y="107" width="26" height="27" rx="5" fill="#f9a825"/>
+    <text x="260" y="123" text-anchor="middle" font-size="11" font-weight="900" fill="#111" font-family="Arial,sans-serif">1</text>
+    <line x1="247" y1="115" x2="212" y2="117" stroke="#f9a825" stroke-width="11" stroke-linecap="round"/>
+    <line x1="273" y1="115" x2="308" y2="117" stroke="#f9a825" stroke-width="11" stroke-linecap="round"/>
+    <ellipse cx="207" cy="117" rx="11" ry="8.5" fill="#d8d8d8"/>
+    <ellipse cx="313" cy="117" rx="11" ry="8.5" fill="#d8d8d8"/>
+    <line x1="198" y1="113" x2="196" y2="107" stroke="#bbb" stroke-width="3" stroke-linecap="round"/>
+    <line x1="203" y1="111" x2="201" y2="105" stroke="#bbb" stroke-width="3" stroke-linecap="round"/>
+    <line x1="208" y1="110" x2="207" y2="104" stroke="#bbb" stroke-width="3" stroke-linecap="round"/>
+    <line x1="322" y1="113" x2="324" y2="107" stroke="#bbb" stroke-width="3" stroke-linecap="round"/>
+    <line x1="317" y1="111" x2="319" y2="105" stroke="#bbb" stroke-width="3" stroke-linecap="round"/>
+    <line x1="312" y1="110" x2="313" y2="104" stroke="#bbb" stroke-width="3" stroke-linecap="round"/>
+    <rect x="256" y="100" width="8" height="9" rx="4" fill="#e8b07a"/>
+    <ellipse cx="260" cy="93" rx="14" ry="15" fill="#e8b07a"/>
+    <ellipse cx="260" cy="81" rx="14" ry="8" fill="#2c1505"/>
+    <rect x="246" y="79" width="28" height="11" rx="5.5" fill="#2c1505"/>
+    <ellipse cx="246" cy="93" rx="4" ry="5" fill="#d89a60"/>
+    <ellipse cx="274" cy="93" rx="4" ry="5" fill="#d89a60"/>
+    <ellipse cx="255" cy="91" rx="3" ry="3.5" fill="white"/>
+    <ellipse cx="265" cy="91" rx="3" ry="3.5" fill="white"/>
+    <circle cx="255.5" cy="92" r="2" fill="#1a1a1a"/>
+    <circle cx="265.5" cy="92" r="2" fill="#1a1a1a"/>
+    <circle cx="256" cy="91" r=".8" fill="white"/>
+    <circle cx="266" cy="91" r=".8" fill="white"/>
+    <path d="M252 88 Q255.5 85.5 259 88" stroke="#2c1505" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M261 88 Q264.5 85.5 268 88" stroke="#2c1505" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M258 96 Q260 99.5 262 96" stroke="#c08050" stroke-width="1.3" fill="none"/>
+    <path d="M256 101 Q260 104.5 264 101" stroke="#a06040" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- BALÓN -->
+  <circle cx="260" cy="228" r="3" fill="rgba(255,255,255,.7)"/>
+  <g id="ball" style="transform-origin:260px 228px" class="${bc}">
+    <circle cx="260" cy="228" r="12" fill="white" stroke="#ddd" stroke-width="1.2"/>
+    <polygon points="260,216 254,221 256.5,228 263.5,228 266,221" fill="#222"/>
+    <polygon points="248,223 251.5,231 256.5,228 254,221" fill="#333" opacity=".7"/>
+    <polygon points="272,223 268.5,231 263.5,228 266,221" fill="#333" opacity=".7"/>
+  </g>
+
+  <!-- LANZADOR -->
+  <g>
+    <ellipse cx="260" cy="294" rx="26" ry="5.5" fill="rgba(0,0,0,.2)"/>
+    <rect x="244" y="261" width="12" height="32" rx="6" fill="#c62828"/>
+    <rect x="244.5" y="272" width="11" height="16" rx="4.5" fill="white"/>
+    <ellipse cx="250" cy="293" rx="13.5" ry="5" fill="#111"/>
+    <g id="shooter-leg-kick" class="${kic}" style="transform-origin:265px 263px">
+      <rect x="259" y="263" width="12" height="30" rx="6" fill="#c62828"/>
+      <rect x="259.5" y="273" width="11" height="14" rx="4.5" fill="white"/>
+      <ellipse cx="270" cy="293" rx="14" ry="5" fill="#111" transform="rotate(10,270,293)"/>
+    </g>
+    <rect x="239" y="249" width="42" height="16" rx="7" fill="#c62828"/>
+    <rect x="233" y="215" width="54" height="37" rx="9" fill="#e53935"/>
+    <rect x="240" y="219" width="40" height="28" rx="4" fill="rgba(0,0,0,.1)"/>
+    <text x="260" y="237" text-anchor="middle" font-size="18" font-weight="900" fill="white" font-family="Arial,sans-serif">10</text>
+    <line x1="233" y1="222" x2="214" y2="244" stroke="#e53935" stroke-width="11" stroke-linecap="round"/>
+    <ellipse cx="211" cy="247" rx="6.5" ry="5.5" fill="#e8b07a"/>
+    <line x1="287" y1="222" x2="306" y2="244" stroke="#e53935" stroke-width="11" stroke-linecap="round"/>
+    <ellipse cx="309" cy="247" rx="6.5" ry="5.5" fill="#e8b07a"/>
+    <rect x="255" y="208" width="10" height="9" rx="5" fill="#e8b07a"/>
+    <ellipse cx="260" cy="201" rx="17" ry="17" fill="#2c1505"/>
+    <ellipse cx="260" cy="209" rx="15" ry="9" fill="#e8b07a"/>
+    <rect x="245" y="200" width="30" height="12" rx="6" fill="#2c1505"/>
+  </g>
+
+</svg>
+<div id="result-overlay" class="${ovShow}">
+  <div class="ro-text" style="color:${ovColor}">${ovText}</div>
+</div>
+</div>`;
+}
+
+
+</script>
+</body>
+</html>
