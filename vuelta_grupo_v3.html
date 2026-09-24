@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>La Vuelta de Deportes · Equipo</title>
+<style>
+:root{--red:#C8102E;--ink:#1B1B1F;--paper:#fff;--bg:#F3F1EC;--muted:#6B6B72;--border:#D8D8DC;--green:#1E7A45;--gold:#E8B54A;--team:#C8102E}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg)}
+body{font-family:Arial,Helvetica,sans-serif;color:var(--ink);min-height:100vh;-webkit-tap-highlight-color:transparent}
+.top{background:var(--ink);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:5}
+.top .t1{font-size:14px;font-weight:800;letter-spacing:.04em}
+.top .t2{font-size:11px;color:var(--gold);letter-spacing:.06em}
+.chip{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px}
+.dot{width:16px;height:16px;border-radius:50%;background:var(--team);border:2px solid #fff;flex:none}
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 60px}
+.card{background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}
+h1{font-size:24px;line-height:1.2;margin-bottom:8px}
+h2{font-size:19px;line-height:1.3;margin-bottom:12px}
+p{line-height:1.45}
+.muted{color:var(--muted);font-size:14px}
+label{display:block;font-weight:700;font-size:13px;margin:14px 0 6px}
+input,textarea{width:100%;border:2px solid var(--border);border-radius:10px;padding:13px;font-size:17px;font-family:inherit;color:var(--ink);background:#fff}
+input:focus,textarea:focus{outline:none;border-color:var(--team)}
+textarea{min-height:130px;resize:vertical;line-height:1.4}
+.btn{display:block;width:100%;border:none;border-radius:12px;padding:16px;font-size:18px;font-weight:800;font-family:inherit;color:#fff;background:var(--red);cursor:pointer;margin-top:16px}
+.btn:disabled{opacity:.45}
+.btn.team{background:var(--team)}
+.err{color:var(--red);font-weight:700;font-size:14px;margin-top:10px;min-height:18px}
+.progress{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:700;margin-bottom:8px}
+.track{height:14px;border-radius:8px;background:#e4e1da;position:relative;overflow:visible;margin-bottom:16px}
+.track i{position:absolute;left:0;top:0;bottom:0;border-radius:8px;background:var(--team);transition:width .5s}
+.track b{position:absolute;top:-3px;width:4px;height:20px;background:var(--ink);border-radius:2px}
+.qtag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;padding:4px 10px;border-radius:20px;background:var(--ink);color:#fff;margin-bottom:12px}
+.qimg{display:block;max-width:100%;max-height:240px;margin:0 auto 14px;border-radius:10px}
+.opts{display:grid;gap:10px}
+.opt{border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:700;font-family:inherit;color:#fff;text-align:left;cursor:pointer;min-height:60px;display:flex;gap:10px;align-items:center}
+.opt:nth-child(1){background:#C8102E}.opt:nth-child(2){background:#1565C0}.opt:nth-child(3){background:#B7791F}.opt:nth-child(4){background:#2E7D32}
+.opt .s{font-size:20px;flex:none;width:24px;text-align:center}
+.opt.dim{opacity:.3}
+.opt.right{outline:4px solid var(--ink);opacity:1}
+.fb{border-radius:14px;padding:22px;text-align:center;color:#fff;font-weight:800;margin-bottom:14px}
+.fb.ok{background:var(--green)}
+.fb.ko{background:var(--red)}
+.fb .big{font-size:28px;margin-bottom:6px}
+.fb .sm{font-size:15px;font-weight:600;line-height:1.4}
+.task{background:#FFF7E0;border:2px solid var(--gold);border-radius:12px;padding:16px;font-size:17px;line-height:1.45;font-weight:600;margin-bottom:6px}
+.note{background:#FDECEE;border-left:5px solid var(--red);padding:12px;border-radius:8px;margin:12px 0;font-weight:600}
+.count{text-align:right;font-size:12px;color:var(--muted);margin-top:4px}
+.center{text-align:center}
+.bigicon{font-size:56px;margin-bottom:10px}
+.pulse{animation:pl 1.4s infinite}
+@keyframes pl{50%{opacity:.35}}
+.hidden{display:none!important}
+.rankcard{display:flex;align-items:center;gap:14px;background:var(--ink);color:#fff;border-radius:14px;padding:12px 16px;margin-bottom:12px}
+.rankcard .rk{font-size:40px;font-weight:900;color:var(--gold);min-width:64px;text-align:center;line-height:1}
+.rankcard .rt{font-size:16px;font-weight:800}
+.rankcard .rs{font-size:13px;color:#cfcfd4;margin-top:3px}
+.rank{list-style:none;margin-top:12px}
+.rank li{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--border);font-weight:700}
+.rank li .n{width:26px;text-align:right;color:var(--muted)}
+.rank li .p{margin-left:auto;font-size:13px;color:var(--muted)}
+.rank li.me{background:#FFF7E0}
+</style>
+</head>
+<body>
+<div class="top">
+  <div><div class="t1">LA VUELTA DE DEPORTES</div><div class="t2" id="codeLbl">EQUIPO</div></div>
+  <div class="chip hidden" id="teamChip"><span class="dot"></span><span id="teamName"></span></div>
+</div>
+<div class="wrap">
+
+  <!-- Unirse -->
+  <section id="sJoin" class="card">
+    <h1>Entrad en La Vuelta</h1>
+    <p class="muted">Un solo móvil u ordenador por equipo.</p>
+    <label for="inCode">Código de la carrera</label>
+    <input id="inCode" maxlength="6" autocomplete="off" autocapitalize="characters" placeholder="Ej. KPRT" style="text-transform:uppercase;letter-spacing:.2em;font-weight:800">
+    <label for="inName">Nombre de vuestro equipo ciclista</label>
+    <input id="inName" maxlength="28" autocomplete="off" placeholder="Ej. Somosaguas Racing Team">
+    <div id="apiBox" class="hidden">
+      <label for="inApi">Dirección del servidor</label>
+      <input id="inApi" placeholder="https://script.google.com/macros/s/.../exec">
+    </div>
+    <button class="btn" id="bJoin">Entrar</button>
+    <div class="err" id="joinErr"></div>
+  </section>
+
+  <!-- Esperando salida -->
+  <section id="sLobby" class="card center hidden">
+    <div class="bigicon pulse">🚴</div>
+    <h1>Estáis dentro</h1>
+    <p class="muted">Mirad la pantalla del proyector. La etapa empieza cuando la profesora dé la salida.</p>
+  </section>
+
+  <!-- Carrera -->
+  <section id="sRace" class="hidden">
+    <div class="rankcard" id="rankCard"><div class="rk" id="rankBig">–</div><div><div class="rt" id="rankTxt">Esperando datos…</div><div class="rs" id="rankSub"></div></div></div>
+    <div class="progress"><span id="posLbl">Km 0 de 20</span><span id="rankLbl"></span></div>
+    <div class="track" id="myTrack"><i id="myBar" style="width:0"></i></div>
+
+    <div id="qBox" class="card">
+      <span class="qtag" id="qTag">PREGUNTA</span>
+      <img id="qImg" class="qimg hidden" alt="">
+      <h2 id="qText"></h2>
+      <div class="opts" id="qOpts"></div>
+      <div id="qShort" class="hidden">
+        <input id="inShort" autocomplete="off" placeholder="Escribid la respuesta">
+        <button class="btn team" id="bShort">Responder</button>
+      </div>
+    </div>
+
+    <div id="fbBox" class="hidden"></div>
+
+    <div id="stopBox" class="card hidden">
+      <span class="qtag" style="background:var(--gold);color:var(--ink)" id="stopTag">PUERTO DE MONTAÑA</span>
+      <div class="task" id="stopTask"></div>
+      <div id="stopNote" class="note hidden"></div>
+      <div id="stopPaper" class="hidden">
+        <p style="font-size:16px;line-height:1.45;margin:10px 0">Escribidlo <b>en un papel</b> con el nombre de vuestro equipo y llevádselo a la profesora. Cuando lo tenga en la mano, pulsad el botón.</p>
+        <button class="btn team" id="bPaper">Ya lo hemos entregado</button>
+      </div>
+      <div id="stopWrite">
+        <label for="inText">Vuestro texto</label>
+        <textarea id="inText" maxlength="500" placeholder="Escribid aquí"></textarea>
+        <div class="count"><span id="cnt">0</span>/500</div>
+        <button class="btn team" id="bSend">Enviar a la directora de carrera</button>
+      </div>
+      <div id="stopWait" class="center hidden" style="padding:10px 0">
+        <div class="bigicon pulse">✍️</div>
+        <h2>Texto enviado</h2>
+        <p class="muted">La profesora lo está revisando. Si lo aprueba, seguís pedaleando y ganáis un kilómetro de bonificación.</p>
+      </div>
+    </div>
+    <div class="err" id="raceErr"></div>
+  </section>
+
+  <!-- Final -->
+  <section id="sOver" class="card center hidden">
+    <div class="bigicon" id="overIcon">🏆</div>
+    <h1 id="overTitle"></h1>
+    <p class="muted" id="overSub"></p>
+    <ul class="rank" id="overRank" style="text-align:left"></ul>
+  </section>
+</div>
+
+<script>
+// ═══════════ CONFIGURACIÓN ═══════════
+// Si pegas aquí la dirección /exec del servidor, los equipos no tendrán que escribirla nunca.
+const API_URL = "https://script.google.com/macros/s/AKfycbyHlrt4WKz5h_i7oXYcPpkOBDvbA3rar88sdHL3ZB4NrNBcSWDeComuFHnETQ4lcWOWYQ/exec";
+
+const BANCO = [{"id": "VP01", "q": "¿Qué diario deportivo se fundó en Barcelona en 1906 y es el más antiguo de España?", "o": ["Mundo Deportivo", "Sport", "Marca", "As"], "c": 0}, {"id": "VP02", "q": "¿En qué año nació el diario Marca?", "o": ["1938", "1906", "1967", "1979"], "c": 0}, {"id": "VP03", "q": "¿En qué año nació el diario As?", "o": ["1967", "1938", "1979", "1990"], "c": 0}, {"id": "VP04", "q": "¿Qué emisora emite «Carrusel Deportivo»?", "o": ["Cadena SER", "COPE", "Onda Cero", "RNE"], "c": 0}, {"id": "VP05", "q": "¿Qué emisora emite «Tiempo de Juego»?", "o": ["COPE", "Cadena SER", "Onda Cero", "RNE"], "c": 0}, {"id": "VP07", "q": "¿Qué periodista deportivo era conocido como «Supergarcía»?", "o": ["José María García", "José Ramón de la Morena", "Paco González", "Manolo Lama"], "c": 0}, {"id": "VP09", "q": "¿Qué diario deportivo italiano se imprime en papel rosa?", "o": ["La Gazzetta dello Sport", "Corriere dello Sport", "Tuttosport", "La Repubblica"], "c": 0}, {"id": "VP12", "q": "¿Qué significa que un deportista habla «off the record»?", "o": ["Que no se puede publicar lo que dice", "Que habla en directo", "Que habla fuera del estadio", "Que no quiere salir en la foto"], "c": 0}, {"id": "VP13", "q": "¿Qué es una crónica deportiva?", "o": ["El relato de un partido con la mirada del periodista", "Una entrevista a un jugador", "Una lista de resultados", "Un artículo de opinión sin datos"], "c": 0}, {"id": "VP14", "q": "¿Qué es la entradilla de una noticia?", "o": ["El primer párrafo, con lo más importante", "El titular", "El pie de foto", "La firma del periodista"], "c": 0}, {"id": "VP16", "q": "¿Qué es un ladillo?", "o": ["Un pequeño título dentro del texto", "Una foto pequeña", "Una columna de opinión", "El nombre del autor"], "c": 0}, {"id": "VP18", "q": "¿Qué significa VAR?", "o": ["Árbitro asistente de vídeo", "Vídeo de alta resolución", "Voto del árbitro reserva", "Validación automática de resultados"], "c": 0}, {"id": "VH30", "q": "¿Quién ganó el primer Balón de Oro, en 1956?", "o": ["Stanley Matthews", "Alfredo Di Stéfano", "Raymond Kopa", "Ferenc Puskás"], "c": 0}, {"id": "VH31", "q": "¿Contra quién ganó el Real Madrid la final de la primera Copa de Europa, en 1956?", "o": ["Stade de Reims", "Fiorentina", "Benfica", "AC Milan"], "c": 0}, {"id": "VH33", "q": "¿Quién impulsó los Juegos Olímpicos modernos?", "o": ["Pierre de Coubertin", "Juan Antonio Samaranch", "Avery Brundage", "Thomas Bach"], "c": 0}, {"id": "VH35", "q": "¿Quién fue el primer español en ganar el Tour de Francia, en 1959?", "o": ["Federico Martín Bahamontes", "Luis Ocaña", "Pedro Delgado", "Miguel Induráin"], "c": 0}, {"id": "VH36", "q": "¿Contra qué selección ganó España la Eurocopa de 1964?", "o": ["La URSS", "Italia", "Alemania", "Hungría"], "c": 0}, {"id": "VH38", "q": "¿Por cuánto ganó España a Italia la final de la Eurocopa 2012?", "o": ["4-0", "1-0", "2-1", "3-1"], "c": 0}, {"id": "VH39", "q": "¿Qué selección ganó el Mundial de España 1982?", "o": ["Italia", "Alemania", "Brasil", "Argentina"], "c": 0}, {"id": "VH41", "q": "¿En qué año ganó Rafa Nadal su primer Roland Garros?", "o": ["2005", "2003", "2008", "2010"], "c": 0}, {"id": "VH42", "q": "¿Quién fue el primer español campeón del mundo en la categoría reina de motociclismo, en 1999?", "o": ["Àlex Crivillé", "Marc Márquez", "Jorge Lorenzo", "Dani Pedrosa"], "c": 0}, {"id": "VH43", "q": "¿Cuántos Dakar ha ganado Carlos Sainz?", "o": ["Cuatro", "Uno", "Dos", "Seis"], "c": 0}, {"id": "VH44", "q": "¿Qué medalla ganó la selección española de baloncesto en Los Ángeles 1984?", "o": ["Plata", "Oro", "Bronce", "Ninguna"], "c": 0}, {"id": "VH45", "q": "¿Contra quién ganó España la final del Mundial de baloncesto de 2006?", "o": ["Grecia", "Argentina", "Estados Unidos", "Serbia"], "c": 0}, {"id": "VH46", "q": "¿Contra quién ganó España la final del Mundial de baloncesto de 2019?", "o": ["Argentina", "Francia", "Estados Unidos", "Serbia"], "c": 0}, {"id": "VH47", "q": "¿Dónde se celebraron los Juegos Olímpicos de invierno de 2026?", "o": ["Milán y Cortina d'Ampezzo", "Salt Lake City", "Pekín", "Sochi"], "c": 0}, {"id": "VH48", "q": "¿Dónde se celebrarán los Juegos Olímpicos de 2032?", "o": ["Brisbane", "Los Ángeles", "Madrid", "Doha"], "c": 0}, {"id": "VH49", "q": "¿Qué tres países organizaron el Mundial de fútbol de 2026?", "o": ["Estados Unidos, México y Canadá", "España, Portugal y Marruecos", "Argentina, Uruguay y Paraguay", "Japón, Corea y China"], "c": 0}, {"id": "VC04", "q": "¿Cómo se llama el estadio del Sevilla FC?", "o": ["Ramón Sánchez-Pizjuán", "Benito Villamarín", "La Cartuja", "Nuevo Colombino"], "c": 0}, {"id": "VC05", "q": "¿Cómo se llama hoy el estadio de la Real Sociedad?", "o": ["Reale Arena (Anoeta)", "El Sadar", "Ipurua", "Mendizorroza"], "c": 0}, {"id": "VC06", "q": "¿Qué equipo es conocido como «los leones»?", "o": ["Athletic Club", "Real Sociedad", "Osasuna", "Celta"], "c": 0}, {"id": "VC07", "q": "¿Qué equipo es conocido como «los colchoneros»?", "o": ["Atlético de Madrid", "Getafe", "Rayo Vallecano", "Real Madrid"], "c": 0}, {"id": "VC08", "q": "¿Qué equipo es conocido como «los periquitos»?", "o": ["Espanyol", "Girona", "Barça", "Levante"], "c": 0}, {"id": "VC11", "q": "¿A qué selección se le llama «la Canarinha»?", "o": ["Brasil", "Portugal", "Colombia", "Ecuador"], "c": 0}, {"id": "VC12", "q": "¿A qué selección se le llama «la Azzurra»?", "o": ["Italia", "Francia", "Uruguay", "Grecia"], "c": 0}, {"id": "VC13", "q": "¿A qué selección se le llama «la Oranje»?", "o": ["Países Bajos", "Bélgica", "Irlanda", "Costa de Marfil"], "c": 0}, {"id": "VC14", "q": "¿En qué deporte juegan los «All Blacks» de Nueva Zelanda?", "o": ["Rugby", "Hockey", "Críquet", "Baloncesto"], "c": 0}, {"id": "VC15", "q": "¿Cómo se llama el derbi entre el Betis y el Sevilla?", "o": ["El Gran Derbi", "El Clásico", "El derbi del sur", "El derbi andaluz"], "c": 0}, {"id": "VR51", "q": "¿Cuántos metros mide una piscina olímpica?", "o": ["50", "25", "100", "40"], "c": 0}, {"id": "VR53", "q": "¿Cuánto dura cada parte de la prórroga en fútbol?", "o": ["15 minutos", "10 minutos", "20 minutos", "30 minutos"], "c": 0}, {"id": "VR54", "q": "¿Cuántos jugadores tiene cada equipo en el campo en béisbol?", "o": ["Nueve", "Once", "Siete", "Diez"], "c": 0}, {"id": "VR57", "q": "¿En qué deporte se marca un «touchdown»?", "o": ["Fútbol americano", "Rugby", "Hockey hielo", "Críquet"], "c": 0}, {"id": "VR58", "q": "¿Qué es un «hat-trick»?", "o": ["Tres goles del mismo jugador en un partido", "Un gol de chilena", "Ganar tres títulos seguidos", "Un gol en el primer minuto"], "c": 0}, {"id": "VR60", "q": "¿Cuántos sets hay que ganar para vencer un partido masculino de Grand Slam?", "o": ["Tres", "Dos", "Cuatro", "Cinco"], "c": 0}, {"id": "VR61", "q": "¿Cuántos puntos gana el vencedor de un Gran Premio de Fórmula 1?", "o": ["25", "10", "20", "30"], "c": 0}, {"id": "VR63", "q": "¿Cuántas grandes vueltas ciclistas hay?", "o": ["Tres", "Dos", "Cuatro", "Cinco"], "c": 0}, {"id": "VR64", "q": "¿Qué premia el maillot verde del Tour de Francia?", "o": ["La regularidad (clasificación por puntos)", "Al mejor joven", "Al mejor escalador", "Al más combativo"], "c": 0}, {"id": "VD31", "q": "¿Qué futbolista español era conocido como «el Niño»?", "o": ["Fernando Torres", "Raúl González", "David Villa", "Iker Casillas"], "c": 0}, {"id": "VD32", "q": "¿A quién llamaban «el Fenómeno»?", "o": ["Ronaldo Nazário", "Ronaldinho", "Romário", "Rivaldo"], "c": 0}, {"id": "VD33", "q": "¿A quién llamaban «la Saeta Rubia»?", "o": ["Alfredo Di Stéfano", "Ferenc Puskás", "Paco Gento", "Johan Cruyff"], "c": 0}, {"id": "VD35", "q": "¿De qué país era Nadia Comaneci, la primera gimnasta en lograr un 10?", "o": ["Rumanía", "Rusia", "Hungría", "Bulgaria"], "c": 0}, {"id": "VD36", "q": "¿En qué prueba compite Ana Peleteiro?", "o": ["Triple salto", "Salto de altura", "100 metros vallas", "Salto con pértiga"], "c": 0}, {"id": "VD37", "q": "¿En qué deporte ganó Alberto Ginés el oro olímpico en Tokio?", "o": ["Escalada", "Surf", "Skate", "Taekwondo"], "c": 0}, {"id": "VD38", "q": "¿En qué deporte destaca Ona Carbonell?", "o": ["Natación artística", "Waterpolo", "Saltos de trampolín", "Gimnasia rítmica"], "c": 0}, {"id": "VD39", "q": "¿En qué prueba ganó Ruth Beitia el oro olímpico en Río 2016?", "o": ["Salto de altura", "Salto de longitud", "Lanzamiento de jabalina", "800 metros"], "c": 0}, {"id": "VD41", "q": "¿Quién era el seleccionador de España en el Mundial 2010?", "o": ["Vicente del Bosque", "Luis Aragonés", "José Antonio Camacho", "Javier Clemente"], "c": 0}, {"id": "VD44", "q": "¿Qué tenista tiene más Grand Slams masculinos?", "o": ["Novak Djokovic", "Rafa Nadal", "Roger Federer", "Pete Sampras"], "c": 0}, {"id": "VD45", "q": "¿En qué equipo de la NBA jugó Kobe Bryant toda su carrera?", "o": ["Los Angeles Lakers", "Chicago Bulls", "Boston Celtics", "Miami Heat"], "c": 0}, {"id": "VD46", "q": "¿Qué jugador de baloncesto es conocido como «el Chacho»?", "o": ["Sergio Rodríguez", "Sergio Llull", "Rudy Fernández", "Juan Carlos Navarro"], "c": 0}, {"id": "VD47", "q": "¿A qué jugador de baloncesto llamaban «la Bomba»?", "o": ["Juan Carlos Navarro", "Felipe Reyes", "Jorge Garbajosa", "José Manuel Calderón"], "c": 0}, {"id": "VD48", "q": "¿Quién fue elegido mejor jugador joven de la Eurocopa 2024?", "o": ["Lamine Yamal", "Nico Williams", "Pedri", "Jude Bellingham"], "c": 0}, {"id": "VD49", "q": "¿Quién fue elegido mejor jugador de la Eurocopa 2024?", "o": ["Rodri", "Dani Olmo", "Lamine Yamal", "Kylian Mbappé"], "c": 0}, {"id": "VD51", "q": "¿Qué tenista española ganó Roland Garros en 1989 con 17 años?", "o": ["Arantxa Sánchez Vicario", "Conchita Martínez", "Garbiñe Muguruza", "Carla Suárez"], "c": 0}, {"id": "VD52", "q": "¿Qué tenista española ganó Wimbledon en 1994?", "o": ["Conchita Martínez", "Arantxa Sánchez Vicario", "Garbiñe Muguruza", "Virginia Ruano"], "c": 0}, {"id": "VD53", "q": "¿Qué tenista español ganó Wimbledon en 1966?", "o": ["Manolo Santana", "Andrés Gimeno", "Manuel Orantes", "Sergi Bruguera"], "c": 0}, {"id": "VD54", "q": "¿Qué golfista fue el primer español en ganar el Masters de Augusta, en 1980?", "o": ["Severiano Ballesteros", "José María Olazábal", "Sergio García", "Miguel Ángel Jiménez"], "c": 0}];   // preguntas de opciones (y de foto)
+const CORTAS = [{"id": "VP06", "q": "¿Cómo se llama el programa nocturno de la SER que dirigió José Ramón de la Morena durante décadas?", "r": ["El Larguero", "Larguero"], "s": "El Larguero"}, {"id": "VP08", "q": "¿Qué revista francesa entrega el Balón de Oro?", "r": ["France Football"], "s": "France Football"}, {"id": "VP10", "q": "¿Cómo se llama el gran diario deportivo de Francia?", "r": ["L'Equipe", "Equipe", "L Equipe"], "s": "L'Équipe"}, {"id": "VP11", "q": "¿Cómo se llama la noticia que solo publica un medio?", "r": ["exclusiva"], "s": "Exclusiva"}, {"id": "VP15", "q": "¿Cómo se llama el texto que va debajo de una foto?", "r": ["pie de foto", "pie"], "s": "Pie de foto"}, {"id": "VP17", "q": "¿Cómo se llama la principal agencia de noticias española?", "r": ["EFE", "Agencia EFE"], "s": "EFE"}, {"id": "VH32", "q": "¿En qué ciudad se celebraron los primeros Juegos Olímpicos modernos, en 1896?", "r": ["Atenas"], "s": "Atenas"}, {"id": "VH34", "q": "¿Qué atleta estadounidense ganó cuatro oros en los Juegos de Berlín 1936? (apellido)", "r": ["Owens", "Jesse Owens"], "s": "Jesse Owens"}, {"id": "VH37", "q": "¿Quién marcó el gol de España en la final de la Eurocopa 2008? (apellido)", "r": ["Torres", "Fernando Torres"], "s": "Fernando Torres"}, {"id": "VH40", "q": "¿Qué selección ganó el Mundial de Catar 2022?", "r": ["Argentina"], "s": "Argentina"}, {"id": "VC01", "q": "¿Cómo se llama el estadio del Athletic Club?", "r": ["San Mames"], "s": "San Mamés"}, {"id": "VC02", "q": "¿Cómo se llama el estadio del Valencia CF?", "r": ["Mestalla"], "s": "Mestalla"}, {"id": "VC03", "q": "¿Cómo se llama el estadio del Real Betis? (apellido del nombre)", "r": ["Villamarin", "Benito Villamarin"], "s": "Benito Villamarín"}, {"id": "VC09", "q": "¿Qué equipo es conocido como «el Submarino Amarillo»?", "r": ["Villarreal"], "s": "Villarreal"}, {"id": "VC10", "q": "¿A qué selección se le llama «la Albiceleste»?", "r": ["Argentina"], "s": "Argentina"}, {"id": "VR50", "q": "¿Cuántos jugadores tiene cada equipo en el campo en rugby XV? (escribe el número)", "r": ["15", "quince"], "s": "15"}, {"id": "VR52", "q": "¿Cuántos hoyos tiene un recorrido completo de golf? (escribe el número)", "r": ["18", "dieciocho"], "s": "18"}, {"id": "VR55", "q": "¿Cuántas pruebas tiene el decatlón? (escribe el número)", "r": ["10", "diez"], "s": "10"}, {"id": "VR56", "q": "¿En qué deporte se consigue un «home run»?", "r": ["beisbol"], "s": "Béisbol"}, {"id": "VR59", "q": "¿Cuántos jugadores tiene cada equipo en pista en baloncesto? (escribe el número)", "r": ["5", "cinco"], "s": "5"}, {"id": "VR62", "q": "¿De qué color es el maillot del líder del Tour de Francia?", "r": ["amarillo"], "s": "Amarillo"}, {"id": "VR65", "q": "¿Cómo se llama el ciclista que trabaja para ayudar a su líder?", "r": ["gregario"], "s": "Gregario"}, {"id": "VR66", "q": "¿Cómo se llama la etapa en la que cada ciclista corre solo contra el reloj?", "r": ["contrarreloj", "crono", "contra reloj"], "s": "Contrarreloj"}, {"id": "VD30", "q": "¿Qué futbolista es conocido como «la Pulga»? (apellido)", "r": ["Messi", "Leo Messi", "Lionel Messi"], "s": "Leo Messi"}, {"id": "VD34", "q": "¿Qué gimnasta estadounidense es la más laureada de la historia? (apellido)", "r": ["Biles", "Simone Biles"], "s": "Simone Biles"}, {"id": "VD40", "q": "¿Quién era el portero y capitán de España en el Mundial 2010? (apellido)", "r": ["Casillas", "Iker Casillas"], "s": "Iker Casillas"}, {"id": "VD42", "q": "¿Quién era el seleccionador de España en la Eurocopa 2008? (apellido)", "r": ["Aragones", "Luis Aragones"], "s": "Luis Aragonés"}, {"id": "VD43", "q": "¿Qué tenista suizo ganó ocho veces Wimbledon? (apellido)", "r": ["Federer", "Roger Federer"], "s": "Roger Federer"}, {"id": "VD50", "q": "¿Qué futbolista español ganó el Balón de Oro de 2024?", "r": ["Rodri", "Rodrigo Hernandez"], "s": "Rodri"}];  // preguntas de escribir la respuesta
+
+// ═══════════ UTILIDADES ═══════════
+const $ = id => document.getElementById(id);
+const qs = new URLSearchParams(location.search);
+function lsGet(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function norm(s){
+  return " " + String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")
+    .replace(/[^a-z0-9ñ]+/g," ").replace(/\b(el|la|los|las|the|un|una|de|del)\b/g," ")
+    .replace(/\s+/g," ").trim() + " ";
+}
+// Acepta la respuesta exacta, la respuesta dentro de una frase corta
+// o solo parte del nombre si incluye el apellido (la última palabra).
+function correctaCorta(resp, variantes){
+  const r = norm(resp);
+  if (r.trim().length === 0) return false;
+  const rt = r.trim().split(" ");
+  return variantes.some(v => {
+    const n = norm(v); if (!n.trim()) return false;
+    if (r === n || (r.includes(n) && r.length <= n.length + 22)) return true;
+    const nt = n.trim().split(" ");
+    return nt.length > 1 && rt.every(w => nt.includes(w)) && rt.includes(nt[nt.length - 1]);
+  });
+}
+
+let API = API_URL || qs.get("api") || lsGet("vuelta_api", "");
+async function api(params, intentos){
+  intentos = intentos || 3;
+  for (let i = 0; i < intentos; i++){
+    try{
+      const r = await fetch(API, { method:"POST", body: JSON.stringify(params) });
+      const j = await r.json();
+      if (j.error) throw Object.assign(new Error(j.error), { server:true });
+      return j;
+    }catch(e){
+      if (e.server || i === intentos - 1) throw e;
+      await new Promise(res => setTimeout(res, 700 * (i + 1)));
+    }
+  }
+}
+async function getState(){
+  const r = await fetch(API, { method:"POST", body: JSON.stringify({ a:"state", c:S.code }) });
+  const j = await r.json(); if (j.error) throw new Error(j.error); return j;
+}
+
+// ═══════════ ESTADO ═══════════
+let S = { code:"", team:null, n:0 };   // n = número de respuestas enviadas
+let G = null, TEAMS = [];
+let fase = "join";      // join | lobby | q | fb | stop | over
+let pregunta = null, cola = null, extra = [];
+let bloqueo = false;
+
+function sesionKey(){ return "vuelta_ses_" + S.code; }
+// La rotación de preguntas se guarda en este móvil u ordenador y sirve para todas las carreras:
+// la pregunta que sale pasa al final de su cola, y no vuelve hasta que hayan salido las demás.
+const LS_ROTACION = "vuelta_rotacion";
+function guardarSesion(){
+  lsSet(sesionKey(), { team:S.team, n:S.n, cola:cola });
+  if (cola) lsSet(LS_ROTACION, { mc: cola.mc, cs: cola.cs });
+}
+
+function mostrar(id){
+  ["sJoin","sLobby","sRace","sOver"].forEach(s => $(s).classList.toggle("hidden", s !== id));
+}
+
+function pintarEquipo(){
+  if (!S.team) return;
+  document.documentElement.style.setProperty("--team", S.team.color);
+  $("teamName").textContent = S.team.name;
+  $("teamChip").classList.remove("hidden");
+  $("codeLbl").textContent = "VUELTA " + S.code;
+}
+
+function pintarProgreso(){
+  if (!G || !S.team) return;
+  const meta = G.meta, pos = S.team.pos;
+  $("posLbl").textContent = "Km " + pos + " de " + meta;
+  $("myBar").style.width = Math.min(100, 100 * pos / meta) + "%";
+  const tr = $("myTrack"); tr.querySelectorAll("b").forEach(b => b.remove());
+  G.stops.forEach(s => { const b = document.createElement("b"); b.style.left = "calc(" + (100 * s / meta) + "% - 2px)"; b.title = "Puerto de montaña"; tr.appendChild(b); });
+  if (TEAMS.length){
+    const orden = TEAMS.slice().sort((a,b) => b.pos - a.pos);
+    const puesto = orden.findIndex(t => t.id === S.team.id) + 1;
+    $("rankLbl").textContent = puesto ? puesto + "º de " + TEAMS.length : "";
+    // tarjeta del puesto: se ve sin mirar el proyector
+    const yo = S.team.pos;
+    $("rankBig").textContent = puesto ? puesto + "º" : "–";
+    $("rankTxt").textContent = puesto ? "Vais " + puesto + "º de " + TEAMS.length : "";
+    let sub = "";
+    if (puesto === 1 && orden.length > 1){ const d = yo - orden[1].pos; sub = d > 0 ? "Le sacáis " + d + (d === 1 ? " km" : " km") + " a " + orden[1].name : "Empatados con " + orden[1].name; }
+    else if (puesto > 1){ const d = orden[0].pos - yo; sub = d > 0 ? "A " + d + (d === 1 ? " km" : " km") + " de " + orden[0].name + ", que va primera" : "Empatados con el primero"; }
+    $("rankSub").textContent = sub;
+  }
+}
+
+// ═══════════ PREGUNTAS ═══════════
+// ── Retos del quiosco: a cada equipo le toca un medio y sus dos preguntas ──
+const RETO_PASO1 = 3, RETO_PASO2 = 9;   // en qué pregunta sale cada paso
+function retoDelEquipo(){
+  const retos = [...new Set(extra.filter(x => x.reto != null).map(x => x.reto))].sort((a,b) => a - b);
+  if (!retos.length || !S.team) return null;
+  const num = (parseInt(String(S.team.id).replace(/\D/g, ""), 10) || 1) - 1;
+  return retos[num % retos.length];
+}
+function prepararCola(){
+  const normales = extra.filter(x => x.reto == null && x.id !== "CFG");
+  const mc = [...BANCO, ...normales.filter(x => x.o)].map(x => x.id);
+  const cs = [...CORTAS, ...normales.filter(x => x.r)].map(x => x.id);
+  const prev = lsGet(LS_ROTACION, { mc: [], cs: [] });
+  // conserva el orden guardado, quita lo que ya no existe y pone delante las preguntas nuevas
+  const ajusta = (todas, guardada) => {
+    const set = new Set(todas), vistas = (guardada || []).filter(id => set.has(id));
+    const tienen = new Set(vistas);
+    return [...shuffle(todas.filter(id => !tienen.has(id))), ...vistas];
+  };
+  cola = { mc: ajusta(mc, prev.mc), cs: ajusta(cs, prev.cs), i: 0 };
+}
+function buscar(id){ return [...BANCO, ...CORTAS, ...extra].find(x => x.id === id); }
+function siguiente(){
+  if (!cola) prepararCola();
+  cola.i++;
+  const reto = retoDelEquipo();
+  if (reto != null && (cola.i === RETO_PASO1 || cola.i === RETO_PASO2)){
+    const paso = cola.i === RETO_PASO1 ? 1 : 2;
+    const r = extra.find(x => x.reto === reto && x.paso === paso);
+    if (r){ guardarSesion(); return r; }
+  }
+  const tocaCorta = cola.i % 4 === 0 && cola.cs.length;
+  const lista = tocaCorta ? cola.cs : cola.mc;
+  const id = lista.shift(); lista.push(id);
+  guardarSesion();
+  return buscar(id) || buscar(cola.mc[0]);
+}
+
+// Las fotos se cargan de la carpeta "fotos". Si una no está, esa pregunta se salta.
+const fotosMalas = new Set();
+function cargaFoto(src){
+  return new Promise(res => {
+    if (fotosMalas.has(src)) return res(false);
+    const im = new Image(); let hecho = false;
+    const fin = ok => { if (hecho) return; hecho = true; if (!ok) fotosMalas.add(src); res(ok); };
+    im.onload = () => fin(true); im.onerror = () => fin(false);
+    setTimeout(() => fin(false), 4000);
+    im.src = src;
+  });
+}
+
+async function mostrarPregunta(){
+  fase = "q"; bloqueo = true;
+  let p = siguiente(), intentos = 0;
+  while (p.img && !p.img.startsWith("data:") && !(await cargaFoto(p.img)) && intentos++ < 30) p = siguiente();
+  if (p.img && fotosMalas.has(p.img)) p = buscar(cola.cs[0]) || p;
+  bloqueo = false;
+  pregunta = p;
+  if (p.o && p.orden == null){
+    // baraja las opciones para que la correcta no esté siempre en el mismo sitio
+    const idx = shuffle(p.o.map((_, i) => i));
+    pregunta = Object.assign({}, p, { o: idx.map(i => p.o[i]), c: idx.indexOf(p.c), orden: 1 });
+  }
+  $("fbBox").classList.add("hidden");
+  $("stopBox").classList.add("hidden");
+  $("qBox").classList.remove("hidden");
+  $("qText").textContent = pregunta.q;
+  if (pregunta.img){ $("qImg").src = pregunta.img; $("qImg").classList.remove("hidden"); }
+  else { $("qImg").classList.add("hidden"); $("qImg").removeAttribute("src"); }
+  const opts = $("qOpts"); opts.innerHTML = "";
+  if (pregunta.o){
+    $("qTag").textContent = "ELIGE LA RESPUESTA";
+    $("qShort").classList.add("hidden"); opts.classList.remove("hidden");
+    const sym = ["▲","◆","●","■"];
+    pregunta.o.forEach((o, i) => {
+      const b = document.createElement("button"); b.className = "opt";
+      b.innerHTML = "<span class='s'>" + sym[i] + "</span><span>" + esc(o) + "</span>";
+      b.onclick = () => responder(i === pregunta.c, i);
+      opts.appendChild(b);
+    });
+  } else {
+    $("qTag").textContent = pregunta.reto != null ? "RETO DEL QUIOSCO · " + String(pregunta.medio || "").toUpperCase() : "ESCRIBE LA RESPUESTA";
+    opts.classList.add("hidden"); $("qShort").classList.remove("hidden");
+    $("inShort").value = ""; setTimeout(() => $("inShort").focus(), 50);
+  }
+  window.scrollTo(0, 0);
+}
+
+function solucion(){
+  if (pregunta.o) return pregunta.o[pregunta.c];
+  return pregunta.s || pregunta.r[0];
+}
+
+async function responder(bien, idx){
+  if (bloqueo || fase !== "q") return;
+  bloqueo = true; fase = "fb";
+  S.n++; guardarSesion();
+  if (pregunta.o){
+    [...$("qOpts").children].forEach((b, i) => { if (i === pregunta.c) b.classList.add("right"); else b.classList.add("dim"); });
+  }
+  const antes = S.team.pos;
+  // actualización optimista
+  if (bien) S.team.pos++; else S.team.pos = Math.max(S.team.floor, S.team.pos - 1);
+  pintarProgreso();
+  const fb = $("fbBox");
+  fb.className = "fb " + (bien ? "ok" : "ko");
+  fb.innerHTML = bien
+    ? "<div class='big'>✓ ¡Correcto!</div><div class='sm'>Avanzáis un kilómetro</div>"
+    : "<div class='big'>✗ Fallo</div><div class='sm'>La respuesta era <b>" + esc(solucion()) + "</b>.<br>" + (antes > S.team.floor ? "Retrocedéis un kilómetro." : "No podéis retroceder más.") + "</div>";
+  fb.classList.remove("hidden");
+  let resp = null;
+  const envio = api({ a: bien ? "ok" : "ko", c: S.code, t: S.team.id, n: S.n }, 4)
+    .then(r => { resp = r; })
+    .catch(e => { $("raceErr").textContent = "Problema de conexión, seguid jugando."; });
+  await Promise.all([envio, new Promise(r => setTimeout(r, bien ? 900 : 2300))]);
+  if (resp){ $("raceErr").textContent = ""; S.team = resp.team; if (resp.status) G.status = resp.status; guardarSesion(); }
+  pintarProgreso();
+  continuar();
+}
+
+function continuar(){
+  if (G.status === "over"){ finalizar(); return; }
+  if (S.team.phase === "run") mostrarPregunta();
+  else mostrarParada();
+}
+
+// ═══════════ PARADAS ═══════════
+function mostrarParada(){
+  fase = "stop";
+  $("qBox").classList.add("hidden");
+  $("fbBox").classList.add("hidden");
+  $("stopBox").classList.remove("hidden");
+  const k = S.team.stop;
+  $("stopTag").textContent = "🏔️ PUERTO DE MONTAÑA " + (k + 1) + " DE " + G.stops.length;
+  $("stopTask").textContent = G.tasks[k] || "";
+  const esperando = S.team.phase === "review";
+  const papel = enPapel();
+  $("stopPaper").classList.toggle("hidden", esperando || !papel);
+  $("stopWrite").classList.toggle("hidden", esperando || papel);
+  $("stopWait").classList.toggle("hidden", !esperando);
+  if (S.team.phase === "revise"){
+    $("stopNote").innerHTML = (papel ? "✎ La profesora os lo devuelve. Corregidlo en el papel y volved a entregarlo." : "✎ La directora de carrera os lo devuelve. Reescribidlo.") + (S.team.note ? "<br>" + esc(S.team.note) : "");
+    $("stopNote").classList.remove("hidden");
+    if (!$("inText").value) $("inText").value = S.team.texts[k] || "";
+  } else {
+    $("stopNote").classList.add("hidden");
+  }
+  $("cnt").textContent = $("inText").value.length;
+}
+
+function enPapel(){ return extra.some(x => x.id === "CFG" && x.papel); }
+$("bPaper").onclick = async () => {
+  $("bPaper").disabled = true; $("raceErr").textContent = "";
+  try{
+    const r = await api({ a:"send", c:S.code, t:S.team.id, text:"📝 Entregado en papel" });
+    S.team = r.team; guardarSesion(); mostrarParada();
+  }catch(e){ $("raceErr").textContent = e.message || "No se ha podido avisar, probad otra vez."; }
+  $("bPaper").disabled = false;
+};
+$("inText").addEventListener("input", () => { $("cnt").textContent = $("inText").value.length; });
+$("bSend").onclick = async () => {
+  const t = $("inText").value.trim();
+  if (!t){ $("raceErr").textContent = "Escribid el texto antes de enviarlo."; return; }
+  $("bSend").disabled = true; $("raceErr").textContent = "";
+  try{
+    const r = await api({ a:"send", c:S.code, t:S.team.id, text:t });
+    S.team = r.team; guardarSesion(); $("inText").value = "";
+    mostrarParada();
+  }catch(e){ $("raceErr").textContent = e.message || "No se ha podido enviar, probad otra vez."; }
+  $("bSend").disabled = false;
+};
+
+// ═══════════ FINAL ═══════════
+function finalizar(){
+  fase = "over"; mostrar("sOver");
+  const orden = TEAMS.slice().sort((a,b) => (b.pos - a.pos) || (a.finishedAt||9e15) - (b.finishedAt||9e15) || (b.ok - a.ok));
+  const ganador = TEAMS.find(t => t.id === G.winner) || orden[0];
+  const yo = S.team && ganador && ganador.id === S.team.id;
+  $("overIcon").textContent = yo ? "🏆" : "🏁";
+  $("overTitle").textContent = yo ? "¡Habéis ganado La Vuelta!" : (ganador ? "Gana " + ganador.name : "Carrera terminada");
+  const puesto = orden.findIndex(t => S.team && t.id === S.team.id) + 1;
+  $("overSub").textContent = puesto ? "Vuestro equipo termina en el puesto " + puesto + " de " + orden.length + "." : "";
+  $("overRank").innerHTML = orden.map((t, i) =>
+    "<li class='" + (S.team && t.id === S.team.id ? "me" : "") + "'><span class='n'>" + (i+1) + "º</span><span class='dot' style='background:" + t.color + "'></span>" + esc(t.name) + "<span class='p'>km " + t.pos + "</span></li>").join("");
+}
+
+// ═══════════ SONDEO ═══════════
+async function sondeo(){
+  if (!S.code || !S.team) return;
+  try{
+    const st = await getState();
+    G = st.game; TEAMS = st.teams;
+    const yo = TEAMS.find(t => t.id === S.team.id);
+    if (fase === "lobby" && G.status !== "lobby"){ if (yo) S.team = yo; empezar(); }
+    else if (fase === "stop" && yo && yo.phase !== S.team.phase){
+      S.team = yo; guardarSesion();
+      if (yo.phase === "run"){
+        // publicado
+        $("stopBox").classList.add("hidden");
+        const fb = $("fbBox"); fb.className = "fb ok";
+        fb.innerHTML = "<div class='big'>⏱️ ¡Bonificación!</div><div class='sm'>Ganáis un kilómetro de premio</div>";
+        fb.classList.remove("hidden"); fase = "fb"; pintarProgreso();
+        setTimeout(continuar, 1600);
+      } else mostrarParada();
+    }
+    else if (fase === "q" && yo && yo.pos !== S.team.pos && !bloqueo){ S.team.pos = yo.pos; }
+    if (G.status === "over" && fase !== "over" && fase !== "fb") finalizar();
+    if (fase === "over") finalizar();
+    pintarProgreso();
+  }catch(e){ /* reintenta en el siguiente sondeo */ }
+}
+function ritmo(){
+  const ms = fase === "stop" || fase === "lobby" ? 2000 : 3500;
+  setTimeout(async () => { await sondeo(); ritmo(); }, ms);
+}
+
+function empezar(){
+  mostrar("sRace"); pintarProgreso();
+  if (G.status === "over") return finalizar();
+  continuar();
+}
+
+// ═══════════ UNIRSE ═══════════
+async function cargarExtra(){
+  try{ const r = await api({ a:"qs", c:S.code }); extra = r.qs || []; }catch(e){ extra = []; }
+}
+
+async function entrar(){
+  const code = $("inCode").value.toUpperCase().replace(/[^A-Z]/g, "");
+  const name = $("inName").value.trim();
+  if (!API){ API = $("inApi").value.trim(); }
+  if (!API){ $("apiBox").classList.remove("hidden"); $("joinErr").textContent = "Falta la dirección del servidor. Pedídsela a la profesora."; return; }
+  if (!code || !name){ $("joinErr").textContent = "Escribid el código y el nombre del equipo."; return; }
+  lsSet("vuelta_api", API);
+  $("bJoin").disabled = true; $("joinErr").textContent = "";
+  try{
+    S.code = code;
+    const r = await api({ a:"join", c:code, name:name });
+    const prev = lsGet(sesionKey(), null);
+    S.team = r.team;
+    if (prev && prev.team && prev.team.id === r.team.id){ S.n = Math.max(prev.n || 0, r.team.seq || 0); cola = prev.cola; }
+    else { S.n = r.team.seq || 0; cola = null; }
+    await cargarExtra();
+    guardarSesion();
+    const st = await getState(); G = st.game; TEAMS = st.teams;
+    pintarEquipo();
+    if (G.status === "lobby"){ fase = "lobby"; mostrar("sLobby"); }
+    else empezar();
+    ritmo();
+  }catch(e){
+    $("joinErr").textContent = e.message || "No se ha podido conectar.";
+    $("bJoin").disabled = false;
+  }
+}
+$("bJoin").onclick = entrar;
+$("inName").addEventListener("keydown", e => { if (e.key === "Enter") entrar(); });
+$("bShort").onclick = () => { if (fase === "q" && !pregunta.o && $("inShort").value.trim()) responder(correctaCorta($("inShort").value, pregunta.r)); };
+$("inShort").addEventListener("keydown", e => { if (e.key === "Enter") $("bShort").click(); });
+
+// Al abrir: rellena el código del enlace y recupera la sesión si se recarga la página.
+(function init(){
+  const c = (qs.get("c") || "").toUpperCase();
+  if (c) $("inCode").value = c;
+  if (!API) $("apiBox").classList.remove("hidden");
+  if (c){
+    const prev = lsGet("vuelta_ses_" + c, null);
+    if (prev && prev.team && API){ $("inName").value = prev.team.name; entrar(); }
+  }
+})();
+</script>
+</body>
+</html>

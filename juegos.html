@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mis juegos de clase</title>
+<style>
+:root{--ink:#1B1B1F;--bg:#F3F1EC;--muted:#6B6B72;--border:#D8D8DC}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+.top{background:var(--ink);color:#fff;padding:22px 16px;text-align:center}
+.top h1{font-size:26px;letter-spacing:.03em}
+.top p{color:#E8B54A;font-size:13px;margin-top:6px;letter-spacing:.05em}
+.wrap{max-width:900px;margin:0 auto;padding:22px 16px 60px}
+h2{font-size:15px;letter-spacing:.12em;color:var(--muted);margin:26px 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+a.juego{display:block;text-decoration:none;color:var(--ink);background:#fff;border:1px solid var(--border);border-top:8px solid var(--c);border-radius:14px;padding:20px;transition:transform .15s,box-shadow .15s}
+a.juego:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.1)}
+.ic{font-size:40px;margin-bottom:8px}
+.nm{font-size:20px;font-weight:900;margin-bottom:6px}
+.ds{font-size:14px;color:var(--muted);line-height:1.45}
+.tag{display:inline-block;margin-top:12px;font-size:11px;font-weight:800;letter-spacing:.06em;color:#fff;background:var(--c);padding:4px 9px;border-radius:20px}
+.nota{margin-top:30px;font-size:13px;color:var(--muted);line-height:1.5;text-align:center}
+</style>
+</head>
+<body>
+<div class="top"><h1>MIS JUEGOS DE CLASE</h1><p>ABRE EL JUEGO EN EL ORDENADOR DEL PROYECTOR · LOS ALUMNOS ENTRAN CON EL QR</p></div>
+<div class="wrap">
+  <h2>IPE · BLOQUE POLÍTICO</h2>
+  <div class="grid">
+    <a class="juego" style="--c:#C8102E" href="carrera_pantalla_v14.html">
+      <div class="ic">🏁</div><div class="nm">La Carrera de la Redacción</div>
+      <div class="ds">Carrera de preguntas de actualidad política, medios y teoría. Las paradas de redacción se activan con una casilla al prepararla.</div>
+      <span class="tag">HASTA 10 EQUIPOS</span>
+    </a>
+  </div>
+  <h2>DEPORTES</h2>
+  <div class="grid">
+    <a class="juego" style="--c:#D6001C" href="vuelta_pantalla_v3.html">
+      <div class="ic">🚴</div><div class="nm">La Vuelta de Deportes</div>
+      <div class="ds">Carrera ciclista de preguntas de deportes y periodismo deportivo, con maillot rojo para el líder. Los puertos de montaña se activan con una casilla al prepararla.</div>
+      <span class="tag">HASTA 10 EQUIPOS</span>
+    </a>
+    <a class="juego" style="--c:#1E7A45" href="liguilla_pantalla_v4.html">
+      <div class="ic">⚽</div><div class="nm">La Liguilla</div>
+      <div class="ds">Todos contra todos por jornadas de preguntas, penaltis o pruebas, con clasificación y desempate a penaltis por el título.</div>
+      <span class="tag">HASTA 12 EQUIPOS</span>
+    </a>
+  </div>
+  <p class="nota">Esta página siempre apunta a la última versión de cada juego.</p>
+</div>
+</body>
+</html>
