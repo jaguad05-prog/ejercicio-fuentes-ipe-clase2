@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>La Vuelta de Deportes · Equipo</title>
+<style>
+:root{--red:#C8102E;--ink:#1B1B1F;--paper:#fff;--bg:#F3F1EC;--muted:#6B6B72;--border:#D8D8DC;--green:#1E7A45;--gold:#E8B54A;--team:#C8102E}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg)}
+body{font-family:Arial,Helvetica,sans-serif;color:var(--ink);min-height:100vh;-webkit-tap-highlight-color:transparent}
+.top{background:var(--ink);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:5}
+.top .t1{font-size:14px;font-weight:800;letter-spacing:.04em}
+.top .t2{font-size:11px;color:var(--gold);letter-spacing:.06em}
+.chip{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px}
+.dot{width:16px;height:16px;border-radius:50%;background:var(--team);border:2px solid #fff;flex:none}
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 60px}
+.card{background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}
+h1{font-size:24px;line-height:1.2;margin-bottom:8px}
+h2{font-size:19px;line-height:1.3;margin-bottom:12px}
+p{line-height:1.45}
+.muted{color:var(--muted);font-size:14px}
+label{display:block;font-weight:700;font-size:13px;margin:14px 0 6px}
+input,textarea{width:100%;border:2px solid var(--border);border-radius:10px;padding:13px;font-size:17px;font-family:inherit;color:var(--ink);background:#fff}
+input:focus,textarea:focus{outline:none;border-color:var(--team)}
+textarea{min-height:130px;resize:vertical;line-height:1.4}
+.btn{display:block;width:100%;border:none;border-radius:12px;padding:16px;font-size:18px;font-weight:800;font-family:inherit;color:#fff;background:var(--red);cursor:pointer;margin-top:16px}
+.btn:disabled{opacity:.45}
+.btn.team{background:var(--team)}
+.err{color:var(--red);font-weight:700;font-size:14px;margin-top:10px;min-height:18px}
+.progress{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:700;margin-bottom:8px}
+.track{height:14px;border-radius:8px;background:#e4e1da;position:relative;overflow:visible;margin-bottom:16px}
+.track i{position:absolute;left:0;top:0;bottom:0;border-radius:8px;background:var(--team);transition:width .5s}
+.track b{position:absolute;top:-3px;width:4px;height:20px;background:var(--ink);border-radius:2px}
+.qtag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;padding:4px 10px;border-radius:20px;background:var(--ink);color:#fff;margin-bottom:12px}
+.qimg{display:block;max-width:100%;max-height:240px;margin:0 auto 14px;border-radius:10px}
+.opts{display:grid;gap:10px}
+.opt{border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:700;font-family:inherit;color:#fff;text-align:left;cursor:pointer;min-height:60px;display:flex;gap:10px;align-items:center}
+.opt:nth-child(1){background:#C8102E}.opt:nth-child(2){background:#1565C0}.opt:nth-child(3){background:#B7791F}.opt:nth-child(4){background:#2E7D32}
+.opt .s{font-size:20px;flex:none;width:24px;text-align:center}
+.opt.dim{opacity:.3}
+.opt.right{outline:4px solid var(--ink);opacity:1}
+.fb{border-radius:14px;padding:22px;text-align:center;color:#fff;font-weight:800;margin-bottom:14px}
+.fb.ok{background:var(--green)}
+.fb.ko{background:var(--red)}
+.fb .big{font-size:28px;margin-bottom:6px}
+.fb .sm{font-size:15px;font-weight:600;line-height:1.4}
+.task{background:#FFF7E0;border:2px solid var(--gold);border-radius:12px;padding:16px;font-size:17px;line-height:1.45;font-weight:600;margin-bottom:6px}
+.note{background:#FDECEE;border-left:5px solid var(--red);padding:12px;border-radius:8px;margin:12px 0;font-weight:600}
+.count{text-align:right;font-size:12px;color:var(--muted);margin-top:4px}
+.center{text-align:center}
+.bigicon{font-size:56px;margin-bottom:10px}
+.pulse{animation:pl 1.4s infinite}
+@keyframes pl{50%{opacity:.35}}
+.hidden{display:none!important}
+.rankcard{display:flex;align-items:center;gap:14px;background:var(--ink);color:#fff;border-radius:14px;padding:12px 16px;margin-bottom:12px}
+.rankcard .rk{font-size:40px;font-weight:900;color:var(--gold);min-width:64px;text-align:center;line-height:1}
+.rankcard .rt{font-size:16px;font-weight:800}
+.rankcard .rs{font-size:13px;color:#cfcfd4;margin-top:3px}
+.rank{list-style:none;margin-top:12px}
+.rank li{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--border);font-weight:700}
+.rank li .n{width:26px;text-align:right;color:var(--muted)}
+.rank li .p{margin-left:auto;font-size:13px;color:var(--muted)}
+.rank li.me{background:#FFF7E0}
+</style>
+</head>
+<body>
+<div class="top">
+  <div><div class="t1">LA VUELTA DE DEPORTES</div><div class="t2" id="codeLbl">EQUIPO</div></div>
+  <div class="chip hidden" id="teamChip"><span class="dot"></span><span id="teamName"></span></div>
+</div>
+<div class="wrap">
+
+  <!-- Unirse -->
+  <section id="sJoin" class="card">
+    <h1>Entrad en La Vuelta</h1>
+    <p class="muted">Un solo móvil u ordenador por equipo.</p>
+    <label for="inCode">Código de la carrera</label>
+    <input id="inCode" maxlength="6" autocomplete="off" autocapitalize="characters" placeholder="Ej. KPRT" style="text-transform:uppercase;letter-spacing:.2em;font-weight:800">
+    <label for="inName">Nombre de vuestro equipo ciclista</label>
+    <input id="inName" maxlength="28" autocomplete="off" placeholder="Ej. Somosaguas Racing Team">
+    <div id="apiBox" class="hidden">
+      <label for="inApi">Dirección del servidor</label>
+      <input id="inApi" placeholder="https://script.google.com/macros/s/.../exec">
+    </div>
+    <button class="btn" id="bJoin">Entrar</button>
+    <div class="err" id="joinErr"></div>
+  </section>
+
+  <!-- Esperando salida -->
+  <section id="sLobby" class="card center hidden">
+    <div class="bigicon pulse">🚴</div>
+    <h1>Estáis dentro</h1>
+    <p class="muted">Mirad la pantalla del proyector. La etapa empieza cuando la profesora dé la salida.</p>
+  </section>
+
+  <!-- Carrera -->
+  <section id="sRace" class="hidden">
+    <div class="rankcard" id="rankCard"><div class="rk" id="rankBig">–</div><div><div class="rt" id="rankTxt">Esperando datos…</div><div class="rs" id="rankSub"></div></div></div>
+    <div class="progress"><span id="posLbl">Km 0 de 20</span><span id="rankLbl"></span></div>
+    <div class="track" id="myTrack"><i id="myBar" style="width:0"></i></div>
+
+    <div id="qBox" class="card">
+      <span class="qtag" id="qTag">PREGUNTA</span>
+      <img id="qImg" class="qimg hidden" alt="">
+      <h2 id="qText"></h2>
+      <div class="opts" id="qOpts"></div>
+      <div id="qShort" class="hidden">
+        <input id="inShort" autocomplete="off" placeholder="Escribid la respuesta">
+        <button class="btn team" id="bShort">Responder</button>
+      </div>
+    </div>
+
+    <div id="fbBox" class="hidden"></div>
+
+    <div id="stopBox" class="card hidden">
+      <span class="qtag" style="background:var(--gold);color:var(--ink)" id="stopTag">PUERTO DE MONTAÑA</span>
+      <div class="task" id="stopTask"></div>
+      <div id="stopNote" class="note hidden"></div>
+      <div id="stopPaper" class="hidden">
+        <p style="font-size:16px;line-height:1.45;margin:10px 0">Escribidlo <b>en un papel</b> con el nombre de vuestro equipo y llevádselo a la profesora. Cuando lo tenga en la mano, pulsad el botón.</p>
+        <button class="btn team" id="bPaper">Ya lo hemos entregado</button>
+      </div>
+      <div id="stopWrite">
+        <label for="inText">Vuestro texto</label>
+        <textarea id="inText" maxlength="500" placeholder="Escribid aquí"></textarea>
+        <div class="count"><span id="cnt">0</span>/500</div>
+        <button class="btn team" id="bSend">Enviar a la directora de carrera</button>
+      </div>
+      <div id="stopWait" class="center hidden" style="padding:10px 0">
+        <div class="bigicon pulse">✍️</div>
+        <h2>Texto enviado</h2>
+        <p class="muted">La profesora lo está revisando. Si lo aprueba, seguís pedaleando y ganáis un kilómetro de bonificación.</p>
+      </div>
+    </div>
+    <div class="err" id="raceErr"></div>
+  </section>
+
+  <!-- Final -->
+  <section id="sOver" class="card center hidden">
+    <div class="bigicon" id="overIcon">🏆</div>
+    <h1 id="overTitle"></h1>
+    <p class="muted" id="overSub"></p>
+    <ul class="rank" id="overRank" style="text-align:left"></ul>
+  </section>
+</div>
+
+<script>
+// ═══════════ CONFIGURACIÓN ═══════════
+// Si pegas aquí la dirección /exec del servidor, los equipos no tendrán que escribirla nunca.
+const API_URL = "https://script.google.com/macros/s/AKfycbyHlrt4WKz5h_i7oXYcPpkOBDvbA3rar88sdHL3ZB4NrNBcSWDeComuFHnETQ4lcWOWYQ/exec";
+
+const BANCO = [{"id": "VN07", "q": "¿Quién es el seleccionador de España campeón del mundo en 2026?", "o": ["Luis de la Fuente", "Vicente del Bosque", "Luis Enrique", "Julen Lopetegui"], "c": 0}, {"id": "VN40", "q": "¿Quién es el seleccionador español sub-21?", "o": ["David Gordo", "Santi Denia", "Julen Lopetegui", "Luis de la Fuente"], "c": 0}, {"id": "VN41", "q": "¿Quién es la seleccionadora de la selección española femenina?", "o": ["Sonia Bermúdez", "Montse Tomé", "Jorge Vilda", "Iraia Iturregi"], "c": 0}, {"id": "VN43", "q": "¿Quién es el entrenador de Carlos Alcaraz?", "o": ["Samuel López", "Juan Carlos Ferrero", "Toni Nadal", "Carlos Moyá"], "c": 0}, {"id": "VN44", "q": "¿Quién entrena al Málaga CF?", "o": ["Juan Francisco Funes", "Sergio Pellicer", "Pepe Mel", "Rubén Baraja"], "c": 0}, {"id": "VN45", "q": "¿Quién entrena al Deportivo de La Coruña?", "o": ["Antonio Hidalgo", "Imanol Idiakez", "Óscar Gilsanz", "Rubén de la Barrera"], "c": 0}, {"id": "VN47", "q": "¿Quién entrena al Racing de Santander?", "o": ["José Alberto López", "José Luis Oltra", "Guillermo Fernández Romo", "Paco Jémez"], "c": 0}, {"id": "VN48", "q": "¿Quién entrena al Real Madrid de baloncesto?", "o": ["Pedro Martínez", "Chus Mateo", "Pablo Laso", "Sergio Scariolo"], "c": 0}, {"id": "VN49", "q": "¿Quién entrena al Barça de baloncesto?", "o": ["Aleksander Sekulic", "Joan Peñarroya", "Sarunas Jasikevicius", "Roger Grimau"], "c": 0}, {"id": "VN50", "q": "¿Quién entrena al Barça femenino?", "o": ["Pere Romeu", "Jonatan Giráldez", "Lluís Cortés", "Sonia Bermúdez"], "c": 0}, {"id": "VN51", "q": "¿Quién entrena al Real Madrid femenino?", "o": ["Pau Quesada", "Alberto Toril", "David Aznar", "Pere Romeu"], "c": 0}, {"id": "VN52", "q": "¿Quién narra el ciclismo en Televisión Española?", "o": ["Carlos de Andrés", "Javier Ares", "Antonio Alix", "Juanma Castaño"], "c": 0}, {"id": "VN32", "q": "¿En qué equipo juega Aubameyang, que se ha lesionado de la rodilla?", "o": ["Deportivo", "Olympique de Marsella", "Sevilla", "Barça"], "c": 0}, {"id": "VN15", "q": "¿Qué equipo ganó la Champions League 2026?", "o": ["PSG", "Arsenal", "Real Madrid", "Bayern de Múnich"], "c": 0}, {"id": "VN16", "q": "¿Cómo se decidió la final de la Champions 2026 entre PSG y Arsenal?", "o": ["En la tanda de penaltis", "En los 90 minutos", "En la prórroga, sin penaltis", "Con un gol de oro"], "c": 0}, {"id": "VH01", "q": "¿Dónde ganó España su primer Mundial de fútbol?", "o": ["Sudáfrica 2010", "Alemania 2006", "Brasil 2014", "Corea y Japón 2002"], "c": 0}, {"id": "VH03", "q": "¿Contra quién ganó España la final del Mundial 2010?", "o": ["Países Bajos", "Alemania", "Italia", "Portugal"], "c": 0}, {"id": "VH04", "q": "¿Qué selección ganó la Eurocopa 2024?", "o": ["España", "Inglaterra", "Francia", "Alemania"], "c": 0}, {"id": "VH05", "q": "¿Qué selección ganó el Mundial femenino de 2023?", "o": ["España", "Inglaterra", "Estados Unidos", "Suecia"], "c": 0}, {"id": "VH10", "q": "¿Cómo se llamaba la mascota del Mundial de España 1982?", "o": ["Naranjito", "Cobi", "Curro", "Pique"], "c": 0}, {"id": "VH11", "q": "¿Con qué países organizará España el Mundial 2030?", "o": ["Portugal y Marruecos", "Francia e Italia", "Portugal y Argelia", "Marruecos y Túnez"], "c": 0}, {"id": "VH12", "q": "¿Dónde se celebrarán los Juegos Olímpicos de 2028?", "o": ["Los Ángeles", "Brisbane", "París", "Madrid"], "c": 0}, {"id": "VH13", "q": "¿Contra qué selección marcó Maradona la «mano de Dios» en México 86?", "o": ["Inglaterra", "Alemania", "Italia", "Bélgica"], "c": 0}, {"id": "VH14", "q": "¿En qué Mundial se usó el VAR por primera vez?", "o": ["Rusia 2018", "Brasil 2014", "Catar 2022", "Sudáfrica 2010"], "c": 0}, {"id": "VH16", "q": "¿Quién gritó «¡Iniesta de mi vida!» en la final de 2010?", "o": ["José Antonio Camacho", "Andrés Montes", "José María García", "Manolo Lama"], "c": 0}, {"id": "VH17", "q": "¿Qué periodista popularizó la expresión «tiki-taka»?", "o": ["Andrés Montes", "José Ramón de la Morena", "Josep Pedrerol", "Paco González"], "c": 0}, {"id": "VH21", "q": "¿En qué equipo debutó Pau Gasol en la NBA?", "o": ["Memphis Grizzlies", "Los Angeles Lakers", "San Antonio Spurs", "Chicago Bulls"], "c": 0}, {"id": "VH19", "q": "¿Cuánto mide una maratón?", "o": ["42,195 km", "40 km", "21,097 km", "50 km"], "c": 0}, {"id": "VD02", "q": "¿Dónde se retiró Rafa Nadal, en noviembre de 2024?", "o": ["En la Copa Davis de Málaga", "En Roland Garros", "En el Open de Madrid", "En Wimbledon"], "c": 0}, {"id": "VD03", "q": "¿Cuántos Tours de Francia seguidos ganó Miguel Induráin?", "o": ["Cinco", "Tres", "Cuatro", "Siete"], "c": 0}, {"id": "VD04", "q": "¿Con qué escudería fue Fernando Alonso campeón del mundo de Fórmula 1?", "o": ["Renault", "Ferrari", "McLaren", "Aston Martin"], "c": 0}, {"id": "VD05", "q": "¿Cuántos anillos de la NBA ganó Pau Gasol?", "o": ["Dos", "Uno", "Tres", "Ninguno"], "c": 0}, {"id": "VD07", "q": "¿Cuántos Balones de Oro ganó Alexia Putellas?", "o": ["Dos", "Uno", "Tres", "Cuatro"], "c": 0}, {"id": "VD08", "q": "¿Quién ganó el Balón de Oro femenino en 2023, 2024 y 2025?", "o": ["Aitana Bonmatí", "Alexia Putellas", "Salma Paralluelo", "Sam Kerr"], "c": 0}, {"id": "VD12", "q": "¿Cuántos Mundiales ganó Pelé?", "o": ["Tres", "Dos", "Uno", "Cuatro"], "c": 0}, {"id": "VD13", "q": "¿Cuántos anillos de la NBA ganó Michael Jordan con los Bulls?", "o": ["Seis", "Cinco", "Cuatro", "Siete"], "c": 0}, {"id": "VD14", "q": "¿Qué Grand Slam ganó Carlos Alcaraz en 2022, el primero de su carrera?", "o": ["US Open", "Wimbledon", "Roland Garros", "Open de Australia"], "c": 0}, {"id": "VD15", "q": "¿En qué deporte destaca Kilian Jornet?", "o": ["Carreras de montaña", "Esquí de fondo", "Escalada en roca", "Triatlón"], "c": 0}, {"id": "VD16", "q": "¿En qué deporte ganó Saúl Craviotto sus medallas olímpicas?", "o": ["Piragüismo", "Remo", "Vela", "Natación"], "c": 0}, {"id": "VD18", "q": "¿En qué prueba fue campeón olímpico Fermín Cacho en Barcelona 92?", "o": ["1.500 metros", "Maratón", "800 metros", "5.000 metros"], "c": 0}, {"id": "VD19", "q": "¿Qué nadadora española fue campeona olímpica de 200 mariposa en Río 2016?", "o": ["Mireia Belmonte", "Teresa Perales", "Ona Carbonell", "Gemma Mengual"], "c": 0}, {"id": "VR01", "q": "¿Cuántos jugadores tiene en el campo cada equipo de balonmano?", "o": ["Siete", "Seis", "Cinco", "Once"], "c": 0}, {"id": "VR02", "q": "¿Cuántos jugadores tiene en pista cada equipo de voleibol?", "o": ["Seis", "Cinco", "Siete", "Cuatro"], "c": 0}, {"id": "VR06", "q": "¿Cuántos puntos vale un ensayo en rugby?", "o": ["Cinco", "Tres", "Siete", "Dos"], "c": 0}, {"id": "VR07", "q": "¿Cuántos torneos forman el Grand Slam de tenis?", "o": ["Cuatro", "Tres", "Cinco", "Seis"], "c": 0}, {"id": "VR08", "q": "¿Cuánto dura un partido de baloncesto FIBA sin prórroga?", "o": ["40 minutos", "48 minutos", "60 minutos", "36 minutos"], "c": 0}, {"id": "VR09", "q": "¿Cuántos jugadores tiene en el agua cada equipo de waterpolo?", "o": ["Siete", "Seis", "Cinco", "Ocho"], "c": 0}, {"id": "VR12", "q": "¿Cada cuántos años se celebran los Juegos Olímpicos de verano?", "o": ["Cuatro", "Dos", "Tres", "Cinco"], "c": 0}, {"id": "VR14", "q": "¿A qué distancia debe ponerse la barrera en una falta de fútbol?", "o": ["9,15 metros", "7 metros", "11 metros", "5 metros"], "c": 0}, {"id": "VR15", "q": "¿Hay fuera de juego si el balón viene de un saque de banda?", "o": ["No", "Sí", "Solo en el área", "Solo en la segunda parte"], "c": 0}, {"id": "VR16", "q": "¿Vale un gol marcado directamente de saque de banda?", "o": ["No", "Sí", "Solo si toca al portero", "Solo en fútbol sala"], "c": 0}, {"id": "VR17", "q": "¿Cuántos cambios puede hacer cada equipo en un partido de LaLiga?", "o": ["Cinco", "Tres", "Cuatro", "Siete"], "c": 0}, {"id": "VR18", "q": "¿Cuántas tarjetas amarillas suponen la expulsión en un mismo partido de fútbol?", "o": ["Dos", "Tres", "Una", "Cuatro"], "c": 0}, {"id": "VR19", "q": "¿Cuántos jugadores tiene en pista cada equipo de fútbol sala?", "o": ["Cinco", "Seis", "Siete", "Cuatro"], "c": 0}, {"id": "VR20", "q": "¿Cuántos puntos vale un tiro libre en baloncesto?", "o": ["Uno", "Dos", "Tres", "Medio"], "c": 0}, {"id": "VR22", "q": "¿Con cuántas faltas personales queda eliminado un jugador en baloncesto FIBA?", "o": ["Cinco", "Seis", "Cuatro", "Tres"], "c": 0}, {"id": "VR23", "q": "¿En cuántos cuartos se divide un partido de baloncesto?", "o": ["Cuatro", "Dos", "Tres", "Cinco"], "c": 0}, {"id": "VR24", "q": "¿Cuántos toques puede dar un equipo de voleibol antes de pasar la pelota?", "o": ["Tres", "Dos", "Cuatro", "Uno"], "c": 0}, {"id": "VR26", "q": "¿Cuánto dura un partido de balonmano?", "o": ["60 minutos", "80 minutos", "90 minutos", "40 minutos"], "c": 0}, {"id": "VR27", "q": "¿Cuántos pasos puede dar un jugador de balonmano con el balón en la mano?", "o": ["Tres", "Dos", "Cinco", "Ninguno"], "c": 0}, {"id": "VR28", "q": "¿Desde cuántos metros se lanza un penalti en balonmano?", "o": ["Siete", "Nueve", "Seis", "Once"], "c": 0}, {"id": "VR29", "q": "En rugby, ¿hacia dónde se puede pasar el balón con la mano?", "o": ["Hacia atrás o en horizontal", "Solo hacia delante", "Hacia cualquier lado", "No se puede pasar con la mano"], "c": 0}, {"id": "VR30", "q": "¿Cuántos puntos vale una transformación en rugby?", "o": ["Dos", "Tres", "Uno", "Cinco"], "c": 0}, {"id": "VR32", "q": "En tenis, ¿qué se juega cuando un set llega a 6-6?", "o": ["Un tie-break", "Otro set", "Un punto de oro", "Nada, gana quien sacó"], "c": 0}, {"id": "VR33", "q": "En pádel, ¿cómo tiene que ser el saque?", "o": ["Por debajo de la cintura", "Por encima de la cabeza", "Con bote en la pared", "Sin bote"], "c": 0}, {"id": "VR36", "q": "¿Cuántos corredores forman un equipo de relevos 4x100?", "o": ["Cuatro", "Cinco", "Seis", "Ocho"], "c": 0}, {"id": "VR39", "q": "En Fórmula 1, ¿qué bandera indica el final de la carrera?", "o": ["La de cuadros", "La roja", "La azul", "La amarilla"], "c": 0}, {"id": "VR40", "q": "En Fórmula 1, ¿qué indica la bandera amarilla?", "o": ["Peligro: prohibido adelantar", "Fin de la carrera", "Dejar pasar a un coche más rápido", "Pista mojada"], "c": 0}, {"id": "VR41", "q": "¿Qué premia el maillot de lunares del Tour de Francia?", "o": ["Al mejor escalador", "Al líder", "Al mejor sprinter", "Al mejor joven"], "c": 0}, {"id": "VR42", "q": "¿Cuántos minutos dura un asalto de boxeo profesional?", "o": ["Tres", "Dos", "Cinco", "Uno"], "c": 0}];   // preguntas de opciones (y de foto)
+const CORTAS = [{"id": "VN06", "q": "¿Cuántos Mundiales masculinos de fútbol tiene ya España? (escribe el número)", "r": ["2", "dos"], "s": "Dos"}, {"id": "VN42", "q": "¿Cuál es el apellido del seleccionador español de baloncesto? (Chus...)", "r": ["Mateo", "Chus Mateo"], "s": "Chus Mateo"}, {"id": "VN46", "q": "¿Cuál es el apellido del entrenador del Valencia CF? (Javier «El Vasco»...)", "r": ["Aguirre", "Javier Aguirre"], "s": "Javier Aguirre"}, {"id": "VN53", "q": "¿Cuál es el apellido del narrador de fútbol de Movistar Plus+ que se llama Carlos?", "r": ["Martinez", "Carlos Martinez"], "s": "Carlos Martínez"}, {"id": "VN33", "q": "¿Cuál es el apellido del presidente de LaLiga?", "r": ["Tebas", "Javier Tebas"], "s": "Javier Tebas"}, {"id": "VH02", "q": "¿Quién marcó el gol de la final del Mundial 2010? (apellido)", "r": ["Iniesta", "Andres Iniesta"], "s": "Andrés Iniesta"}, {"id": "VH06", "q": "¿Quién marcó el gol de España en la final del Mundial femenino 2023? (apellido)", "r": ["Carmona", "Olga Carmona"], "s": "Olga Carmona"}, {"id": "VH07", "q": "¿En qué país se jugó el primer Mundial, en 1930?", "r": ["Uruguay"], "s": "Uruguay"}, {"id": "VH08", "q": "¿En qué año se celebraron los Juegos Olímpicos de Barcelona?", "r": ["1992", "92"], "s": "1992"}, {"id": "VH09", "q": "¿Cómo se llamaba la mascota de los Juegos de Barcelona 92?", "r": ["Cobi"], "s": "Cobi"}, {"id": "VH15", "q": "¿Cuántas Champions (Copas de Europa) tiene el Real Madrid? (escribe el número)", "r": ["15", "quince"], "s": "15"}, {"id": "VH20", "q": "¿Qué selección tiene más Mundiales de fútbol?", "r": ["Brasil"], "s": "Brasil"}, {"id": "VD01", "q": "¿Cuántos Roland Garros ganó Rafa Nadal? (escribe el número)", "r": ["14", "catorce"], "s": "14"}, {"id": "VD06", "q": "¿En qué deporte fue campeona olímpica Carolina Marín?", "r": ["badminton"], "s": "Bádminton"}, {"id": "VD09", "q": "¿Cuántos Balones de Oro tiene Leo Messi? (escribe el número)", "r": ["8", "ocho"], "s": "Ocho"}, {"id": "VD10", "q": "¿Quién tiene el récord mundial de los 100 metros lisos (9,58)? (apellido)", "r": ["Bolt", "Usain Bolt"], "s": "Usain Bolt"}, {"id": "VD17", "q": "¿Qué golfista español ganó el Masters de Augusta en 2023? (apellido)", "r": ["Rahm", "Jon Rahm"], "s": "Jon Rahm"}, {"id": "VD20", "q": "¿Cuál es el apellido del presentador de «El Chiringuito de Jugones»?", "r": ["Pedrerol", "Josep Pedrerol"], "s": "Josep Pedrerol"}, {"id": "VR03", "q": "¿Sobre qué superficie se juega Wimbledon?", "r": ["hierba", "cesped"], "s": "Hierba"}, {"id": "VR04", "q": "¿De qué color es el maillot del líder de la Vuelta a España?", "r": ["rojo"], "s": "Rojo"}, {"id": "VR05", "q": "¿De qué color es el maillot del líder del Giro de Italia?", "r": ["rosa"], "s": "Rosa"}, {"id": "VR10", "q": "¿Qué deporte se juega con «stick» y una pelota pequeña sobre hierba artificial?", "r": ["hockey", "hockey hierba"], "s": "Hockey"}, {"id": "VR11", "q": "En tenis, ¿cómo se llama un saque que el rival no llega a tocar?", "r": ["ace"], "s": "Ace"}, {"id": "VR13", "q": "¿Desde cuántos metros se tira un penalti en fútbol?", "r": ["11", "once"], "s": "11"}, {"id": "VR21", "q": "¿Cuántos segundos tiene un equipo de baloncesto para tirar a canasta?", "r": ["24", "veinticuatro"], "s": "24"}, {"id": "VR25", "q": "¿A cuántos puntos se juega un set de voleibol, salvo el quinto?", "r": ["25", "veinticinco"], "s": "25"}, {"id": "VR31", "q": "En tenis, ¿cómo se llama el marcador cuando los dos jugadores están 40-40?", "r": ["iguales", "deuce"], "s": "Iguales"}, {"id": "VR34", "q": "¿Cuántas vallas hay que saltar en los 110 metros vallas?", "r": ["10", "diez"], "s": "Diez"}, {"id": "VR35", "q": "¿Cuántos metros mide una vuelta a la pista de atletismo?", "r": ["400", "cuatrocientos"], "s": "400"}, {"id": "VR37", "q": "¿Qué estilo de natación se nada boca arriba?", "r": ["espalda"], "s": "Espalda"}, {"id": "VR38", "q": "En golf, ¿cómo se llama terminar un hoyo con un golpe menos que el par?", "r": ["birdie"], "s": "Birdie"}, {"id": "VR43", "q": "En judo, ¿cómo se llama el punto que da la victoria inmediata?", "r": ["ippon"], "s": "Ippon"}];  // preguntas de escribir la respuesta
+
+// ═══════════ UTILIDADES ═══════════
+const $ = id => document.getElementById(id);
+const qs = new URLSearchParams(location.search);
+function lsGet(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function norm(s){
+  return " " + String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")
+    .replace(/[^a-z0-9ñ]+/g," ").replace(/\b(el|la|los|las|the|un|una|de|del)\b/g," ")
+    .replace(/\s+/g," ").trim() + " ";
+}
+// Acepta la respuesta exacta, la respuesta dentro de una frase corta
+// o solo parte del nombre si incluye el apellido (la última palabra).
+function correctaCorta(resp, variantes){
+  const r = norm(resp);
+  if (r.trim().length === 0) return false;
+  const rt = r.trim().split(" ");
+  return variantes.some(v => {
+    const n = norm(v); if (!n.trim()) return false;
+    if (r === n || (r.includes(n) && r.length <= n.length + 22)) return true;
+    const nt = n.trim().split(" ");
+    return nt.length > 1 && rt.every(w => nt.includes(w)) && rt.includes(nt[nt.length - 1]);
+  });
+}
+
+let API = API_URL || qs.get("api") || lsGet("vuelta_api", "");
+async function api(params, intentos){
+  intentos = intentos || 3;
+  for (let i = 0; i < intentos; i++){
+    try{
+      const r = await fetch(API, { method:"POST", body: JSON.stringify(params) });
+      const j = await r.json();
+      if (j.error) throw Object.assign(new Error(j.error), { server:true });
+      return j;
+    }catch(e){
+      if (e.server || i === intentos - 1) throw e;
+      await new Promise(res => setTimeout(res, 700 * (i + 1)));
+    }
+  }
+}
+async function getState(){
+  const r = await fetch(API, { method:"POST", body: JSON.stringify({ a:"state", c:S.code }) });
+  const j = await r.json(); if (j.error) throw new Error(j.error); return j;
+}
+
+// ═══════════ ESTADO ═══════════
+let S = { code:"", team:null, n:0 };   // n = número de respuestas enviadas
+let G = null, TEAMS = [];
+let fase = "join";      // join | lobby | q | fb | stop | over
+let pregunta = null, cola = null, extra = [];
+let bloqueo = false;
+
+function sesionKey(){ return "vuelta_ses_" + S.code; }
+// La rotación de preguntas se guarda en este móvil u ordenador y sirve para todas las carreras:
+// la pregunta que sale pasa al final de su cola, y no vuelve hasta que hayan salido las demás.
+const LS_ROTACION = "vuelta_rotacion";
+function guardarSesion(){
+  lsSet(sesionKey(), { team:S.team, n:S.n, cola:cola });
+  if (cola) lsSet(LS_ROTACION, { mc: cola.mc, cs: cola.cs });
+}
+
+function mostrar(id){
+  ["sJoin","sLobby","sRace","sOver"].forEach(s => $(s).classList.toggle("hidden", s !== id));
+}
+
+function pintarEquipo(){
+  if (!S.team) return;
+  document.documentElement.style.setProperty("--team", S.team.color);
+  $("teamName").textContent = S.team.name;
+  $("teamChip").classList.remove("hidden");
+  $("codeLbl").textContent = "VUELTA " + S.code;
+}
+
+function pintarProgreso(){
+  if (!G || !S.team) return;
+  const meta = G.meta, pos = S.team.pos;
+  $("posLbl").textContent = "Km " + pos + " de " + meta;
+  $("myBar").style.width = Math.min(100, 100 * pos / meta) + "%";
+  const tr = $("myTrack"); tr.querySelectorAll("b").forEach(b => b.remove());
+  G.stops.forEach(s => { const b = document.createElement("b"); b.style.left = "calc(" + (100 * s / meta) + "% - 2px)"; b.title = "Puerto de montaña"; tr.appendChild(b); });
+  if (TEAMS.length){
+    const orden = TEAMS.slice().sort((a,b) => b.pos - a.pos);
+    const puesto = orden.findIndex(t => t.id === S.team.id) + 1;
+    $("rankLbl").textContent = puesto ? puesto + "º de " + TEAMS.length : "";
+    // tarjeta del puesto: se ve sin mirar el proyector
+    const yo = S.team.pos;
+    $("rankBig").textContent = puesto ? puesto + "º" : "–";
+    $("rankTxt").textContent = puesto ? "Vais " + puesto + "º de " + TEAMS.length : "";
+    let sub = "";
+    if (puesto === 1 && orden.length > 1){ const d = yo - orden[1].pos; sub = d > 0 ? "Le sacáis " + d + (d === 1 ? " km" : " km") + " a " + orden[1].name : "Empatados con " + orden[1].name; }
+    else if (puesto > 1){ const d = orden[0].pos - yo; sub = d > 0 ? "A " + d + (d === 1 ? " km" : " km") + " de " + orden[0].name + ", que va primera" : "Empatados con el primero"; }
+    $("rankSub").textContent = sub;
+  }
+}
+
+// ═══════════ PREGUNTAS ═══════════
+// ── Retos del quiosco: a cada equipo le toca un medio y sus dos preguntas ──
+const RETO_PASO1 = 3, RETO_PASO2 = 9;   // en qué pregunta sale cada paso
+function retoDelEquipo(){
+  const retos = [...new Set(extra.filter(x => x.reto != null).map(x => x.reto))].sort((a,b) => a - b);
+  if (!retos.length || !S.team) return null;
+  const num = (parseInt(String(S.team.id).replace(/\D/g, ""), 10) || 1) - 1;
+  return retos[num % retos.length];
+}
+function prepararCola(){
+  const normales = extra.filter(x => x.reto == null && x.id !== "CFG");
+  const mc = [...BANCO, ...normales.filter(x => x.o)].map(x => x.id);
+  const cs = [...CORTAS, ...normales.filter(x => x.r)].map(x => x.id);
+  const prev = lsGet(LS_ROTACION, { mc: [], cs: [] });
+  // conserva el orden guardado, quita lo que ya no existe y pone delante las preguntas nuevas
+  const ajusta = (todas, guardada) => {
+    const set = new Set(todas), vistas = (guardada || []).filter(id => set.has(id));
+    const tienen = new Set(vistas);
+    return [...shuffle(todas.filter(id => !tienen.has(id))), ...vistas];
+  };
+  cola = { mc: ajusta(mc, prev.mc), cs: ajusta(cs, prev.cs), i: 0 };
+}
+function buscar(id){ return [...BANCO, ...CORTAS, ...extra].find(x => x.id === id); }
+function siguiente(){
+  if (!cola) prepararCola();
+  cola.i++;
+  const reto = retoDelEquipo();
+  if (reto != null && (cola.i === RETO_PASO1 || cola.i === RETO_PASO2)){
+    const paso = cola.i === RETO_PASO1 ? 1 : 2;
+    const r = extra.find(x => x.reto === reto && x.paso === paso);
+    if (r){ guardarSesion(); return r; }
+  }
+  const tocaCorta = cola.i % 4 === 0 && cola.cs.length;
+  const lista = tocaCorta ? cola.cs : cola.mc;
+  const id = lista.shift(); lista.push(id);
+  guardarSesion();
+  return buscar(id) || buscar(cola.mc[0]);
+}
+
+// Las fotos se cargan de la carpeta "fotos". Si una no está, esa pregunta se salta.
+const fotosMalas = new Set();
+function cargaFoto(src){
+  return new Promise(res => {
+    if (fotosMalas.has(src)) return res(false);
+    const im = new Image(); let hecho = false;
+    const fin = ok => { if (hecho) return; hecho = true; if (!ok) fotosMalas.add(src); res(ok); };
+    im.onload = () => fin(true); im.onerror = () => fin(false);
+    setTimeout(() => fin(false), 4000);
+    im.src = src;
+  });
+}
+
+async function mostrarPregunta(){
+  fase = "q"; bloqueo = true;
+  let p = siguiente(), intentos = 0;
+  while (p.img && !p.img.startsWith("data:") && !(await cargaFoto(p.img)) && intentos++ < 30) p = siguiente();
+  if (p.img && fotosMalas.has(p.img)) p = buscar(cola.cs[0]) || p;
+  bloqueo = false;
+  pregunta = p;
+  if (p.o && p.orden == null){
+    // baraja las opciones para que la correcta no esté siempre en el mismo sitio
+    const idx = shuffle(p.o.map((_, i) => i));
+    pregunta = Object.assign({}, p, { o: idx.map(i => p.o[i]), c: idx.indexOf(p.c), orden: 1 });
+  }
+  $("fbBox").classList.add("hidden");
+  $("stopBox").classList.add("hidden");
+  $("qBox").classList.remove("hidden");
+  $("qText").textContent = pregunta.q;
+  if (pregunta.img){ $("qImg").src = pregunta.img; $("qImg").classList.remove("hidden"); }
+  else { $("qImg").classList.add("hidden"); $("qImg").removeAttribute("src"); }
+  const opts = $("qOpts"); opts.innerHTML = "";
+  if (pregunta.o){
+    $("qTag").textContent = "ELIGE LA RESPUESTA";
+    $("qShort").classList.add("hidden"); opts.classList.remove("hidden");
+    const sym = ["▲","◆","●","■"];
+    pregunta.o.forEach((o, i) => {
+      const b = document.createElement("button"); b.className = "opt";
+      b.innerHTML = "<span class='s'>" + sym[i] + "</span><span>" + esc(o) + "</span>";
+      b.onclick = () => responder(i === pregunta.c, i);
+      opts.appendChild(b);
+    });
+  } else {
+    $("qTag").textContent = pregunta.reto != null ? "RETO DEL QUIOSCO · " + String(pregunta.medio || "").toUpperCase() : "ESCRIBE LA RESPUESTA";
+    opts.classList.add("hidden"); $("qShort").classList.remove("hidden");
+    $("inShort").value = ""; setTimeout(() => $("inShort").focus(), 50);
+  }
+  window.scrollTo(0, 0);
+}
+
+function solucion(){
+  if (pregunta.o) return pregunta.o[pregunta.c];
+  return pregunta.s || pregunta.r[0];
+}
+
+async function responder(bien, idx){
+  if (bloqueo || fase !== "q") return;
+  bloqueo = true; fase = "fb";
+  S.n++; guardarSesion();
+  if (pregunta.o){
+    [...$("qOpts").children].forEach((b, i) => { if (i === pregunta.c) b.classList.add("right"); else b.classList.add("dim"); });
+  }
+  const antes = S.team.pos;
+  // actualización optimista
+  if (bien) S.team.pos++; else S.team.pos = Math.max(S.team.floor, S.team.pos - 1);
+  pintarProgreso();
+  const fb = $("fbBox");
+  fb.className = "fb " + (bien ? "ok" : "ko");
+  fb.innerHTML = bien
+    ? "<div class='big'>✓ ¡Correcto!</div><div class='sm'>Avanzáis un kilómetro</div>"
+    : "<div class='big'>✗ Fallo</div><div class='sm'>La respuesta era <b>" + esc(solucion()) + "</b>.<br>" + (antes > S.team.floor ? "Retrocedéis un kilómetro." : "No podéis retroceder más.") + "</div>";
+  fb.classList.remove("hidden");
+  let resp = null;
+  const envio = api({ a: bien ? "ok" : "ko", c: S.code, t: S.team.id, n: S.n }, 4)
+    .then(r => { resp = r; })
+    .catch(e => { $("raceErr").textContent = "Problema de conexión, seguid jugando."; });
+  await Promise.all([envio, new Promise(r => setTimeout(r, bien ? 900 : 2300))]);
+  if (resp){ $("raceErr").textContent = ""; S.team = resp.team; if (resp.status) G.status = resp.status; guardarSesion(); }
+  pintarProgreso();
+  continuar();
+}
+
+function continuar(){
+  if (G.status === "over"){ finalizar(); return; }
+  if (S.team.phase === "run") mostrarPregunta();
+  else mostrarParada();
+}
+
+// ═══════════ PARADAS ═══════════
+function mostrarParada(){
+  fase = "stop";
+  $("qBox").classList.add("hidden");
+  $("fbBox").classList.add("hidden");
+  $("stopBox").classList.remove("hidden");
+  const k = S.team.stop;
+  $("stopTag").textContent = "🏔️ PUERTO DE MONTAÑA " + (k + 1) + " DE " + G.stops.length;
+  $("stopTask").textContent = G.tasks[k] || "";
+  const esperando = S.team.phase === "review";
+  const papel = enPapel();
+  $("stopPaper").classList.toggle("hidden", esperando || !papel);
+  $("stopWrite").classList.toggle("hidden", esperando || papel);
+  $("stopWait").classList.toggle("hidden", !esperando);
+  if (S.team.phase === "revise"){
+    $("stopNote").innerHTML = (papel ? "✎ La profesora os lo devuelve. Corregidlo en el papel y volved a entregarlo." : "✎ La directora de carrera os lo devuelve. Reescribidlo.") + (S.team.note ? "<br>" + esc(S.team.note) : "");
+    $("stopNote").classList.remove("hidden");
+    if (!$("inText").value) $("inText").value = S.team.texts[k] || "";
+  } else {
+    $("stopNote").classList.add("hidden");
+  }
+  $("cnt").textContent = $("inText").value.length;
+}
+
+function enPapel(){ return extra.some(x => x.id === "CFG" && x.papel); }
+$("bPaper").onclick = async () => {
+  $("bPaper").disabled = true; $("raceErr").textContent = "";
+  try{
+    const r = await api({ a:"send", c:S.code, t:S.team.id, text:"📝 Entregado en papel" });
+    S.team = r.team; guardarSesion(); mostrarParada();
+  }catch(e){ $("raceErr").textContent = e.message || "No se ha podido avisar, probad otra vez."; }
+  $("bPaper").disabled = false;
+};
+$("inText").addEventListener("input", () => { $("cnt").textContent = $("inText").value.length; });
+$("bSend").onclick = async () => {
+  const t = $("inText").value.trim();
+  if (!t){ $("raceErr").textContent = "Escribid el texto antes de enviarlo."; return; }
+  $("bSend").disabled = true; $("raceErr").textContent = "";
+  try{
+    const r = await api({ a:"send", c:S.code, t:S.team.id, text:t });
+    S.team = r.team; guardarSesion(); $("inText").value = "";
+    mostrarParada();
+  }catch(e){ $("raceErr").textContent = e.message || "No se ha podido enviar, probad otra vez."; }
+  $("bSend").disabled = false;
+};
+
+// ═══════════ FINAL ═══════════
+function finalizar(){
+  fase = "over"; mostrar("sOver");
+  const orden = TEAMS.slice().sort((a,b) => (b.pos - a.pos) || (a.finishedAt||9e15) - (b.finishedAt||9e15) || (b.ok - a.ok));
+  const ganador = TEAMS.find(t => t.id === G.winner) || orden[0];
+  const yo = S.team && ganador && ganador.id === S.team.id;
+  $("overIcon").textContent = yo ? "🏆" : "🏁";
+  $("overTitle").textContent = yo ? "¡Habéis ganado La Vuelta!" : (ganador ? "Gana " + ganador.name : "Carrera terminada");
+  const puesto = orden.findIndex(t => S.team && t.id === S.team.id) + 1;
+  $("overSub").textContent = puesto ? "Vuestro equipo termina en el puesto " + puesto + " de " + orden.length + "." : "";
+  $("overRank").innerHTML = orden.map((t, i) =>
+    "<li class='" + (S.team && t.id === S.team.id ? "me" : "") + "'><span class='n'>" + (i+1) + "º</span><span class='dot' style='background:" + t.color + "'></span>" + esc(t.name) + "<span class='p'>km " + t.pos + "</span></li>").join("");
+}
+
+// ═══════════ SONDEO ═══════════
+async function sondeo(){
+  if (!S.code || !S.team) return;
+  try{
+    const st = await getState();
+    G = st.game; TEAMS = st.teams;
+    const yo = TEAMS.find(t => t.id === S.team.id);
+    if (fase === "lobby" && G.status !== "lobby"){ if (yo) S.team = yo; empezar(); }
+    else if (fase === "stop" && yo && yo.phase !== S.team.phase){
+      S.team = yo; guardarSesion();
+      if (yo.phase === "run"){
+        // publicado
+        $("stopBox").classList.add("hidden");
+        const fb = $("fbBox"); fb.className = "fb ok";
+        fb.innerHTML = "<div class='big'>⏱️ ¡Bonificación!</div><div class='sm'>Ganáis un kilómetro de premio</div>";
+        fb.classList.remove("hidden"); fase = "fb"; pintarProgreso();
+        setTimeout(continuar, 1600);
+      } else mostrarParada();
+    }
+    else if (fase === "q" && yo && yo.pos !== S.team.pos && !bloqueo){ S.team.pos = yo.pos; }
+    if (G.status === "over" && fase !== "over" && fase !== "fb") finalizar();
+    if (fase === "over") finalizar();
+    pintarProgreso();
+  }catch(e){ /* reintenta en el siguiente sondeo */ }
+}
+function ritmo(){
+  const ms = fase === "stop" || fase === "lobby" ? 2000 : 3500;
+  setTimeout(async () => { await sondeo(); ritmo(); }, ms);
+}
+
+function empezar(){
+  mostrar("sRace"); pintarProgreso();
+  if (G.status === "over") return finalizar();
+  continuar();
+}
+
+// ═══════════ UNIRSE ═══════════
+async function cargarExtra(){
+  try{ const r = await api({ a:"qs", c:S.code }); extra = r.qs || []; }catch(e){ extra = []; }
+}
+
+async function entrar(){
+  const code = $("inCode").value.toUpperCase().replace(/[^A-Z]/g, "");
+  const name = $("inName").value.trim();
+  if (!API){ API = $("inApi").value.trim(); }
+  if (!API){ $("apiBox").classList.remove("hidden"); $("joinErr").textContent = "Falta la dirección del servidor. Pedídsela a la profesora."; return; }
+  if (!code || !name){ $("joinErr").textContent = "Escribid el código y el nombre del equipo."; return; }
+  lsSet("vuelta_api", API);
+  $("bJoin").disabled = true; $("joinErr").textContent = "";
+  try{
+    S.code = code;
+    const r = await api({ a:"join", c:code, name:name });
+    const prev = lsGet(sesionKey(), null);
+    S.team = r.team;
+    if (prev && prev.team && prev.team.id === r.team.id){ S.n = Math.max(prev.n || 0, r.team.seq || 0); cola = prev.cola; }
+    else { S.n = r.team.seq || 0; cola = null; }
+    await cargarExtra();
+    guardarSesion();
+    const st = await getState(); G = st.game; TEAMS = st.teams;
+    pintarEquipo();
+    if (G.status === "lobby"){ fase = "lobby"; mostrar("sLobby"); }
+    else empezar();
+    ritmo();
+  }catch(e){
+    $("joinErr").textContent = e.message || "No se ha podido conectar.";
+    $("bJoin").disabled = false;
+  }
+}
+$("bJoin").onclick = entrar;
+$("inName").addEventListener("keydown", e => { if (e.key === "Enter") entrar(); });
+$("bShort").onclick = () => { if (fase === "q" && !pregunta.o && $("inShort").value.trim()) responder(correctaCorta($("inShort").value, pregunta.r)); };
+$("inShort").addEventListener("keydown", e => { if (e.key === "Enter") $("bShort").click(); });
+
+// Al abrir: rellena el código del enlace y recupera la sesión si se recarga la página.
+(function init(){
+  const c = (qs.get("c") || "").toUpperCase();
+  if (c) $("inCode").value = c;
+  if (!API) $("apiBox").classList.remove("hidden");
+  if (c){
+    const prev = lsGet("vuelta_ses_" + c, null);
+    if (prev && prev.team && API){ $("inName").value = prev.team.name; entrar(); }
+  }
+})();
+</script>
+</body>
+</html>
