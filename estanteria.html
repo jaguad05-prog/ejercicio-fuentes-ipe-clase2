@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Estantería de entregas v20</title>
+<title>Estantería de entregas v21</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
@@ -347,7 +347,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v20</span></h1>
+  <h1>Estantería de entregas <span class="version">v21</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -965,7 +965,7 @@ function rasterizarHTML(texto){
       'if(typeof html2canvas!=="function"){avisa({error:"no se ha podido cargar el dibujante"});return;}' +
       'var alto=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,600);' +
       'html2canvas(document.body,{backgroundColor:"#ffffff",width:1200,height:alto,' +
-      'windowWidth:1200,windowHeight:alto,scale:1,useCORS:true})' +
+      'windowWidth:1200,windowHeight:alto,scale:Math.min(1,30000/alto),useCORS:true})' +
       '.then(function(c){avisa({dato:c.toDataURL("image/png")});})' +
       '.catch(function(e){avisa({error:String(e&&e.message||e)});});}' +
       'if(document.readyState==="complete")setTimeout(tira,700);' +
@@ -1164,7 +1164,7 @@ async function dibujarPagina(){
     await new Promise(res => {
       const im = new Image();
       im.onload = () => {
-        const esc = Math.min(1400 / im.width, 1);
+        const esc = Math.min(1400 / im.width, 1, 30000 / im.height);
         base.width = Math.round(im.width * esc) || 10;
         base.height = Math.round(im.height * esc) || 10;
         ctxB.fillStyle = '#fff';
@@ -1231,6 +1231,8 @@ function anchoFit(){
   const factor = margen.hidden ? 1 : 1 + RATIO_MARGEN;   // la hoja más la columna
   const hueco = Math.max(120, (zona.clientWidth - 30) / factor);
   const alto = Math.max(120, zona.clientHeight - 30);
+  // Las páginas muy largas (periódicos, webs) se ajustan al ancho y se leen bajando
+  if(base.height > base.width * 1.8) return Math.max(90, Math.min(base.width, hueco));
   return Math.max(90, Math.min(base.width, hueco, alto * base.width / base.height));
 }
 
