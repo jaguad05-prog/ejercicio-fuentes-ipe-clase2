@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lengua desde cero para oposiciones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1EE; --paper:#FFFFFF; --ink:#1D2A2E; --muted:#56666A; --pen:#2B4F7E; --pen-soft:#E3EAF4;
+  --line:#D3DBD7; --mark:#FFE36E; --ok:#1F7A4D; --ok-bg:#E2F3EA; --ko:#A23B2A; --ko-bg:#F8E4DF;
+  --serif:"Literata", Georgia, "Times New Roman", serif;
+  --sans:"Atkinson Hyperlegible", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#141A1C; --paper:#1D2528; --ink:#E6ECEA; --muted:#A3B0AE; --pen:#8FB3E6; --pen-soft:#243447;
+    --line:#33403F; --mark:#8A7414; --ok:#7FD3A6; --ok-bg:#1C3328; --ko:#F0A393; --ko-bg:#3A2320;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141A1C; --paper:#1D2528; --ink:#E6ECEA; --muted:#A3B0AE; --pen:#8FB3E6; --pen-soft:#243447;
+  --line:#33403F; --mark:#8A7414; --ok:#7FD3A6; --ok-bg:#1C3328; --ko:#F0A393; --ko-bg:#3A2320;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 70px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);font-size:1.0625rem;line-height:1.65}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;max-width:760px;margin:0 auto;padding:.7rem 1rem .2rem}
+.brand h1{font-size:1.15rem;margin:0;font-weight:700;letter-spacing:-.01em}
+.brand .prog{font-family:var(--sans);font-size:.85rem;color:var(--muted);white-space:nowrap}
+nav.tabs{display:flex;gap:.4rem;overflow-x:auto;max-width:760px;margin:0 auto;padding:.4rem 1rem .6rem;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{flex:0 0 auto;font-family:var(--sans);font-size:.88rem;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:.4rem .75rem;border-radius:999px;cursor:pointer}
+nav.tabs button[aria-current="true"]{background:var(--pen);border-color:var(--pen);color:var(--paper)}
+nav.tabs button .d{display:inline-block;width:.5rem;height:.5rem;border-radius:50%;background:var(--ok);margin-left:.4rem;vertical-align:middle}
+main{max-width:760px;margin:0 auto;padding:1.2rem 1rem 4rem}
+h2{font-size:1.7rem;line-height:1.2;margin:.4rem 0 .3rem;letter-spacing:-.015em}
+.lead{color:var(--muted);margin:0 0 1.4rem;font-style:italic}
+h3{font-size:1.2rem;margin:2rem 0 .5rem}
+p{margin:.6rem 0}
+.box{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem;margin:1rem 0}
+.tip{border-left:4px solid var(--pen);background:var(--pen-soft);padding:.8rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0}
+.ex{font-style:italic}
+mark{background:linear-gradient(transparent 35%, var(--mark) 35%, var(--mark) 88%, transparent 88%);color:inherit;padding:0 .1em}
+.tbl{overflow-x:auto;margin:1rem 0}
+table{border-collapse:collapse;width:100%;min-width:480px;font-size:.95rem;background:var(--paper)}
+th,td{border:1px solid var(--line);padding:.5rem .6rem;text-align:left;vertical-align:top}
+th{font-family:var(--sans);font-size:.85rem;background:var(--pen-soft)}
+ul.clean{padding-left:1.1rem}
+ul.clean li{margin:.35rem 0}
+.quiz{margin-top:2.4rem;border-top:2px solid var(--ink);padding-top:1rem}
+.quiz h3{margin-top:0}
+.q{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:1rem;margin:1rem 0}
+.q .qt{font-weight:600;margin:0 0 .6rem}
+.opts{display:grid;gap:.45rem}
+.opts button{font-family:var(--sans);font-size:.98rem;text-align:left;padding:.65rem .8rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);cursor:pointer}
+.opts button:disabled{cursor:default}
+.opts button.right{background:var(--ok-bg);border-color:var(--ok);color:var(--ok);font-weight:700}
+.opts button.wrong{background:var(--ko-bg);border-color:var(--ko);color:var(--ko)}
+.fb{font-size:.97rem;margin-top:.6rem;padding:.6rem .8rem;border-radius:8px;background:var(--pen-soft);display:none}
+.fb.show{display:block}
+.score{font-family:var(--sans);font-size:.95rem;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
+.btn{font-family:var(--sans);font-size:.95rem;border:1px solid var(--pen);color:var(--pen);background:transparent;padding:.5rem .9rem;border-radius:8px;cursor:pointer}
+.btn.solid{background:var(--pen);color:var(--paper)}
+.pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2rem}
+button:focus-visible{outline:3px solid var(--pen);outline-offset:2px}
+/* frase del examen */
+.sentence{font-size:1.25rem;line-height:2.1;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem}
+.sentence span{transition:background .2s}
+.sentence span.on{background:linear-gradient(transparent 30%, var(--mark) 30%, var(--mark) 90%, transparent 90%)}
+.sentence span.vb{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:5px;text-decoration-color:var(--pen)}
+.layers{display:flex;flex-wrap:wrap;gap:.45rem;margin:1rem 0}
+.layers button{font-family:var(--sans);font-size:.88rem;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:.45rem .7rem;border-radius:8px;cursor:pointer}
+.layers button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.layer-exp{min-height:4rem}
+.tree{font-size:.98rem}
+.tree ul{list-style:none;padding-left:1.1rem;border-left:2px solid var(--line);margin:.3rem 0}
+.tree li{margin:.35rem 0}
+.tree b{font-family:var(--sans);font-size:.9rem;color:var(--pen)}
+.steps{counter-reset:s;list-style:none;padding:0}
+.steps li{counter-increment:s;position:relative;padding:.6rem 0 .6rem 2.6rem;border-bottom:1px solid var(--line)}
+.steps li::before{content:counter(s);position:absolute;left:0;top:.55rem;width:1.9rem;height:1.9rem;border-radius:50%;background:var(--pen);color:var(--paper);font-family:var(--sans);font-weight:700;display:grid;place-items:center;font-size:.9rem}
+footer{max-width:760px;margin:0 auto;padding:0 1rem 2rem;color:var(--muted);font-family:var(--sans);font-size:.85rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><h1>Lengua desde cero</h1><span class="prog" id="prog"></span></div>
+  <nav class="tabs" id="tabs" aria-label="Temas"></nav>
+</header>
+<main id="main"></main>
+<footer>Terminología de la gramática tradicional escolar, con las alternativas de la RAE (NGLE) indicadas cuando cambian el análisis. Tu progreso se guarda en este navegador.</footer>
+
+<script>
+const M = [
+/* ============ 1 CATEGORÍAS ============ */
+{t:"1. Clases de palabras", h:`
+<h2>Clases de palabras</h2>
+<p class="lead">Todo el análisis se apoya aquí. Si sabes qué es cada palabra, sabrás qué puede hacer en la oración.</p>
+<p>La <b>categoría</b> es lo que una palabra es (sustantivo, verbo…) y la <b>función</b> es el papel que cumple en la oración (sujeto, complemento directo…). La categoría se mantiene y la función cambia según la frase, por eso conviene separarlas desde el principio.</p>
+<div class="tbl"><table>
+<tr><th>Clase</th><th>Qué hace</th><th>Ejemplos del texto</th></tr>
+<tr><td>Sustantivo</td><td>Nombra seres, objetos, ideas</td><td>libros, garganta, asombro, práctica</td></tr>
+<tr><td>Adjetivo</td><td>Dice cómo es el sustantivo y concuerda con él</td><td>silenciosos, insólita, solitaria, tardía</td></tr>
+<tr><td>Determinante</td><td>Acompaña al sustantivo y lo presenta</td><td>los, una, su, nuestra, un</td></tr>
+<tr><td>Pronombre</td><td>Ocupa el lugar del sustantivo</td><td>nadie, que (relativo en «que hoy conocemos»)</td></tr>
+<tr><td>Verbo</td><td>Expresa acción, estado o proceso</td><td>cuenta, vio, leer, moviendo, registrada</td></tr>
+<tr><td>Adverbio</td><td>Modifica al verbo, al adjetivo o a otro adverbio y no varía</td><td>siempre, hoy, únicamente, tan, más</td></tr>
+<tr><td>Preposición</td><td>Enlaza una palabra con su complemento</td><td>en, de, con, sin, a, para</td></tr>
+<tr><td>Conjunción</td><td>Une palabras u oraciones</td><td>y, pero, que (en «cuenta que vio»)</td></tr>
+<tr><td>Interjección</td><td>Expresa emoción, equivale a una oración</td><td>¡ay!, ¡oh!</td></tr>
+</table></div>
+<h3>Determinante y pronombre</h3>
+<p>Muchas formas sirven para las dos cosas. El determinante va delante de un sustantivo y el pronombre aparece solo, en su lugar.</p>
+<div class="box"><p class="ex"><mark>Este</mark> libro es mío → determinante</p><p class="ex">Quiero <mark>este</mark> → pronombre</p></div>
+<h3>Las formas no personales del verbo</h3>
+<p>El infinitivo (<i>leer</i>), el gerundio (<i>moviendo</i>) y el participio (<i>registrada</i>) son verbos, aunque no llevan persona. Cada uno se comporta como otra clase de palabra, el infinitivo como sustantivo, el gerundio como adverbio y el participio como adjetivo. Esto será clave en la sintaxis.</p>
+<h3>Las preposiciones</h3>
+<p>Conviene saberlas de memoria, porque te dirán dónde empieza un complemento. Son a, ante, bajo, cabe, con, contra, de, desde, durante, en, entre, hacia, hasta, mediante, para, por, según, sin, so, sobre, tras, versus y vía.</p>
+<div class="tip"><b>Truco para el adverbio.</b> Si una palabra no cambia de forma (no tiene masculino, femenino ni plural) y responde a cómo, cuándo, dónde o cuánto, casi seguro es un adverbio. Las acabadas en <i>-mente</i> siempre lo son.</div>
+`, q:[
+{q:"«asombro» en «cuenta con asombro» es…",o:["Adjetivo","Sustantivo","Verbo","Adverbio"],a:1,e:"Nombra una emoción y puede llevar determinante (el asombro), así que es sustantivo."},
+{q:"«insólita» es…",o:["Adverbio","Sustantivo","Adjetivo","Participio"],a:2,e:"Dice cómo es la práctica y concuerda con ella en femenino singular, por eso es adjetivo."},
+{q:"«su» en «en su época» es…",o:["Pronombre posesivo","Determinante posesivo","Preposición","Adjetivo"],a:1,e:"Va delante del sustantivo época y lo presenta, así que funciona como determinante."},
+{q:"«únicamente» es…",o:["Adjetivo","Adverbio","Conjunción","Sustantivo"],a:1,e:"Termina en -mente y no varía de forma, por tanto es adverbio."},
+{q:"«moviendo» es…",o:["Infinitivo","Participio","Gerundio","Sustantivo"],a:2,e:"Las formas en -ando/-iendo son gerundios, una forma no personal del verbo."},
+{q:"«sin» en «sin emitir un solo sonido» es…",o:["Adverbio","Conjunción","Preposición","Determinante"],a:2,e:"Está en la lista de preposiciones y enlaza con su término (emitir un solo sonido)."},
+{q:"En «Quiero este», «este» es…",o:["Determinante","Pronombre","Adverbio","Adjetivo"],a:1,e:"Aparece sin sustantivo y ocupa su lugar, así que es pronombre."}
+]},
+
+/* ============ 2 SINTAGMAS ============ */
+{t:"2. Sintagmas", h:`
+<h2>Sintagmas</h2>
+<p class="lead">Las palabras se agrupan en bloques. Cada bloque se llama según la palabra más importante, su núcleo.</p>
+<p>Un <b>sintagma</b> es un grupo de palabras organizado alrededor de un núcleo. Si el núcleo es un sustantivo, tenemos un sintagma nominal (SN), si es un adjetivo, un sintagma adjetival (SAdj), y así con cada clase.</p>
+<div class="tbl"><table>
+<tr><th>Sintagma</th><th>Núcleo</th><th>Puede llevar</th><th>Ejemplo</th></tr>
+<tr><td>Nominal (SN)</td><td>Sustantivo o pronombre</td><td>Determinante (Det), complemento del nombre (CN), adyacente (Ady)</td><td>los libros antiguos</td></tr>
+<tr><td>Adjetival (SAdj)</td><td>Adjetivo</td><td>Cuantificador, complemento del adjetivo</td><td>tan insólita en su época</td></tr>
+<tr><td>Adverbial (SAdv)</td><td>Adverbio</td><td>Cuantificador, complemento del adverbio</td><td>muy lejos de aquí</td></tr>
+<tr><td>Preposicional (SPrep)</td><td>No tiene núcleo, lleva enlace + término</td><td>Enlace (E) = preposición, término (T) = normalmente un SN</td><td>con asombro</td></tr>
+<tr><td>Verbal (SV)</td><td>Verbo</td><td>Todos los complementos verbales</td><td>cuenta con asombro que…</td></tr>
+</table></div>
+<h3>Dentro del SN</h3>
+<p>En <i>una práctica tan insólita en su época</i>, el núcleo es <i>práctica</i>, <i>una</i> es el determinante y <i>tan insólita en su época</i> es un SAdj que complementa al núcleo. Dentro de ese SAdj, <i>insólita</i> es el núcleo, <i>tan</i> es un cuantificador y <i>en su época</i> es un SPrep que funciona como complemento del adjetivo.</p>
+<div class="tip"><b>Cómo encontrar el núcleo.</b> Pregunta qué palabra no puedes quitar sin que el bloque pierda su sentido básico. En <i>los ojos cansados</i> puedes quitar <i>cansados</i> y <i>los</i> y el bloque sigue en pie con <i>ojos</i>, que es el núcleo.</div>
+<h3>Sintagmas coordinados</h3>
+<p><i>los ojos y los labios</i> son dos SN unidos por la conjunción <i>y</i>. Forman un único bloque con una sola función en la oración.</p>
+<h3>El sintagma preposicional</h3>
+<p>Se reconoce porque empieza por preposición. La preposición es el enlace (E) y lo que va detrás es el término (T). En <i>con asombro</i>, E = <i>con</i> y T = SN <i>asombro</i>.</p>
+`, q:[
+{q:"«con asombro» es un…",o:["SN","SAdj","SPrep","SAdv"],a:2,e:"Empieza por la preposición con, que funciona como enlace, y asombro es el término."},
+{q:"El núcleo de «una práctica tan insólita en su época» es…",o:["una","práctica","insólita","época"],a:1,e:"Es el sustantivo sin el que el grupo pierde su sentido, las demás palabras dependen de él."},
+{q:"«tan insólita en su época» es un…",o:["SAdj","SN","SPrep","SV"],a:0,e:"Su núcleo es el adjetivo insólita, con tan como cuantificador y en su época como complemento del adjetivo."},
+{q:"En «tan insólita en su época», «en su época» funciona como…",o:["Complemento del nombre","Complemento del adjetivo","Determinante","Núcleo"],a:1,e:"Es un SPrep que depende del adjetivo insólita, así que es complemento del adjetivo."},
+{q:"«los ojos y los labios» es…",o:["Un SPrep","Dos SN coordinados","Un SAdj","Un SV"],a:1,e:"Son dos sintagmas nominales unidos por la conjunción copulativa y, que funcionan juntos como un solo bloque."}
+]},
+
+/* ============ 3 ORACIÓN SIMPLE ============ */
+{t:"3. Oración simple", h:`
+<h2>La oración simple</h2>
+<p class="lead">Una oración simple tiene un solo verbo. Aquí aprendes las funciones, que luego se repiten igual en las oraciones largas.</p>
+<h3>Sujeto y predicado</h3>
+<p>El <b>sujeto</b> concuerda con el verbo en número y persona. La prueba más segura consiste en cambiar el número del verbo y ver qué palabra cambia con él.</p>
+<div class="box"><p class="ex">San Agustín cuenta… → San Agustín y su madre cuent<mark>an</mark>…</p><p>Al pasar el verbo a plural hay que cambiar <i>San Agustín</i>, por tanto es el sujeto. Todo lo demás es el <b>predicado</b>.</p></div>
+<p>El sujeto puede estar <b>elíptico</b>, sin aparecer escrito, y se deduce por la terminación del verbo (<i>vio</i> → él).</p>
+<p>El predicado es <b>nominal</b> cuando el verbo es copulativo (ser, estar, parecer) y lleva atributo, y es <b>verbal</b> en el resto de casos.</p>
+<h3>Los complementos del verbo</h3>
+<div class="tbl"><table>
+<tr><th>Función</th><th>Cómo se reconoce</th><th>Ejemplo</th></tr>
+<tr><td>Complemento directo (CD)</td><td>Se sustituye por lo, la, los, las. Si la oración pasa a pasiva, se convierte en sujeto. Si es de persona lleva <i>a</i></td><td>transformó <mark>nuestra relación</mark> → <i>la</i> transformó<br>vio <mark>a Ambrosio</mark> → <i>lo</i> vio</td></tr>
+<tr><td>Complemento indirecto (CI)</td><td>Se sustituye por le, les. Lleva <i>a</i> (a veces <i>para</i>)</td><td>prestar la garganta <mark>a las palabras ajenas</mark> → prestar<i>les</i> la garganta</td></tr>
+<tr><td>Complemento circunstancial (CC)</td><td>Indica tiempo, lugar, modo, causa, finalidad, compañía, instrumento, cantidad… Suele poder suprimirse</td><td>cuenta <mark>con asombro</mark> (modo)<br>leer <mark>en voz alta</mark> (modo)</td></tr>
+<tr><td>Atributo (Atr)</td><td>Va con ser, estar o parecer y se sustituye por <i>lo</i> invariable</td><td>no han sido <mark>objetos silenciosos</mark> → no lo han sido</td></tr>
+<tr><td>Complemento predicativo (CPred)</td><td>Va con verbo no copulativo, dice algo del sujeto o del CD y concuerda con él</td><td>Llegó <mark>cansada</mark><br>ser registrada <mark>como un prodigio</mark></td></tr>
+<tr><td>Complemento de régimen (CRég)</td><td>El verbo exige una preposición fija. Se sustituye por preposición + pronombre tónico</td><td>habla <mark>de política</mark> → habla de ella</td></tr>
+<tr><td>Complemento agente (CAg)</td><td>Solo en pasiva, con <i>por</i>, y es quien realiza la acción</td><td>fue escrito <mark>por Agustín</mark></td></tr>
+</table></div>
+<div class="tip"><b>Cuidado con la «a».</b> Un CD de persona lleva <i>a</i> (<i>vio a Ambrosio</i>) y se parece al CI. Sustituye por pronombre y sal de dudas, <i>lo vio</i> es CD y <i>le dio un libro</i> es CI.</div>
+<h3>Las perífrasis verbales</h3>
+<p>Dos o más verbos que funcionan como uno solo forman una perífrasis y cuentan como un único núcleo (<i>han sido</i>, <i>puede entrar</i>, <i>va a leer</i>). En la frase del examen <i>merecía ser registrada</i> no es perífrasis, porque <i>merecer</i> conserva su significado pleno y admite «lo merecía».</p>
+`, q:[
+{q:"En «San Agustín vio a Ambrosio», «a Ambrosio» es…",o:["CI","CD","CC de lugar","CRég"],a:1,e:"Se sustituye por lo (lo vio), así que es CD. La a aparece porque el CD es de persona."},
+{q:"En «Los libros no han sido siempre objetos silenciosos», «objetos silenciosos» es…",o:["CD","Atributo","CPred","Sujeto"],a:1,e:"El verbo es ser (copulativo) y se sustituye por lo invariable (no lo han sido), por eso es atributo."},
+{q:"En «prestar la propia garganta a las palabras ajenas», «a las palabras ajenas» es…",o:["CD","CI","CC de finalidad","CRég"],a:1,e:"Se sustituye por les (prestarles la garganta), prueba del CI. El CD es la propia garganta."},
+{q:"En «cuenta con asombro», «con asombro» es…",o:["CRég","CC de modo","CD","CPred"],a:1,e:"Indica cómo lo cuenta y puede suprimirse sin que la oración quede incompleta, así que es CC de modo."},
+{q:"En «La lectura transformó nuestra relación con el pensamiento», el sujeto es…",o:["nuestra relación","La lectura","el pensamiento","transformó"],a:1,e:"Si ponemos el verbo en plural (transformaron) tiene que cambiar la lectura (las lecturas), por eso es el sujeto."},
+{q:"En «Ella llegó cansada», «cansada» es…",o:["Atributo","CPred","CC de modo","CD"],a:1,e:"El verbo llegar no es copulativo y cansada concuerda con el sujeto, así que es complemento predicativo."},
+{q:"«ha sido» cuenta como…",o:["Dos verbos, dos oraciones","Un solo núcleo verbal","Un verbo y un atributo","Un infinitivo"],a:1,e:"Es un tiempo compuesto (auxiliar haber + participio) y funciona como un único verbo."}
+]},
+
+/* ============ 4 ORACIÓN COMPUESTA ============ */
+{t:"4. Oración compuesta", h:`
+<h2>La oración compuesta</h2>
+<p class="lead">Cuando hay varios verbos, hay varias proposiciones. La tarea consiste en ver cómo se unen y qué papel cumple cada una.</p>
+<p>Cada verbo (o perífrasis) forma una <b>proposición</b>. Unos manuales usan «proposición subordinada» y otros «oración subordinada», y las dos formas valen si mantienes siempre la misma.</p>
+<h3>Tres maneras de unirse</h3>
+<ul class="clean">
+<li><b>Yuxtaposición.</b> Sin nexo, solo con coma, punto y coma o dos puntos. <span class="ex">Llegó, leyó, se fue.</span></li>
+<li><b>Coordinación.</b> Proposiciones del mismo nivel unidas por conjunción. Pueden ser copulativas (y, e, ni), disyuntivas (o, u) y adversativas (pero, mas, sino). <span class="ex">La lectura íntima es una conquista tardía, <mark>pero</mark> transformó nuestra relación con el pensamiento.</span></li>
+<li><b>Subordinación.</b> Una proposición depende de otra y cumple una función dentro de ella.</li>
+</ul>
+<h3>Las subordinadas sustantivas</h3>
+<p>Funcionan como un sustantivo y cumplen las funciones del SN (sujeto, CD, término de preposición…). Los nexos son <i>que</i> y <i>si</i> (conjunciones sin función) y los interrogativos. También pueden ir sin nexo, con infinitivo.</p>
+<div class="box"><p class="ex">cuenta <mark>que vio a Ambrosio</mark> → cuenta <b>eso</b> → CD</p><p class="ex"><mark>Leer</mark> significaba <mark>pronunciar en voz alta</mark> → <b>eso</b> significaba <b>eso</b> → sujeto y CD</p></div>
+<div class="tip"><b>Prueba.</b> Si puedes cambiar la proposición por «eso», es sustantiva.</div>
+<h3>Las subordinadas adjetivas o de relativo</h3>
+<p>Funcionan como un adjetivo, complementan a un sustantivo anterior (el antecedente) y van introducidas por un relativo (que, quien, el cual, cuyo, donde…). El relativo sí cumple una función dentro de su proposición.</p>
+<div class="box"><p class="ex">la lectura <mark>que hoy conocemos</mark> → antecedente <i>lectura</i>, el relativo <i>que</i> es CD de conocemos (conocemos la lectura)</p><p class="ex">un espacio secreto <mark>donde nadie más puede entrar</mark> → antecedente <i>espacio</i>, <i>donde</i> es CC de lugar</p></div>
+<p>Son <b>especificativas</b> si van sin comas y restringen el significado, y <b>explicativas</b> si van entre comas y añaden información. Cuando no tienen antecedente se llaman <b>sustantivadas</b> (<i>Quien bien te quiere te hará llorar</i>).</p>
+<div class="tip"><b>Prueba.</b> Si el <i>que</i> puede cambiarse por «el cual, la cual…», es relativo.</div>
+<h3>Las subordinadas adverbiales</h3>
+<div class="tbl"><table>
+<tr><th>Tipo</th><th>Nexos</th><th>Ejemplo</th></tr>
+<tr><td>Tiempo</td><td>cuando, mientras, antes de que</td><td>Lo leí <mark>cuando llegué</mark></td></tr>
+<tr><td>Lugar</td><td>donde (sin antecedente)</td><td>Léelo <mark>donde quieras</mark></td></tr>
+<tr><td>Modo</td><td>como, según</td><td>Hazlo <mark>como te dije</mark></td></tr>
+<tr><td>Causal</td><td>porque, ya que, puesto que</td><td>Calló <mark>porque leía</mark></td></tr>
+<tr><td>Final</td><td>para que, a fin de que</td><td>prestar la garganta <mark>para que cobrasen vida</mark></td></tr>
+<tr><td>Condicional</td><td>si, siempre que</td><td><mark>Si lees</mark>, aprenderás</td></tr>
+<tr><td>Concesiva</td><td>aunque, a pesar de que</td><td><mark>Aunque es tarde</mark>, sigo</td></tr>
+<tr><td>Consecutiva</td><td>así que, luego, tan/tanto… que</td><td>una práctica <mark>tan</mark> insólita <mark>que merecía…</mark></td></tr>
+<tr><td>Comparativa</td><td>más/menos/tan… que/como</td><td>Lee <mark>más que yo</mark></td></tr>
+</table></div>
+<p>Las consecutivas con <i>tan… que</i> o <i>tanto… que</i> se llaman <b>intensivas</b>. La RAE las analiza como complemento del cuantificador <i>tan</i>, y la tradición escolar como subordinadas adverbiales consecutivas. Menciona las dos posturas en la oposición.</p>
+<h3>Las construcciones de infinitivo, gerundio y participio</h3>
+<ul class="clean">
+<li><b>Infinitivo</b> → valor de sustantivo (sujeto, CD, término de preposición). <span class="ex">sin <mark>emitir un solo sonido</mark></span></li>
+<li><b>Gerundio</b> → valor adverbial, casi siempre CC de modo o tiempo. <span class="ex"><mark>moviendo únicamente los ojos</mark></span></li>
+<li><b>Participio</b> → valor adjetival, CN o CPred. <span class="ex"><mark>Terminada la clase</mark>, salimos</span></li>
+</ul>
+<h3>Los tres «que»</h3>
+<div class="tbl"><table>
+<tr><th>Tipo</th><th>Cómo saberlo</th><th>Ejemplo</th></tr>
+<tr><td>Conjunción completiva</td><td>No tiene antecedente ni función, la proposición se cambia por «eso»</td><td>cuenta <mark>que</mark> vio</td></tr>
+<tr><td>Pronombre relativo</td><td>Tiene antecedente, se cambia por «el cual» y cumple función</td><td>la lectura <mark>que</mark> conocemos</td></tr>
+<tr><td>Conjunción consecutiva</td><td>Va detrás de tan, tanto, tal</td><td>tan insólita <mark>que</mark> merecía</td></tr>
+</table></div>
+`, q:[
+{q:"En «cuenta que vio a Ambrosio», la proposición «que vio a Ambrosio» es…",o:["Adjetiva","Sustantiva de CD","Adverbial causal","Coordinada"],a:1,e:"Se sustituye por eso (cuenta eso) y es lo que se cuenta, así que es sustantiva de CD."},
+{q:"En «la lectura que hoy conocemos», «que» es…",o:["Conjunción","Pronombre relativo","Conjunción consecutiva","Preposición"],a:1,e:"Tiene antecedente (lectura), se cambia por la cual y funciona como CD de conocemos."},
+{q:"«para que cobrasen vida» es…",o:["Final","Causal","Consecutiva","Sustantiva de CD"],a:0,e:"Introducida por para que, expresa la finalidad de prestar la garganta."},
+{q:"«donde nadie más puede entrar» (antecedente: espacio) es…",o:["Adverbial de lugar","Adjetiva o de relativo","Sustantiva","Coordinada"],a:1,e:"Tiene antecedente (espacio), así que donde es relativo y la proposición es adjetiva. Sin antecedente sería adverbial de lugar."},
+{q:"«es una conquista tardía, pero transformó…» son dos proposiciones…",o:["Coordinadas adversativas","Yuxtapuestas","Subordinadas concesivas","Coordinadas copulativas"],a:0,e:"Están al mismo nivel y la conjunción pero expresa oposición, por eso son coordinadas adversativas."},
+{q:"En «Leer significaba pronunciar en voz alta», «Leer» funciona como…",o:["CD","Sujeto","CC","Atributo"],a:1,e:"Es una proposición de infinitivo con valor sustantivo, y es aquello que significaba algo, por tanto el sujeto."},
+{q:"«que merecía ser registrada», detrás de «tan insólita», es…",o:["Relativa","Consecutiva","Final","Sustantiva de sujeto"],a:1,e:"El que va correlacionado con tan y expresa la consecuencia de la intensidad, es consecutiva intensiva."}
+]},
+
+/* ============ 5 MÉTODO ============ */
+{t:"5. Método de análisis", h:`
+<h2>El método, paso a paso</h2>
+<p class="lead">Sigue siempre el mismo orden. Así no te pierdes en frases largas y el tribunal ve un análisis ordenado.</p>
+<ol class="steps">
+<li><b>Lee la frase entera</b> y entiende qué dice.</li>
+<li><b>Subraya todas las formas verbales</b>, también infinitivos, gerundios y participios. Agrupa las perífrasis y los tiempos compuestos como un solo verbo.</li>
+<li><b>Rodea los nexos</b> (que, si, pero, para que, donde…) porque marcan dónde empieza cada proposición.</li>
+<li><b>Busca el verbo principal</b>, el que no depende de ningún nexo, y su sujeto.</li>
+<li><b>Delimita cada proposición con corchetes</b>, de la más grande a la más pequeña.</li>
+<li><b>Di qué función cumple cada proposición</b> respecto al verbo del que depende (CD, CC, CN…).</li>
+<li><b>Analiza por dentro cada proposición</b> igual que una oración simple, sintagma a sintagma.</li>
+<li><b>Redacta de lo general a lo particular</b>, primero el tipo de oración y sus grandes bloques, después cada sintagma con su categoría y su función.</li>
+</ol>
+<div class="tip"><b>En la oposición</b> explica tus decisiones cuando haya análisis alternativos, por ejemplo la construcción de <i>ver</i> + infinitivo. El tribunal valora que conozcas las dos posturas y justifiques la tuya.</div>
+<h3>Cómo empezar la respuesta</h3>
+<div class="box"><p>«Se trata de una oración compleja cuyo verbo principal es <i>cuenta</i>, con sujeto <i>San Agustín</i>. Su complemento directo es una proposición subordinada sustantiva introducida por la conjunción <i>que</i>, dentro de la cual aparecen construcciones de infinitivo y gerundio y una aposición que contiene una proposición consecutiva.»</p></div>
+`, q:[
+{q:"¿Cuál es el primer paso tras leer la frase?",o:["Buscar el sujeto","Localizar todas las formas verbales","Analizar los determinantes","Buscar los adjetivos"],a:1,e:"Contar los verbos te dice cuántas proposiciones hay, y es la base de todo lo demás."},
+{q:"¿Cómo se trata «han sido»?",o:["Como dos proposiciones","Como un solo núcleo verbal","Como verbo + CD","Se ignora"],a:1,e:"Los tiempos compuestos y las perífrasis cuentan como un único verbo."},
+{q:"El verbo principal es…",o:["El primero que aparece","El que no depende de ningún nexo","El más largo","Siempre un infinitivo"],a:1,e:"Las demás proposiciones dependen de él a través de nexos o de formas no personales."},
+{q:"¿En qué orden se redacta el análisis?",o:["De la palabra a la oración","De lo general a lo particular","Por orden alfabético","Primero los verbos, luego los sustantivos"],a:1,e:"Primero la estructura global, luego cada proposición y por último cada sintagma."}
+]},
+
+/* ============ 6 EXAMEN ============ */
+{t:"6. La frase del examen", special:"exam", h:`
+<h2>La frase del examen, capa a capa</h2>
+<p class="lead">Pulsa cada capa y mira qué parte se marca en la frase. Los verbos van subrayados.</p>
+<div class="sentence" id="sent"></div>
+<div class="layers" id="layers"></div>
+<div class="box layer-exp" id="lexp">Elige una capa para empezar.</div>
+<h3>Análisis completo</h3>
+<div class="box tree">
+<p>Oración compleja con un verbo principal (<i>cuenta</i>) cuyo CD es una proposición subordinada sustantiva.</p>
+<ul>
+<li><b>Sujeto</b> SN <i>San Agustín</i> (N <i>San Agustín</i>)</li>
+<li><b>Predicado verbal</b> <i>cuenta con asombro que vio…prodigio</i>
+ <ul>
+ <li><b>N</b> <i>cuenta</i></li>
+ <li><b>CC de modo</b> SPrep <i>con asombro</i> (E <i>con</i>, T SN con N <i>asombro</i>)</li>
+ <li><b>CD</b> Prop. sub. sustantiva <i>que vio…prodigio</i>
+  <ul>
+  <li><b>Nexo</b> <i>que</i>, conjunción completiva, sin función</li>
+  <li><b>Sujeto elíptico</b> él (San Agustín)</li>
+  <li><b>N</b> <i>vio</i></li>
+  <li><b>CD</b> <i>a Ambrosio de Milán</i> (SN con <i>a</i> de CD de persona, N <i>Ambrosio</i>, CN SPrep <i>de Milán</i>)</li>
+  <li><b>CPred del CD</b> Prop. sub. de infinitivo <i>leer sin emitir…los labios</i>, con sujeto implícito Ambrosio
+   <ul>
+   <li><b>N</b> <i>leer</i></li>
+   <li><b>CC de modo</b> SPrep <i>sin emitir un solo sonido</i>, con E <i>sin</i> y T prop. sub. sustantiva de infinitivo (N <i>emitir</i>, CD SN <i>un solo sonido</i> con Det <i>un</i>, Ady <i>solo</i>, N <i>sonido</i>)</li>
+   <li><b>CC de modo</b> Prop. sub. de gerundio <i>moviendo únicamente los ojos y los labios</i> (N <i>moviendo</i>, adverbio de foco <i>únicamente</i>, CD dos SN coordinados <i>los ojos</i> y <i>los labios</i> con nexo <i>y</i>)</li>
+   </ul></li>
+  <li><b>Aposición explicativa</b> referida a la acción de leer en silencio, SN <i>una práctica tan insólita…prodigio</i>
+   <ul>
+   <li><b>Det</b> <i>una</i>, <b>N</b> <i>práctica</i></li>
+   <li><b>CN</b> SAdj <i>tan insólita en su época…</i> con Cuant <i>tan</i>, N <i>insólita</i> y C. del adjetivo SPrep <i>en su época</i> (E <i>en</i>, T SN con Det <i>su</i> y N <i>época</i>)</li>
+   <li><b>Prop. sub. consecutiva intensiva</b> <i>que merecía ser registrada como un prodigio</i>, correlativa con <i>tan</i>
+    <ul>
+    <li><b>Nexo</b> <i>que</i>, conjunción consecutiva</li>
+    <li><b>Sujeto elíptico</b> la práctica</li>
+    <li><b>N</b> <i>merecía</i></li>
+    <li><b>CD</b> Prop. sub. sustantiva de infinitivo pasivo <i>ser registrada como un prodigio</i> (N <i>ser registrada</i>, CPred <i>como un prodigio</i>)</li>
+    </ul></li>
+   </ul></li>
+  </ul></li>
+ </ul></li>
+</ul>
+</div>
+<h3>Análisis alternativos que conviene citar</h3>
+<ul class="clean">
+<li>Con verbos de percepción (<i>ver, oír</i>) + infinitivo, algunos manuales analizan <i>a Ambrosio de Milán leer…</i> como un único CD formado por una proposición de infinitivo con sujeto propio.</li>
+<li>La RAE analiza la consecutiva intensiva como complemento del cuantificador <i>tan</i>.</li>
+<li><i>únicamente</i> puede aparecer como CC de modo en manuales tradicionales. La RAE lo llama adverbio de foco.</li>
+<li><i>en su época</i> puede analizarse como CC dentro del adjetivo o como complemento del adjetivo, esta segunda opción es la más habitual.</li>
+</ul>
+`, q:[
+{q:"¿Cuántas formas verbales hay en la frase?",o:["4","5","7","9"],a:2,e:"cuenta, vio, leer, emitir, moviendo, merecía y ser registrada. Ser registrada es un infinitivo pasivo y cuenta como una sola forma."},
+{q:"El sujeto de «vio» es…",o:["Ambrosio","San Agustín, elíptico","que","una práctica"],a:1,e:"La proposición depende de cuenta, cuyo sujeto es San Agustín, y es él quien vio a Ambrosio."},
+{q:"«que vio a Ambrosio… prodigio» cumple la función de…",o:["Sujeto de cuenta","CD de cuenta","CC de cuenta","CN de asombro"],a:1,e:"Es lo que San Agustín cuenta (cuenta eso), por tanto CD."},
+{q:"«moviendo únicamente los ojos y los labios» es…",o:["CD de leer","CC de modo de leer","Sujeto","CN de Ambrosio"],a:1,e:"Es una construcción de gerundio que explica cómo leía, con valor adverbial de modo."},
+{q:"¿Quién «merecía ser registrada»?",o:["San Agustín","Ambrosio","La práctica de leer en silencio","La época"],a:2,e:"El sujeto elíptico de merecía es la práctica, núcleo del SN en aposición."},
+{q:"«como un prodigio» funciona como…",o:["CC de modo","CPred","Atributo","CAg"],a:1,e:"Dice algo del sujeto (la práctica) con un verbo no copulativo en pasiva (ser registrada), así que es complemento predicativo."}
+]},
+
+/* ============ 7 SEMÁNTICA ============ */
+{t:"7. Polisemia y homonimia", h:`
+<h2>Polisemia y homonimia</h2>
+<p class="lead">Las dos tratan de palabras con varios significados. Lo que las separa es el origen.</p>
+<h3>Monosemia</h3>
+<p>Una palabra con un solo significado, frecuente en los tecnicismos (<i>fotosíntesis</i>, <i>hipotenusa</i>).</p>
+<h3>Polisemia</h3>
+<p>Una sola palabra, con un único origen, tiene varios significados relacionados entre sí, normalmente por metáfora o metonimia. El diccionario los recoge como acepciones de una misma entrada.</p>
+<div class="box"><p class="ex">hoja → de un árbol, de papel, de un cuchillo</p><p class="ex">garganta → parte del cuello, paso estrecho entre montañas</p><p class="ex">ratón → animal, aparato del ordenador</p><p class="ex">espacio, prodigio, lectura, pensamiento, voz, labios</p></div>
+<h3>Homonimia</h3>
+<p>Dos palabras distintas, de origen diferente y sin relación de significado, coinciden en su forma por azar de la evolución. El diccionario las pone en entradas separadas (vela¹, vela²).</p>
+<ul class="clean">
+<li><b>Homógrafas</b> → se escriben y pronuncian igual. <span class="ex">vela (cera, de velar) / vela (lona, de <i>velum</i>)</span>, <span class="ex">llama (fuego) / llama (animal)</span>, <span class="ex">vino (bebida) / vino (de venir)</span>, <span class="ex">haya (árbol) / haya (de haber)</span>, <span class="ex">como (adverbio) / como (de comer)</span>, <span class="ex">para (preposición) / para (de parar)</span>.</li>
+<li><b>Homófonas</b> → se pronuncian igual y se escriben distinto. <span class="ex">vaca / baca</span>, <span class="ex">tubo / tuvo</span>, <span class="ex">ola / hola</span>, <span class="ex">hierba / hierva</span>, <span class="ex">botar / votar</span>.</li>
+</ul>
+<div class="tip"><b>El criterio decisivo.</b> Mira la etimología y el diccionario. Una entrada con varias acepciones indica polisemia, varias entradas con número volado indican homonimia. Algunos manuales usan un criterio sincrónico y tratan como homonimia los casos en que el hablante ya no percibe relación (pensamiento como flor), pero en el examen conviene seguir el etimológico y citar el otro.</div>
+<h3>Por qué casi todo es polisemia</h3>
+<p>La polisemia es el estado normal del léxico, porque las palabras van ganando sentidos nuevos por extensión. La homonimia es rara y suele esconderse en palabras gramaticales y formas verbales, así que para encontrarla en un texto revisa preposiciones, adverbios y verbos conjugados.</p>
+<h3>Cómo responder en el examen</h3>
+<p>Define cada fenómeno, da el criterio que los distingue, pon ejemplos del texto con sus significados y justifica el origen en los casos de homonimia.</p>
+`, q:[
+{q:"«hoja» (de árbol, de papel, de cuchillo) es un caso de…",o:["Homonimia homógrafa","Polisemia","Homonimia homófona","Monosemia"],a:1,e:"Un solo origen y significados relacionados por semejanza de forma, es polisemia."},
+{q:"«vela» (de cera) y «vela» (de barco) son…",o:["Polisemia","Homonimia homógrafa","Homonimia homófona","Sinonimia"],a:1,e:"Tienen origen distinto (velar / latín velum) y se escriben igual, así que son homónimos homógrafos."},
+{q:"«tubo» y «tuvo» son…",o:["Homógrafas","Homófonas","Polisémicas","Parónimas"],a:1,e:"Suenan igual y se escriben distinto."},
+{q:"«como» adverbio y «como» de comer son…",o:["Polisemia","Homonimia homógrafa","Homonimia homófona","Monosemia"],a:1,e:"Vienen de quomodo y de comedere, orígenes distintos con la misma forma escrita."},
+{q:"«espacio» (extensión, programa de TV, intervalo de tiempo) es…",o:["Polisemia","Homonimia","Monosemia","Antonimia"],a:0,e:"Todos los sentidos proceden del latín spatium y están relacionados."},
+{q:"El criterio principal para distinguirlas es…",o:["La longitud de la palabra","El origen etimológico","La categoría gramatical","La frecuencia de uso"],a:1,e:"Mismo origen es polisemia, orígenes distintos es homonimia."},
+{q:"«llama» (fuego) y «llama» (animal) son…",o:["Polisemia","Homonimia homógrafa","Homonimia homófona","Sinonimia"],a:1,e:"La primera viene del latín flamma y la segunda del quechua, orígenes distintos con igual forma."}
+]},
+
+/* ============ 8 FORMACIÓN DE PALABRAS ============ */
+{t:"8. Formación de palabras", h:`
+<h2>Formación de palabras</h2>
+<p class="lead">Las palabras se construyen con piezas. Se trata de reconocerlas y decir cómo se han unido.</p>
+<h3>Las piezas</h3>
+<ul class="clean">
+<li><b>Lexema o raíz</b> → lleva el significado léxico. <span class="ex"><mark>pens</mark>amiento</span></li>
+<li><b>Morfemas flexivos</b> → género, número, persona, tiempo. No cambian la palabra. <span class="ex">niñ<mark>a</mark><mark>s</mark>, cant<mark>ábamos</mark></span></li>
+<li><b>Morfemas derivativos</b> → crean palabras nuevas. Son prefijos (delante) y sufijos (detrás). <span class="ex"><mark>des</mark>hacer, silenci<mark>oso</mark></span></li>
+<li><b>Interfijos</b> → piezas sin significado entre lexema y sufijo. <span class="ex">polv<mark>ar</mark>eda, caf<mark>et</mark>ería</span></li>
+</ul>
+<h3>Los procedimientos</h3>
+<div class="tbl"><table>
+<tr><th>Procedimiento</th><th>Cómo es</th><th>Ejemplos</th></tr>
+<tr><td>Derivación</td><td>Lexema + prefijo o sufijo</td><td>pensamiento, silencioso, panadero, deshacer</td></tr>
+<tr><td>Composición</td><td>Dos o más lexemas</td><td>sacacorchos, pelirrojo, bocacalle</td></tr>
+<tr><td>Parasíntesis</td><td>Prefijo y sufijo añadidos a la vez (si quitas uno, la palabra no existe), o composición + derivación</td><td>enrojecer, aterrizar, abotonar, quinceañero</td></tr>
+<tr><td>Acronimia</td><td>Unión de fragmentos de palabras</td><td>cantautor (cantante + autor)</td></tr>
+<tr><td>Siglas</td><td>Iniciales</td><td>ONU, ONG</td></tr>
+<tr><td>Acortamiento</td><td>Se suprime parte de la palabra</td><td>bici, profe, cine</td></tr>
+</table></div>
+<div class="tip"><b>Prueba de la parasíntesis.</b> En <i>enrojecer</i> no existen <i>*enrojo</i> ni <i>*rojecer</i>. Si quitas cualquiera de los dos afijos la palabra desaparece, por eso se añadieron a la vez.</div>
+<h3>El caso del examen, <i>pensamiento</i></h3>
+<div class="box"><p><b>pens-</b> lexema del verbo pensar + <b>-a-</b> vocal temática de la 1.ª conjugación + <b>-miento</b> sufijo derivativo que forma sustantivos de acción y efecto.</p><p>Es una palabra derivada por sufijación, un sustantivo deverbal (formado a partir de un verbo), masculino y singular. No hay composición porque tiene un solo lexema ni parasíntesis porque solo hay sufijo.</p></div>
+<p>Las palabras en <i>-mente</i> (<i>únicamente</i>) son un caso discutido. La tradición las considera derivadas y la RAE las trata como compuestos especiales, porque <i>-mente</i> procede de un sustantivo latino y conserva cierta independencia.</p>
+`, q:[
+{q:"«enrojecer» es…",o:["Derivada","Compuesta","Parasintética","Acrónimo"],a:2,e:"Prefijo en- y sufijo -ecer se añaden a la vez a rojo, porque no existen *enrojo ni *rojecer."},
+{q:"«sacacorchos» es…",o:["Derivada","Compuesta","Parasintética","Sigla"],a:1,e:"Une dos lexemas, saca (de sacar) y corchos."},
+{q:"«silencioso» es…",o:["Derivada","Compuesta","Parasintética","Simple"],a:0,e:"Lexema silenci- + sufijo derivativo -oso."},
+{q:"El sufijo de «pensamiento» es…",o:["-to","-miento","pens-","-a-"],a:1,e:"-miento forma sustantivos de acción y efecto a partir de verbos. La -a- es la vocal temática."},
+{q:"«cantautor» es…",o:["Sigla","Acrónimo","Acortamiento","Parasintética"],a:1,e:"Une el principio de cantante y el final de autor."},
+{q:"En «niñas», «-a» y «-s» son…",o:["Morfemas derivativos","Morfemas flexivos","Interfijos","Lexemas"],a:1,e:"Indican género y número y no crean una palabra nueva, así que son flexivos."}
+]},
+
+/* ============ 9 PRAGMÁTICA ============ */
+{t:"9. Intertextualidad y pragmática", h:`
+<h2>Intertextualidad y pragmática</h2>
+<p class="lead">La pragmática estudia lo que comunicamos más allá de las palabras, gracias al contexto y a lo que sabe quien escucha.</p>
+<h3>Conceptos básicos</h3>
+<ul class="clean">
+<li><b>Contexto</b> → todo lo que rodea al mensaje, la situación, lo dicho antes y los conocimientos compartidos.</li>
+<li><b>Presuposición</b> → lo que se da por supuesto y sigue siendo verdad aunque se niegue la frase. <span class="ex">«Ha dejado de fumar» presupone que fumaba.</span></li>
+<li><b>Implicatura</b> → lo que el oyente deduce sin que se diga. Paul Grice la explica con el <b>principio de cooperación</b> y cuatro máximas, cantidad (di lo necesario), cualidad (di la verdad), relación (sé pertinente) y manera (sé claro). Cuando parece que alguien incumple una máxima, el oyente busca un sentido añadido.</li>
+</ul>
+<div class="box"><p class="ex">—¿Vienes al cine? —Tengo examen mañana.</p><p>La respuesta parece fuera de tema, pero el oyente deduce «no voy». Eso es una implicatura.</p></div>
+<h3>Intertextualidad</h3>
+<p>Es la presencia de un texto dentro de otro. El término lo acuñó Julia Kristeva (1967) a partir del dialogismo de Bajtín, y Gérard Genette lo sistematizó dentro de la transtextualidad, donde la intertextualidad incluye la <b>cita</b> (literal y marcada), el <b>plagio</b> (literal sin marcar) y la <b>alusión</b> (referencia indirecta que el lector debe reconocer).</p>
+<p>Desde la pragmática, la intertextualidad funciona porque autor y lector comparten un saber cultural. El autor menciona poco y el lector completa el resto, así que cada referencia activa implicaturas.</p>
+<h3>Aplicado al texto</h3>
+<div class="box"><p>El fragmento alude a las <i>Confesiones</i> de San Agustín, donde cuenta su sorpresa al ver leer en silencio a Ambrosio de Milán. La obra no se nombra, y el lector culto la reconoce.</p>
+<p><b>Implicaturas que activa</b> → el testimonio viene de una autoridad histórica fiable, la lectura silenciosa fue una rareza en su época, lo que hoy parece natural tiene historia, y la palabra <i>prodigio</i> conecta con el ambiente religioso del autor citado.</p>
+<p><b>Finalidad</b> → dar credibilidad a la tesis (argumento de autoridad), provocar extrañeza ante un hábito cotidiano y crear complicidad con quien lee, que en ese momento hace justo lo que describe el texto.</p></div>
+<div class="tip"><b>Estructura de la respuesta.</b> Define intertextualidad, explica su base pragmática (conocimiento compartido e implicatura), localiza las referencias del texto, di qué infiere el lector y termina con la finalidad.</div>
+`, q:[
+{q:"¿Quién acuñó el término «intertextualidad»?",o:["Grice","Julia Kristeva","Saussure","Chomsky"],a:1,e:"Kristeva lo propuso en 1967 a partir de las ideas de Bajtín."},
+{q:"«Ha dejado de fumar» presupone…",o:["Que fuma","Que fumaba","Que nunca fumó","Nada"],a:1,e:"Aunque se niegue (no ha dejado de fumar), sigue dándose por hecho que fumaba antes."},
+{q:"«—¿Vienes? —Tengo examen.» Deducir «no voy» es…",o:["Una presuposición","Una implicatura","Una cita","Un plagio"],a:1,e:"Es información que no se dice y el oyente infiere aplicando el principio de cooperación."},
+{q:"La referencia a San Agustín en el texto es sobre todo…",o:["Una cita literal","Una alusión","Un plagio","Una paráfrasis marcada"],a:1,e:"Remite a un episodio que el lector debe reconocer, sin reproducir sus palabras ni nombrar la obra."},
+{q:"Una función de esa referencia es…",o:["Decorar el texto","Aportar autoridad a la tesis","Contradecir al autor","Cambiar de tema"],a:1,e:"El testimonio de una figura histórica hace más creíble que la lectura silenciosa fue una conquista tardía."}
+]}
+];
+
+/* ============ frase interactiva ============ */
+const SEG = [
+ ["San Agustín","suj"],[" ",""],["cuenta","vb nuc"],[" ",""],["con asombro","ccm"],[" ",""],
+ ["que","sub"],[" ","sub"],["vio","sub vb"],[" ","sub"],["a Ambrosio de Milán","sub cdv"],[" ","sub"],
+ ["leer","sub vb inf"],[" ","sub inf"],["sin","sub inf sin"],[" ","sub inf sin"],["emitir","sub inf sin vb"],[" un solo sonido","sub inf sin"],
+ [", ","sub inf"],["moviendo","sub inf ger vb"],[" únicamente los ojos y los labios","sub inf ger"],[", ","sub"],
+ ["una práctica tan insólita en su época","sub apo"],[" ","sub apo"],["que","sub apo con"],[" ","sub apo con"],["merecía","sub apo con vb"],[" ","sub apo con"],
+ ["ser registrada","sub apo con vb reg"],[" como un prodigio","sub apo con reg"],[".",""]
+];
+const LAY = [
+ ["vb","Verbos","Hay siete formas verbales, cuenta, vio, leer, emitir, moviendo, merecía y ser registrada. El verbo principal es cuenta, el único que no depende de nada."],
+ ["suj","Sujeto","San Agustín es el sujeto de cuenta. Si decimos «San Agustín y Mónica cuentan», el verbo cambia con él."],
+ ["ccm","CC de modo","con asombro indica cómo lo cuenta. Es un SPrep con enlace con y término asombro."],
+ ["sub","CD (sustantiva)","Todo lo que va desde que hasta el final es lo que San Agustín cuenta. Se sustituye por «eso» (cuenta eso), así que es una proposición subordinada sustantiva de CD con el nexo que."],
+ ["cdv","CD de vio","a Ambrosio de Milán es el CD de vio (lo vio). Lleva a porque es un CD de persona."],
+ ["inf","Infinitivo","leer sin emitir… labios dice qué hacía Ambrosio cuando lo vio. Es una proposición de infinitivo en función de complemento predicativo del CD, con Ambrosio como sujeto implícito."],
+ ["sin","sin + infinitivo","sin emitir un solo sonido es CC de modo de leer. La preposición sin lleva como término una proposición de infinitivo cuyo CD es un solo sonido."],
+ ["ger","Gerundio","moviendo únicamente los ojos y los labios explica cómo leía. Es una construcción de gerundio con valor de CC de modo, y su CD son dos SN coordinados."],
+ ["apo","Aposición","una práctica tan insólita… prodigio resume y valora la acción de leer en silencio. Es un SN en aposición explicativa con núcleo práctica."],
+ ["con","Consecutiva","que merecía… prodigio expresa la consecuencia de lo insólita que era la práctica. Va correlacionada con tan y es una proposición consecutiva intensiva."],
+ ["reg","CD de merecía","ser registrada como un prodigio es lo que merecía (lo merecía). Es una proposición de infinitivo pasivo en función de CD, con como un prodigio de complemento predicativo."]
+];
+
+/* ============ estado ============ */
+const KEY="lengua-oposiciones-v1";
+let st={cur:0,done:{},scores:{}};
+try{const s=localStorage.getItem(KEY); if(s) st=Object.assign(st,JSON.parse(s));}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
+
+const tabs=document.getElementById("tabs"), main=document.getElementById("main"), prog=document.getElementById("prog");
+
+function renderTabs(){
+ tabs.innerHTML="";
+ M.forEach((m,i)=>{
+  const b=document.createElement("button");
+  b.innerHTML=m.t+(st.done[i]?'<span class="d" aria-label="completado"></span>':"");
+  b.setAttribute("aria-current",i===st.cur?"true":"false");
+  b.onclick=()=>go(i);
+  tabs.appendChild(b);
+  if(i===st.cur) setTimeout(()=>b.scrollIntoView({inline:"center",block:"nearest"}),0);
+ });
+ const n=Object.keys(st.done).length;
+ prog.textContent=n+" de "+M.length+" temas";
+}
+function go(i){st.cur=i;save();render();window.scrollTo(0,0);}
+
+function render(){
+ renderTabs();
+ const m=M[st.cur];
+ main.innerHTML=m.h+quizHTML(st.cur)+pager();
+ if(m.special==="exam") buildSentence();
+ bindQuiz(st.cur);
+}
+function pager(){
+ const p=st.cur>0?`<button class="btn" onclick="go(${st.cur-1})">Tema anterior</button>`:"<span></span>";
+ const n=st.cur<M.length-1?`<button class="btn solid" onclick="go(${st.cur+1})">Siguiente tema</button>`:"<span></span>";
+ return `<div class="pager">${p}${n}</div>`;
+}
+function quizHTML(mi){
+ const qs=M[mi].q;
+ let h=`<section class="quiz"><h3>Practica</h3><div class="score"><span id="sc">Responde las ${qs.length} preguntas</span><button class="btn" id="rst">Repetir</button></div>`;
+ qs.forEach((q,i)=>{
+  h+=`<div class="q" data-i="${i}"><p class="qt">${i+1}. ${q.q}</p><div class="opts">`+
+   q.o.map((o,j)=>`<button data-j="${j}">${o}</button>`).join("")+`</div><div class="fb"></div></div>`;
+ });
+ return h+"</section>";
+}
+function bindQuiz(mi){
+ const qs=M[mi].q; let answered=0, right=0;
+ const sc=document.getElementById("sc");
+ document.querySelectorAll(".q").forEach(el=>{
+  const q=qs[+el.dataset.i], fb=el.querySelector(".fb");
+  el.querySelectorAll(".opts button").forEach(b=>{
+   b.onclick=()=>{
+    const j=+b.dataset.j;
+    el.querySelectorAll(".opts button").forEach(x=>x.disabled=true);
+    el.querySelector(`[data-j="${q.a}"]`).classList.add("right");
+    if(j===q.a){right++;fb.innerHTML="<b>Correcto.</b> "+q.e;}
+    else{b.classList.add("wrong");fb.innerHTML="<b>La respuesta es «"+q.o[q.a]+"».</b> "+q.e;}
+    fb.classList.add("show"); answered++;
+    sc.textContent=right+" de "+answered+" correctas";
+    if(answered===qs.length){
+     st.scores[mi]=right;
+     if(right/qs.length>=0.8){st.done[mi]=true;sc.textContent=right+" de "+qs.length+", tema superado";}
+     else sc.textContent=right+" de "+qs.length+". Repasa la teoría y repite, se supera con un 80 %";
+     save();renderTabs();
+    }
+   };
+  });
+ });
+ document.getElementById("rst").onclick=()=>render();
+}
+function buildSentence(){
+ const s=document.getElementById("sent");
+ s.innerHTML=SEG.map(([t,c])=>`<span class="${c}">${t}</span>`).join("");
+ s.querySelectorAll(".vb").forEach(x=>x.classList.add("vb"));
+ const L=document.getElementById("layers"), exp=document.getElementById("lexp");
+ LAY.forEach(([k,lab,tx])=>{
+  const b=document.createElement("button"); b.textContent=lab; b.setAttribute("aria-pressed","false");
+  b.onclick=()=>{
+   L.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed","false"));
+   b.setAttribute("aria-pressed","true");
+   s.querySelectorAll("span").forEach(sp=>sp.classList.toggle("on",sp.classList.contains(k)));
+   exp.textContent=tx;
+  };
+  L.appendChild(b);
+ });
+}
+render();
+</script>
+</body>
+</html>
