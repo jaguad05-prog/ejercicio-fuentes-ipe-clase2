@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Estantería de entregas v25</title>
+<title>Estantería de entregas v26</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
@@ -314,6 +314,27 @@
   .audio-ficha .af-cab button{border:0;background:#EEF5F0;color:#1E7A45;border-radius:6px;width:24px;height:22px;
     font-size:14px;line-height:1;cursor:pointer}
   .audio-ficha audio{width:100%;display:block}
+  /* ficha de corrección al lado de la entrega */
+  .ficha-panel{position:fixed;right:24px;top:70px;z-index:9998;width:380px;max-height:calc(100vh - 200px);
+    display:flex;flex-direction:column;background:#FBF7EC;color:#14211F;border-radius:12px;
+    border-left:5px solid #C8102E;box-shadow:0 8px 26px rgba(0,0,0,.35);font-family:Arial,Helvetica,sans-serif}
+  .ficha-panel[hidden]{display:none}
+  .ficha-panel .fp-cab{display:flex;align-items:center;gap:6px;padding:9px 10px;cursor:move;user-select:none;
+    border-bottom:1px solid #E2DED4}
+  .ficha-panel .fp-cab b{flex:1;font-size:12px;letter-spacing:.05em;color:#8A3626;text-transform:uppercase}
+  .ficha-panel .fp-cab button{border:0;background:#F1E6DA;color:#8A3626;border-radius:6px;min-width:26px;height:24px;
+    font-size:13px;line-height:1;cursor:pointer;box-shadow:none;padding:0 6px}
+  .ficha-panel .fp-cuerpo{overflow:auto;padding:10px 12px 14px}
+  .ficha-panel.mini{width:auto}
+  .ficha-panel.mini .fp-cuerpo{display:none}
+  .ficha-panel .fp-crit{margin-bottom:12px}
+  .ficha-panel .fp-crit h4{margin:0 0 4px;font-size:13.5px}
+  .ficha-panel details{font-size:12px;color:#555;margin:0 0 5px}
+  .ficha-panel summary{cursor:pointer;color:#8A3626}
+  .ficha-panel details ul{margin:4px 0 0;padding-left:18px;line-height:1.4}
+  .ficha-panel textarea{width:100%;min-height:52px;font-family:inherit;font-size:13px;line-height:1.4;
+    border:1px solid #D9D2C5;border-radius:6px;padding:6px 7px;resize:vertical;background:#fff;color:#14211F}
+  .ficha-panel textarea:focus{outline:none;border-color:#C8102E}
   .audio-ficha.mini{width:auto;padding:6px 8px}
   .audio-ficha.mini audio{display:none}
   .audio-ficha.mini .af-cab{margin-bottom:0}
@@ -368,7 +389,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v25</span></h1>
+  <h1>Estantería de entregas <span class="version">v26</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -463,6 +484,16 @@
         <button class="btn" id="addCorr">+ Añadir comentario</button>
       </aside>
     </div>
+    <div class="ficha-panel" id="fichaPanel" hidden>
+      <div class="fp-cab" id="fichaCab" title="Arrastra para moverla">
+        <b id="fichaTit">Ficha de corrección</b>
+        <button id="fichaCambiar" title="Cargar otra ficha">Cambiar</button>
+        <button id="fichaQuitar" title="Quitar la ficha">Quitar</button>
+        <button id="fichaMin" title="Encoger o desplegar">–</button>
+      </div>
+      <div class="fp-cuerpo" id="fichaCuerpo"></div>
+    </div>
+    <input type="file" id="inFicha" accept=".docx,.json" hidden>
     <div class="audio-ficha" id="audioFicha" hidden>
       <div class="af-cab" id="audioFichaCab" title="Arrastra para moverlo">
         <b>♪ AUDIO DE LA ENTREGA</b>
@@ -490,6 +521,7 @@
     <span class="sep"></span>
     <button class="fantasma" id="tDeshacer">Deshacer</button>
     <button class="fantasma" id="tLimpiar">Quitar marcas</button>
+    <button class="fantasma" id="tFicha" title="Abre una ficha de corrección al lado de la entrega">Ficha de corrección</button>
     <span class="sep"></span>
     <button id="tGuardar">Guardar corregida</button>
     <button class="fantasma" id="tGuardarTodas">Guardar todas</button>
@@ -1186,6 +1218,7 @@ async function dibujarPagina(){
   const au = $('repAudio'), vi = $('repVideo');
   au.pause(); vi.pause();
   mostrarAudioFicha(null);
+  pintarFicha();
   $('tVisto').textContent = o.visto ? '\u2713 Vista (quitar la marca)' : 'Marcar como vista';
   $('tVisto').classList.toggle('activo', !!o.visto);
 
@@ -1458,6 +1491,174 @@ function mostrarAudioFicha(src){
   });
   if(c.classList.contains('mini')) min.textContent = '+';
   window.addEventListener('resize', () => { if(!c.hidden) dentro(); });
+})();
+
+/* ------------------ ficha de corrección
+   Se carga un Word (.docx) o un .json con los apartados. Por cada entrega se
+   escribe un comentario en cada apartado y al guardar sale un html aparte. */
+let fichaDef = null, fichaAbierta = false, fichaTimer = null;
+(async () => { try{ fichaDef = (await leerDe('config', 'fichaCorreccion')) || null; }catch(e){} })();
+
+function textoP(p){
+  return [...p.getElementsByTagName('w:t')].map(t => t.textContent).join('').trim();
+}
+async function leerFicha(file){
+  const nombre = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ');
+  if(/\.json$/i.test(file.name)){
+    const j = JSON.parse(await file.text());
+    if(!j || !Array.isArray(j.criterios) || !j.criterios.length) throw new Error('El .json no tiene apartados');
+    return {titulo: j.titulo || nombre, criterios: j.criterios.map(c => ({titulo: String(c.titulo || ''), mirar: (c.mirar || []).map(String)}))};
+  }
+  const zip = await JSZip.loadAsync(file);
+  const xml = await zip.file('word/document.xml').async('string');
+  const doc = new DOMParser().parseFromString(xml, 'application/xml');
+  const criterios = [];
+  const esApartado = t => /^\s*\d+\s*[.)]/.test(t);
+  // Primero, tablas cuya primera celda empieza por «1.», «2.»…
+  [...doc.getElementsByTagName('w:tr')].forEach(tr => {
+    const tc = tr.getElementsByTagName('w:tc')[0];
+    if(!tc) return;
+    const ps = [...tc.getElementsByTagName('w:p')].map(textoP).filter(Boolean);
+    if(ps.length && esApartado(ps[0])) criterios.push({titulo: ps[0], mirar: ps.slice(1)});
+  });
+  // Si no hay tablas así, párrafos que empiezan por número y lo que va debajo
+  if(!criterios.length){
+    let actual = null;
+    [...doc.getElementsByTagName('w:p')].map(textoP).filter(Boolean).forEach(t => {
+      if(esApartado(t)){ actual = {titulo: t, mirar: []}; criterios.push(actual); }
+      else if(actual) actual.mirar.push(t);
+    });
+  }
+  if(!criterios.length) throw new Error('No encuentro apartados numerados (1., 2., 3.…) en el Word');
+  // Título: el primer párrafo con letra grande, o el nombre del archivo
+  let titulo = nombre;
+  for(const p of doc.getElementsByTagName('w:p')){
+    const sz = p.getElementsByTagName('w:sz')[0];
+    const t = textoP(p);
+    if(t && sz && +sz.getAttribute('w:val') >= 30){ titulo = t; break; }
+  }
+  return {titulo, criterios};
+}
+
+function respFicha(o){
+  const k = o.clave + ':ficha';
+  if(!textos.has(k)) textos.set(k, []);
+  return textos.get(k);
+}
+function pintarFicha(){
+  const panel = $('fichaPanel');
+  const o = obras[vIdx];
+  if(!fichaDef || !fichaAbierta || !o){ panel.hidden = true; return; }
+  panel.hidden = false;
+  $('fichaTit').textContent = fichaDef.titulo;
+  const r = respFicha(o);
+  const cuerpo = $('fichaCuerpo');
+  cuerpo.innerHTML = '';
+  const bloques = fichaDef.criterios.map((c, i) => ({c: i, titulo: c.titulo, mirar: c.mirar}))
+    .concat([{c: 'g', titulo: 'Comentario general', mirar: []}]);
+  bloques.forEach(b => {
+    const div = document.createElement('div');
+    div.className = 'fp-crit';
+    const h = document.createElement('h4'); h.textContent = b.titulo; div.appendChild(h);
+    if(b.mirar.length){
+      const det = document.createElement('details');
+      const sm = document.createElement('summary'); sm.textContent = 'Qué mirar'; det.appendChild(sm);
+      const ul = document.createElement('ul');
+      b.mirar.forEach(m => { const li = document.createElement('li'); li.textContent = m; ul.appendChild(li); });
+      det.appendChild(ul); div.appendChild(det);
+    }
+    const ta = document.createElement('textarea');
+    const previo = r.find(x => x.c === b.c);
+    ta.value = previo ? previo.txt : '';
+    ta.placeholder = 'Tu comentario…';
+    ta.addEventListener('keydown', e => e.stopPropagation());
+    ta.addEventListener('input', () => {
+      const txt = ta.value;
+      let d = r.find(x => x.c === b.c);
+      if(!d){ d = {c: b.c, titulo: b.titulo, txt: ''}; r.push(d); }
+      d.txt = txt; d.titulo = b.titulo;
+      for(let j = r.length - 1; j >= 0; j--) if(!r[j].txt.trim()) r.splice(j, 1);
+      clearTimeout(fichaTimer);
+      fichaTimer = setTimeout(() => persistirMarcas(o), 600);
+    });
+    div.appendChild(ta);
+    cuerpo.appendChild(div);
+  });
+}
+function componerRespuestasFicha(o){
+  const r = (textos.get(o.clave + ':ficha') || []).filter(d => d.txt && d.txt.trim());
+  if(!r.length) return null;
+  const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const orden = d => d.c === 'g' ? 1e9 : +d.c;
+  const filas = r.slice().sort((a, b) => orden(a) - orden(b)).map(d =>
+    '<section><h3>' + esc(d.titulo) + '</h3><p>' + esc(d.txt).replace(/\n/g, '<br>') + '</p></section>').join('');
+  const tit = fichaDef ? fichaDef.titulo : 'Ficha de corrección';
+  const html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">' +
+    '<meta name="viewport" content="width=device-width,initial-scale=1"><title>Ficha de corrección · ' + esc(tit) + '</title>' +
+    '<style>body{margin:0;background:#F5F1E8;font-family:Arial,Helvetica,sans-serif;color:#14211F}' +
+    '.h{max-width:760px;margin:24px auto;background:#fff;border-radius:12px;border-left:6px solid #C8102E;padding:22px 26px;box-shadow:0 4px 18px rgba(0,0,0,.08)}' +
+    '.k{font-size:11px;letter-spacing:.08em;color:#C8102E;font-weight:700}h1{margin:4px 0 16px;font-size:24px}' +
+    'h3{margin:14px 0 4px;font-size:15px;color:#8A3626}p{margin:0;font-size:14.5px;line-height:1.55}</style></head>' +
+    '<body><div class="h"><div class="k">FICHA DE CORRECCIÓN</div><h1>' + esc(tit) + '</h1>' + filas + '</div></body></html>';
+  return new Blob([html], {type: 'text/html'});
+}
+async function guardarFichaDe(o, idx, dir, dm){
+  const blob = componerRespuestasFicha(o);
+  if(!blob) return false;
+  const nombre = nombreSalida(o, idx, 1, 1).replace(/\.png$/, '_ficha.html');
+  if(dir){
+    await escribirEn(dir, nombre, blob);
+    if(dm) await escribirEn(dm, 'corregida_' + o.archivo.replace(/\.[^.]+$/, '') + '_ficha.html', blob);
+  }else bajarSuelta(nombre, blob);
+  return true;
+}
+
+$('tFicha').addEventListener('click', () => {
+  if(!fichaDef){ $('inFicha').click(); return; }
+  fichaAbierta = !fichaAbierta;
+  pintarFicha();
+});
+$('fichaCambiar').addEventListener('click', () => $('inFicha').click());
+$('fichaQuitar').addEventListener('click', async () => {
+  if(!confirm('¿Quitar la ficha? Los comentarios que ya has escrito se conservan.')) return;
+  fichaDef = null; fichaAbierta = false;
+  try{ await borrarDe('config', 'fichaCorreccion'); }catch(e){}
+  pintarFicha();
+});
+$('inFicha').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if(!f) return;
+  try{
+    fichaDef = await leerFicha(f);
+    try{ await guardarEn('config', 'fichaCorreccion', fichaDef); }catch(err){}
+    fichaAbierta = true;
+    pintarFicha();
+  }catch(err){
+    alert('No he podido leer la ficha.\n\n' + (err.message || err));
+  }
+});
+$('fichaMin').addEventListener('click', () => {
+  const p = $('fichaPanel');
+  p.classList.toggle('mini');
+  $('fichaMin').textContent = p.classList.contains('mini') ? '+' : '–';
+});
+(function(){
+  const c = $('fichaPanel'), cab = $('fichaCab');
+  let dx = 0, dy = 0, arr = false;
+  cab.addEventListener('pointerdown', ev => {
+    if(ev.target.tagName === 'BUTTON') return;
+    const r = c.getBoundingClientRect();
+    dx = ev.clientX - r.left; dy = ev.clientY - r.top; arr = true;
+    cab.setPointerCapture(ev.pointerId); ev.preventDefault();
+  });
+  cab.addEventListener('pointermove', ev => {
+    if(!arr) return;
+    const x = Math.min(Math.max(0, ev.clientX - dx), window.innerWidth - 120);
+    const y = Math.min(Math.max(0, ev.clientY - dy), window.innerHeight - 40);
+    c.style.left = x + 'px'; c.style.top = y + 'px'; c.style.right = 'auto';
+  });
+  cab.addEventListener('pointerup', () => { arr = false; });
 })();
 
 function cerrar(){
@@ -2080,6 +2281,7 @@ $('tGuardar').addEventListener('click', async () => {
       if(dm) aviso += ' y en «' + CARPETA_MOODLE + '»';
       if(dm) await escribirEn(dm, 'corregida_' + o.archivo.replace(/\.[^.]+$/, '') +
                                ((esFicha || esMedia) ? '.html' : '.png'), blob);
+      if(await guardarFichaDe(o, vIdx, dir, dm)) aviso += ', con la ficha';
       $('vPos').textContent = aviso;
       return;
     }catch(err){
@@ -2087,6 +2289,7 @@ $('tGuardar').addEventListener('click', async () => {
     }
   }
   bajarSuelta(nombre, blob);
+  await guardarFichaDe(o, vIdx, null, null);
 });
 
 $('tGuardarTodas').addEventListener('click', async () => {
@@ -2113,6 +2316,7 @@ $('tGuardarTodas').addEventListener('click', async () => {
       .map(k => +k.slice(o.clave.length + 1))
       .sort((a, b) => a - b);
     if(!paginas.length) paginas.push(1);
+    await guardarFichaDe(o, i, dir, dir ? await carpetaDeAlumno(o) : null);
     if(o.tipo === 'web' || ES_MEDIA(o.tipo)){
       const blob = o.tipo === 'web' ? await componerFicha(o) : await componerMedia(o);
       const nombre = nombreSalida(o, i, 1, 1).replace(/\.png$/, '.html');
