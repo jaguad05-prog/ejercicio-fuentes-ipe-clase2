@@ -296,6 +296,13 @@
     input[type=search]{width:100%}
     .controles{width:100%}
   }
+  /* audio que viene dentro de una ficha html (corte de radio) */
+  .audio-ficha{position:fixed;left:16px;bottom:16px;z-index:9999;background:#fff;border:1px solid #E2DED4;
+    border-left:5px solid #1E7A45;border-radius:12px;padding:10px 12px;width:320px;
+    box-shadow:0 6px 20px rgba(0,0,0,.18);font-family:Arial,Helvetica,sans-serif}
+  .audio-ficha[hidden]{display:none}
+  .audio-ficha b{display:block;font-size:11px;letter-spacing:.06em;color:#1E7A45;margin-bottom:6px}
+  .audio-ficha audio{width:100%;display:block}
 </style>
 <script>
 /* ── Guardar archivos también en iPhone, iPad y Mac ── */
@@ -441,6 +448,10 @@
         <ol id="listaCorr"></ol>
         <button class="btn" id="addCorr">+ Añadir comentario</button>
       </aside>
+    </div>
+    <div class="audio-ficha" id="audioFicha" hidden>
+      <b>AUDIO DE LA ENTREGA</b>
+      <audio id="audioFichaRep" controls preload="metadata"></audio>
     </div>
     <div class="reproductor" id="reproductor" hidden>
       <div class="onda" id="ondaFondo"></div>
@@ -1110,6 +1121,7 @@ async function dibujarPagina(){
 
   const au = $('repAudio'), vi = $('repVideo');
   au.pause(); vi.pause();
+  mostrarAudioFicha(null);
   $('tVisto').textContent = o.visto ? '\u2713 Vista (quitar la marca)' : 'Marcar como vista';
   $('tVisto').classList.toggle('activo', !!o.visto);
 
@@ -1158,6 +1170,7 @@ async function dibujarPagina(){
   }
   modoMedia(false);
   au.removeAttribute('src'); vi.removeAttribute('src');
+  if(o.tipo === 'web') mostrarAudioFicha(await audioDeFicha(o));
 
   if(o.tipo === 'img' || o.tipo === 'web'){
     vTotalPag = 1;
@@ -1321,7 +1334,26 @@ function guardarAnotacion(){
   persistirMarcas(obras[vIdx]);
 }
 
+/* Las fichas html (cinco formatos) llevan el corte de radio dentro, en base64.
+   Al corregir la ficha se ve como imagen y el audio se pierde, así que lo
+   sacamos del archivo y lo ponemos en un reproductor aparte. */
+async function audioDeFicha(o){
+  if(o.audioFicha !== undefined) return o.audioFicha;
+  const t = await o.blob.text();
+  const m = t.match(/<audio\b[^>]*\ssrc="(data:(?:audio|video)\/[^"]+)"/i);
+  o.audioFicha = m ? m[1] : null;
+  return o.audioFicha;
+}
+function mostrarAudioFicha(src){
+  const c = $('audioFicha'), a = $('audioFichaRep');
+  a.pause();
+  if(!src){ c.hidden = true; a.removeAttribute('src'); return; }
+  if(a.getAttribute('src') !== src) a.src = src;
+  c.hidden = false;
+}
+
 function cerrar(){
+  mostrarAudioFicha(null);
   $('visor').classList.remove('abierto');
   $('repAudio').pause(); $('repVideo').pause();
   $('repAudio').removeAttribute('src'); $('repVideo').removeAttribute('src');
