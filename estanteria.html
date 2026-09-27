@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Estantería de entregas v22</title>
+<title>Estantería de entregas v23</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
@@ -297,12 +297,18 @@
     .controles{width:100%}
   }
   /* audio que viene dentro de una ficha html (corte de radio) */
-  .audio-ficha{position:fixed;left:16px;bottom:16px;z-index:9999;background:#fff;border:1px solid #E2DED4;
-    border-left:5px solid #1E7A45;border-radius:12px;padding:10px 12px;width:320px;
+  .audio-ficha{position:fixed;right:64px;top:72px;z-index:9999;background:#fff;border:1px solid #E2DED4;
+    border-left:5px solid #1E7A45;border-radius:12px;padding:8px 10px 10px;width:320px;
     box-shadow:0 6px 20px rgba(0,0,0,.18);font-family:Arial,Helvetica,sans-serif}
   .audio-ficha[hidden]{display:none}
-  .audio-ficha b{display:block;font-size:11px;letter-spacing:.06em;color:#1E7A45;margin-bottom:6px}
+  .audio-ficha .af-cab{display:flex;align-items:center;gap:6px;cursor:move;user-select:none;margin-bottom:6px}
+  .audio-ficha .af-cab b{flex:1;font-size:11px;letter-spacing:.06em;color:#1E7A45}
+  .audio-ficha .af-cab button{border:0;background:#EEF5F0;color:#1E7A45;border-radius:6px;width:24px;height:22px;
+    font-size:14px;line-height:1;cursor:pointer}
   .audio-ficha audio{width:100%;display:block}
+  .audio-ficha.mini{width:auto;padding:6px 8px}
+  .audio-ficha.mini audio{display:none}
+  .audio-ficha.mini .af-cab{margin-bottom:0}
 </style>
 <script>
 /* ── Guardar archivos también en iPhone, iPad y Mac ── */
@@ -354,7 +360,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v22</span></h1>
+  <h1>Estantería de entregas <span class="version">v23</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -450,7 +456,10 @@
       </aside>
     </div>
     <div class="audio-ficha" id="audioFicha" hidden>
-      <b>AUDIO DE LA ENTREGA</b>
+      <div class="af-cab" id="audioFichaCab" title="Arrastra para moverlo">
+        <b>♪ AUDIO DE LA ENTREGA</b>
+        <button id="audioFichaMin" title="Encoger o desplegar">–</button>
+      </div>
       <audio id="audioFichaRep" controls preload="metadata"></audio>
     </div>
     <div class="reproductor" id="reproductor" hidden>
@@ -1351,6 +1360,50 @@ function mostrarAudioFicha(src){
   if(a.getAttribute('src') !== src) a.src = src;
   c.hidden = false;
 }
+
+/* El reproductor se puede arrastrar por su cabecera y encoger, para que no tape
+   las herramientas. Recuerda dónde lo dejaste. */
+(function(){
+  const c = $('audioFicha'), cab = $('audioFichaCab'), min = $('audioFichaMin');
+  try{
+    const p = JSON.parse(localStorage.getItem('estanteriaAudioPos') || 'null');
+    if(p){ c.style.left = p.x + 'px'; c.style.top = p.y + 'px'; c.style.right = 'auto'; c.style.bottom = 'auto'; }
+    if(localStorage.getItem('estanteriaAudioMini') === '1') c.classList.add('mini');
+  }catch(e){}
+  function dentro(){
+    const r = c.getBoundingClientRect();
+    const x = Math.min(Math.max(0, r.left), window.innerWidth - r.width);
+    const y = Math.min(Math.max(0, r.top), window.innerHeight - r.height);
+    c.style.left = x + 'px'; c.style.top = y + 'px'; c.style.right = 'auto'; c.style.bottom = 'auto';
+    return {x, y};
+  }
+  let dx = 0, dy = 0, arrastrando = false;
+  cab.addEventListener('pointerdown', ev => {
+    if(ev.target === min) return;
+    const r = c.getBoundingClientRect();
+    dx = ev.clientX - r.left; dy = ev.clientY - r.top; arrastrando = true;
+    cab.setPointerCapture(ev.pointerId); ev.preventDefault();
+  });
+  cab.addEventListener('pointermove', ev => {
+    if(!arrastrando) return;
+    c.style.left = (ev.clientX - dx) + 'px'; c.style.top = (ev.clientY - dy) + 'px';
+    c.style.right = 'auto'; c.style.bottom = 'auto';
+  });
+  cab.addEventListener('pointerup', () => {
+    if(!arrastrando) return;
+    arrastrando = false;
+    const p = dentro();
+    try{ localStorage.setItem('estanteriaAudioPos', JSON.stringify(p)); }catch(e){}
+  });
+  min.addEventListener('click', () => {
+    c.classList.toggle('mini');
+    min.textContent = c.classList.contains('mini') ? '+' : '–';
+    try{ localStorage.setItem('estanteriaAudioMini', c.classList.contains('mini') ? '1' : '0'); }catch(e){}
+    dentro();
+  });
+  if(c.classList.contains('mini')) min.textContent = '+';
+  window.addEventListener('resize', () => { if(!c.hidden) dentro(); });
+})();
 
 function cerrar(){
   mostrarAudioFicha(null);
