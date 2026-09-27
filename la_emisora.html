@@ -80,6 +80,32 @@
   .toast{background:var(--dark);color:#fff;padding:12px 18px;border-radius:10px;font-size:13.5px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.3);opacity:0;transform:translateY(10px);transition:opacity .25s,transform .25s;text-align:center;line-height:1.4}
   .toast.show{opacity:1;transform:translateY(0)}
   .toast.warn{background:var(--red)}
+
+  /* CORTES */
+  .cortes-intro{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:14px}
+  .btn-add{display:inline-block;background:var(--dark);color:#fff;border:none;padding:12px 20px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+  .btn-add:hover{opacity:.9}
+  .corte{border:1.5px solid var(--border);border-radius:12px;padding:12px;margin-top:14px;background:#fff}
+  .corte-cab{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .corte-num{flex:0 0 28px;height:28px;border-radius:50%;background:var(--red);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
+  .corte-cab input{flex:1;min-width:0;border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;font-size:14px;font-family:inherit;font-weight:700;color:var(--ink)}
+  .corte-cab input:focus{outline:none;border-color:var(--red)}
+  .corte-del{border:none;background:none;color:var(--red);font-size:24px;line-height:1;cursor:pointer;padding:0 4px}
+  .onda{display:block;width:100%;height:78px;border-radius:8px;background:var(--bg);touch-action:none;cursor:ew-resize}
+  .corte-fila{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:9px;font-size:12.5px;color:var(--ink)}
+  .corte-fila label{display:flex;align-items:center;gap:5px;font-weight:600}
+  .corte-fila input[type=number]{width:74px;border:1.5px solid var(--border);border-radius:6px;padding:5px 6px;font-size:13px;font-family:inherit}
+  .corte-fila input[type=range]{width:110px;accent-color:var(--red)}
+  .corte-dur{font-weight:700;color:var(--red)}
+  .btn-oir{border:none;background:var(--gold);color:var(--dark);font-weight:700;border-radius:8px;padding:8px 14px;cursor:pointer;font-family:inherit;font-size:13px}
+  .cargando-corte{font-size:13px;color:var(--muted);margin-top:12px}
+  .directo-cortes{margin-top:18px;border-top:1px solid var(--border);padding-top:14px}
+  .directo-cortes h3{font-size:12px;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;text-align:center}
+  .directo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+  .btn-lanzar{position:relative;overflow:hidden;border:none;border-radius:12px;padding:16px 12px;background:var(--dark);color:#fff;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;text-align:left;line-height:1.3}
+  .btn-lanzar small{display:block;font-weight:400;opacity:.75;font-size:12px;margin-top:3px}
+  .btn-lanzar.sonando{background:var(--red)}
+  .btn-lanzar .barra{position:absolute;left:0;bottom:0;height:5px;background:var(--gold);width:0}
 </style>
 <script>
 /* ── Guardar archivos también en iPhone, iPad y Mac ── */
@@ -165,6 +191,14 @@ let finalBlobUrl = null;
 let finalBlob = null;
 
 let resetArmed = false;
+
+// Cortes de audio que suben los alumnos (declaraciones, audios de WhatsApp, sonido de vídeos)
+let cortes = [];          // {id, nombre, buffer, ini, fin, vol, suave, bajarMicro, picos}
+let cargandoCortes = 0;
+let disparos = [];        // {c, t, dur}: qué corte sonó y en qué segundo de la grabación
+let sonando = null;       // {src, g, d, inicioCtx}
+let recStart = 0;
+let preescucha = null;    // {src, c, inicioCtx}
 let resetTimer = null;
 
 const TOTAL_CIRC = 2 * Math.PI * 100;
@@ -357,6 +391,296 @@ function audioBufferToWav(buffer){
   return new Blob([view], {type:'audio/wav'});
 }
 
+// ================= CORTES =================
+function asegurarCtx(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function decodificar(ab){
+  return new Promise((res, rej) => {
+    try{
+      const p = asegurarCtx().decodeAudioData(ab, res, rej);
+      if(p && p.then) p.then(res, rej);
+    }catch(e){ rej(e); }
+  });
+}
+function mmss(s){
+  s = Math.max(0, s);
+  const m = Math.floor(s/60), r = s - m*60;
+  return m + ':' + r.toFixed(1).padStart(4, '0');
+}
+function calcularPicos(buf, n){
+  const ch = [];
+  for(let c = 0; c < buf.numberOfChannels; c++) ch.push(buf.getChannelData(c));
+  const paso = Math.max(1, Math.floor(buf.length / n));
+  const picos = new Float32Array(n);
+  let max = 0;
+  for(let i = 0; i < n; i++){
+    let m = 0;
+    const a = i * paso, b = Math.min(buf.length, a + paso);
+    for(let j = a; j < b; j += 8){
+      for(const d of ch){ const v = Math.abs(d[j]); if(v > m) m = v; }
+    }
+    picos[i] = m; if(m > max) max = m;
+  }
+  if(max > 0) for(let i = 0; i < n; i++) picos[i] /= max;
+  return picos;
+}
+
+async function añadirCortes(lista){
+  const archivos = [...lista];
+  if(!archivos.length) return;
+  asegurarCtx();
+  cargandoCortes += archivos.length;
+  pintarCortes();
+  for(const f of archivos){
+    try{
+      if(f.size > 400 * 1024 * 1024) throw new Error('grande');
+      const buf = await decodificar(await f.arrayBuffer());
+      if(!buf || !buf.duration) throw new Error('vacío');
+      cortes.push({
+        id: 'c' + Date.now() + Math.random().toString(36).slice(2, 6),
+        nombre: f.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').slice(0, 60),
+        buffer: buf, ini: 0, fin: buf.duration, vol: 1, suave: true, bajarMicro: true,
+        picos: calcularPicos(buf, 800)
+      });
+    }catch(e){
+      toast('No he podido sacar el sonido de «' + f.name + '». ' +
+        (e && e.message === 'grande' ? 'Es demasiado grande, recortad el vídeo antes.' :
+         'Probad desde Chrome o guardad el audio en otro formato (mp3, m4a o wav).'), true);
+    }
+    cargandoCortes--;
+    pintarCortes();
+  }
+}
+
+function quitarCorte(id){
+  const c = cortes.find(x => x.id === id);
+  if(!c || !confirm('¿Quitar el corte «' + (c.nombre || 'sin nombre') + '»?')) return;
+  pararPreescucha();
+  cortes = cortes.filter(x => x !== c);
+  pintarCortes();
+}
+
+// Programa un tramo del corte en un contexto (en vivo o en el montaje final)
+function programarTramo(ctx, dest, c, cuando, dur){
+  const src = ctx.createBufferSource();
+  src.buffer = c.buffer;
+  const g = ctx.createGain();
+  src.connect(g); g.connect(dest);
+  const f = c.suave ? Math.min(0.35, dur / 4) : 0.01;
+  g.gain.setValueAtTime(0, cuando);
+  g.gain.linearRampToValueAtTime(c.vol, cuando + f);
+  g.gain.setValueAtTime(c.vol, Math.max(cuando + f, cuando + dur - f));
+  g.gain.linearRampToValueAtTime(0, cuando + dur);
+  src.start(cuando, c.ini, dur);
+  src.stop(cuando + dur + 0.02);
+  return {src, g};
+}
+
+function pararPreescucha(){
+  if(!preescucha) return;
+  try{ preescucha.src.stop(); }catch(e){}
+  const c = preescucha.c;
+  preescucha = null;
+  const b = document.querySelector('[data-oir="' + c.id + '"]');
+  if(b) b.textContent = '▶ Escuchar';
+  dibujarOnda(c);
+}
+function preescuchar(id){
+  const c = cortes.find(x => x.id === id);
+  if(!c) return;
+  const era = preescucha && preescucha.c === c;
+  pararPreescucha();
+  if(era) return;
+  const ctx = asegurarCtx();
+  const {src} = programarTramo(ctx, ctx.destination, c, ctx.currentTime + 0.05, c.fin - c.ini);
+  preescucha = {src, c, inicioCtx: ctx.currentTime + 0.05};
+  src.onended = () => { if(preescucha && preescucha.src === src) pararPreescucha(); };
+  const b = document.querySelector('[data-oir="' + c.id + '"]');
+  if(b) b.textContent = '⏹ Parar';
+  (function anima(){
+    if(!preescucha || preescucha.c !== c) return;
+    dibujarOnda(c, c.ini + (asegurarCtx().currentTime - preescucha.inicioCtx));
+    requestAnimationFrame(anima);
+  })();
+}
+
+function dibujarOnda(c, cabezal){
+  const cv = document.querySelector('canvas[data-onda="' + c.id + '"]');
+  if(!cv) return;
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth, h = cv.clientHeight;
+  if(!w) return;
+  if(cv.width !== Math.round(w * dpr)){ cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  const x = cv.getContext('2d');
+  x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  x.clearRect(0, 0, w, h);
+  const D = c.buffer.duration;
+  const xi = c.ini / D * w, xf = c.fin / D * w;
+  x.fillStyle = 'rgba(200,16,46,.10)';
+  x.fillRect(xi, 0, xf - xi, h);
+  const n = c.picos.length;
+  for(let i = 0; i < w; i++){
+    const p = c.picos[Math.min(n - 1, Math.floor(i / w * n))];
+    const alto = Math.max(1, p * (h - 10));
+    x.fillStyle = (i >= xi && i <= xf) ? '#2B2B30' : '#C4C4CA';
+    x.fillRect(i, (h - alto) / 2, 1, alto);
+  }
+  x.fillStyle = '#C8102E';
+  [xi, xf].forEach(px => {
+    x.fillRect(Math.round(px) - 1.5, 0, 3, h);
+    x.fillRect(Math.round(px) - 7, 0, 14, 12);
+    x.fillRect(Math.round(px) - 7, h - 12, 14, 12);
+  });
+  if(cabezal !== undefined){
+    x.fillStyle = '#E8B54A';
+    x.fillRect(cabezal / D * w - 1, 0, 2, h);
+  }
+}
+
+function actualizarDatosCorte(c){
+  const card = document.querySelector('[data-corte="' + c.id + '"]');
+  if(!card) return;
+  card.querySelector('.in-ini').value = c.ini.toFixed(1);
+  card.querySelector('.in-fin').value = c.fin.toFixed(1);
+  card.querySelector('.corte-dur').textContent = 'Dura ' + mmss(c.fin - c.ini);
+}
+
+function pintarCortes(){
+  const lista = document.getElementById('cortesLista');
+  if(!lista) return;
+  pararPreescucha();
+  lista.innerHTML = cortes.map((c, i) => `
+    <div class="corte" data-corte="${c.id}">
+      <div class="corte-cab">
+        <span class="corte-num">${i + 1}</span>
+        <input type="text" value="${escapeAttr(c.nombre)}" placeholder="Nombre del corte" data-nombre="${c.id}">
+        <button class="corte-del" title="Quitar el corte" onclick="quitarCorte('${c.id}')">×</button>
+      </div>
+      <canvas class="onda" data-onda="${c.id}"></canvas>
+      <div class="corte-fila">
+        <button class="btn-oir" data-oir="${c.id}" onclick="preescuchar('${c.id}')">▶ Escuchar</button>
+        <label>Empieza <input type="number" class="in-ini" step="0.1" min="0"></label>
+        <label>Acaba <input type="number" class="in-fin" step="0.1" min="0"></label>
+        <span class="corte-dur"></span>
+      </div>
+      <div class="corte-fila">
+        <label>Volumen <input type="range" min="0" max="2" step="0.05" value="${c.vol}" class="in-vol"> <span class="vol-txt">${Math.round(c.vol * 100)}%</span></label>
+        <label><input type="checkbox" class="in-suave" ${c.suave ? 'checked' : ''}> Entrada y salida suaves</label>
+        <label title="Así el corte no se cuela dos veces por el micrófono"><input type="checkbox" class="in-micro" ${c.bajarMicro ? 'checked' : ''}> Cerrar el micro mientras suena</label>
+      </div>
+    </div>`).join('') +
+    (cargandoCortes ? '<div class="cargando-corte">Sacando el sonido de ' + cargandoCortes + (cargandoCortes === 1 ? ' archivo' : ' archivos') + '…</div>' : '');
+
+  cortes.forEach(c => {
+    const card = lista.querySelector('[data-corte="' + c.id + '"]');
+    card.querySelector('[data-nombre]').addEventListener('input', e => { c.nombre = e.target.value; });
+    const ini = card.querySelector('.in-ini'), fin = card.querySelector('.in-fin');
+    ini.addEventListener('change', () => {
+      c.ini = Math.min(Math.max(0, parseFloat(ini.value) || 0), c.fin - 0.2);
+      actualizarDatosCorte(c); dibujarOnda(c);
+    });
+    fin.addEventListener('change', () => {
+      c.fin = Math.max(Math.min(c.buffer.duration, parseFloat(fin.value) || c.buffer.duration), c.ini + 0.2);
+      actualizarDatosCorte(c); dibujarOnda(c);
+    });
+    const vol = card.querySelector('.in-vol');
+    vol.addEventListener('input', () => { c.vol = parseFloat(vol.value); card.querySelector('.vol-txt').textContent = Math.round(c.vol * 100) + '%'; });
+    card.querySelector('.in-suave').addEventListener('change', e => { c.suave = e.target.checked; });
+    card.querySelector('.in-micro').addEventListener('change', e => { c.bajarMicro = e.target.checked; });
+
+    // Arrastrar las marcas rojas de inicio y final sobre la onda
+    const cv = card.querySelector('canvas');
+    let asa = null;
+    const tiempo = ev => {
+      const r = cv.getBoundingClientRect();
+      return Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)) * c.buffer.duration;
+    };
+    cv.addEventListener('pointerdown', ev => {
+      const t = tiempo(ev);
+      asa = Math.abs(t - c.ini) <= Math.abs(t - c.fin) ? 'ini' : 'fin';
+      cv.setPointerCapture(ev.pointerId);
+      mover(ev); ev.preventDefault();
+    });
+    const mover = ev => {
+      if(!asa) return;
+      const t = tiempo(ev);
+      if(asa === 'ini') c.ini = Math.min(t, c.fin - 0.2);
+      else c.fin = Math.max(t, c.ini + 0.2);
+      actualizarDatosCorte(c); dibujarOnda(c);
+    };
+    cv.addEventListener('pointermove', mover);
+    cv.addEventListener('pointerup', () => { asa = null; });
+    cv.addEventListener('pointercancel', () => { asa = null; });
+    actualizarDatosCorte(c);
+    dibujarOnda(c);
+  });
+}
+window.addEventListener('resize', () => cortes.forEach(c => dibujarOnda(c)));
+
+// ---- en directo ----
+function segundosGrabados(){ return (performance.now() - recStart) / 1000; }
+function lanzarCorte(i){
+  if(phase !== 'recording') return;
+  const c = cortes[i];
+  if(!c) return;
+  const mismo = sonando && sonando.d.c === c;
+  pararCorte();
+  if(mismo) return;
+  const ctx = asegurarCtx();
+  const dur = c.fin - c.ini;
+  const cuando = ctx.currentTime + 0.02;
+  const {src, g} = programarTramo(ctx, ctx.destination, c, cuando, dur);
+  const d = {c, t: segundosGrabados() + 0.02, dur};
+  disparos.push(d);
+  sonando = {src, g, d, inicioCtx: cuando};
+  src.onended = () => { if(sonando && sonando.src === src){ sonando = null; pintarBotonesDirecto(); } };
+  pintarBotonesDirecto();
+  (function anima(){
+    if(!sonando || sonando.src !== src) return;
+    const b = document.querySelector('[data-lanzar="' + i + '"] .barra');
+    if(b) b.style.width = Math.min(100, (ctx.currentTime - cuando) / dur * 100) + '%';
+    requestAnimationFrame(anima);
+  })();
+}
+function pararCorte(){
+  if(!sonando) return;
+  const s = sonando;
+  sonando = null;
+  const ctx = asegurarCtx();
+  const pasado = ctx.currentTime - s.inicioCtx;
+  if(pasado < s.d.dur){
+    s.d.dur = Math.max(0.05, pasado + 0.15);
+    try{
+      s.g.gain.cancelScheduledValues(ctx.currentTime);
+      s.g.gain.setValueAtTime(s.g.gain.value, ctx.currentTime);
+      s.g.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15);
+      s.src.stop(ctx.currentTime + 0.16);
+    }catch(e){ try{ s.src.stop(); }catch(e2){} }
+  }
+  pintarBotonesDirecto();
+}
+function htmlDirecto(){
+  if(!cortes.length) return '';
+  return `<div class="directo-cortes">
+      <h3>VUESTROS CORTES · PULSAD PARA QUE SUENEN, OTRA VEZ PARA PARARLOS</h3>
+      <div class="directo-grid">${cortes.map((c, i) => `
+        <button class="btn-lanzar" data-lanzar="${i}" onclick="lanzarCorte(${i})">
+          ${i + 1}. ${escapeHtml(c.nombre || 'Corte ' + (i + 1))}<small>${mmss(c.fin - c.ini)}</small><span class="barra"></span>
+        </button>`).join('')}
+      </div>
+    </div>`;
+}
+function pintarBotonesDirecto(){
+  document.querySelectorAll('[data-lanzar]').forEach(b => {
+    const on = sonando && cortes[+b.dataset.lanzar] === sonando.d.c;
+    b.classList.toggle('sonando', !!on);
+    if(!on){ const barra = b.querySelector('.barra'); if(barra) barra.style.width = '0'; }
+  });
+}
+
 // ================= FLOW =================
 function updateDuration(val){
   let n = parseInt(val, 10);
@@ -409,6 +733,10 @@ async function goLiveAndRecord(){
     mediaRecorder = new MediaRecorder(micStream);
   }
   mediaRecorder.ondataavailable = (e) => { if(e.data && e.data.size>0) recordedChunks.push(e.data); };
+  disparos = [];
+  sonando = null;
+  recStart = performance.now();
+  mediaRecorder.onstart = () => { recStart = performance.now(); };
   mediaRecorder.start();
 
   phase = 'recording';
@@ -430,6 +758,7 @@ async function goLiveAndRecord(){
 
 async function stopRecording(){
   if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
+  pararCorte();
   if(!mediaRecorder || mediaRecorder.state === 'inactive') return;
 
   phase = 'mixing';
@@ -476,8 +805,30 @@ async function mixFinal(){
     src.start(startTime);
   }
   place(introBuffer, 0);
-  place(recordedBuffer, introBuffer.duration);
   place(outroBuffer, introBuffer.duration + recordedBuffer.duration);
+
+  // La voz pasa por una ganancia para cerrar el micro mientras suena un corte
+  const base = introBuffer.duration;
+  const voz = offline.createBufferSource();
+  voz.buffer = recordedBuffer;
+  const vg = offline.createGain();
+  voz.connect(vg); vg.connect(offline.destination);
+  vg.gain.setValueAtTime(1, 0);
+  let libre = 0;
+  disparos.slice().sort((a, b) => a.t - b.t).forEach(d => {
+    const dur = Math.min(d.dur, recordedBuffer.duration - d.t);
+    if(dur <= 0.05) return;
+    programarTramo(offline, offline.destination, d.c, base + d.t, dur);
+    if(d.c.bajarMicro){
+      const a = base + d.t, b = base + d.t + dur + 0.15;
+      vg.gain.setValueAtTime(1, Math.max(libre, a - 0.06));
+      vg.gain.linearRampToValueAtTime(0, a);
+      vg.gain.setValueAtTime(0, b);
+      vg.gain.linearRampToValueAtTime(1, b + 0.08);
+      libre = b + 0.08;
+    }
+  });
+  voz.start(base);
 
   const finalBuffer = await offline.startRendering();
   finalBlob = audioBufferToWav(finalBuffer);
@@ -507,6 +858,9 @@ function resetAll(){
   if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
   if(micStream){ micStream.getTracks().forEach(t=>t.stop()); micStream = null; }
   if(mediaRecorder && mediaRecorder.state !== 'inactive'){ try{ mediaRecorder.stop(); }catch(e){} }
+  pararCorte();
+  pararPreescucha();
+  disparos = [];
   recordedChunks = [];
   recordedBuffer = null;
   if(finalBlobUrl){ URL.revokeObjectURL(finalBlobUrl); finalBlobUrl = null; }
@@ -551,7 +905,21 @@ function render(){
             <button class="big-btn dark" onclick="goReady()">Preparar emisión</button>
           </div>
         </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">CORTES DE AUDIO</div>
+        <div class="panel-body">
+          <p class="cortes-intro">Subid declaraciones, audios de WhatsApp, grabaciones del móvil o vídeos, y de los vídeos se usa solo el sonido.
+            Recortad cada corte arrastrando las marcas rojas y durante el boletín lo lanzáis con un botón.
+            Los audios de WhatsApp se guardan antes en el móvil con «Compartir» y después «Guardar en Archivos».</p>
+          <label class="btn-add" for="inCortes">＋ Añadir cortes</label>
+          <input type="file" id="inCortes" multiple hidden
+            accept="audio/*,video/*,.opus,.ogg,.oga,.m4a,.aac,.mp3,.wav,.mp4,.mov,.webm,.3gp,.caf,.flac"
+            onchange="añadirCortes(this.files); this.value=''">
+          <div id="cortesLista"></div>
+        </div>
       </div>`;
+    pintarCortes();
     return;
   }
 
@@ -562,6 +930,7 @@ function render(){
           <div class="icon">📻</div>
           <h2>${boletinLabel ? escapeHtml(boletinLabel) : 'Boletín listo para emitir'}</h2>
           <p>Al pulsar EMITIR sonará la señal horaria de entrada. En cuanto termine, el micrófono se abrirá solo y empezará la cuenta atrás de ${durationSec}s. Preparad el sumario antes de empezar.</p>
+          ${cortes.length ? `<p style="margin-top:10px"><b>${cortes.length} ${cortes.length === 1 ? 'corte preparado' : 'cortes preparados'}.</b> Durante el boletín tendréis un botón para lanzar cada uno.</p>` : ''}
           <div style="margin-top:22px">
             <button class="big-btn" onclick="startEmission()">🔴 EMITIR</button>
           </div>
@@ -591,6 +960,7 @@ function render(){
         <div class="btn-row">
           <button class="big-btn dark" onclick="stopRecording()">⏹ Cerrar boletín</button>
         </div>
+        ${htmlDirecto()}
       </div></div>`;
     renderTimerOnly();
     return;
@@ -622,11 +992,13 @@ function render(){
         <div class="panel-head">BOLETÍN MONTADO ${boletinLabel ? '· ' + escapeHtml(boletinLabel) : ''}</div>
         <div class="panel-body stage-center">
           <div class="icon">✅</div>
-          <h2>Ya está — sintonía de entrada, boletín y salida en un solo archivo</h2>
+          <h2>Ya está — sintonía de entrada, boletín${disparos.length ? ', cortes' : ''} y salida en un solo archivo</h2>
           <audio controls src="${finalBlobUrl}"></audio>
           <div class="btn-row">
             <button class="btn btn-dark" onclick="guardarArchivo(finalBlob,'boletin_${slug(boletinLabel)||'clase10'}.wav')">⬇ Descargar boletín (.wav)</button>
             <button class="btn btn-outline" onclick="resetAll()">↺ Grabar otro boletín</button>
+          </div>
+          <div class="waveform-note">${cortes.length ? 'Los cortes se quedan preparados para el siguiente boletín.' : ''}
           </div>
         </div>
       </div>`;
