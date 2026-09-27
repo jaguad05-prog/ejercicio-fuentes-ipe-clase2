@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Estantería de entregas v23</title>
+<title>Estantería de entregas v24</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
@@ -238,6 +238,14 @@
     border-radius:14px;padding:26px 22px 22px;
   }
   .reproductor[hidden]{display:none}
+  /* vídeo o audio con comentarios al lado */
+  .media-zona{display:flex;gap:14px;width:100%;height:100%;align-items:flex-start;justify-content:center}
+  .media-zona[hidden]{display:none}
+  .media-zona .reproductor{flex:1 1 auto;max-width:900px}
+  .media-zona .correcciones{align-self:stretch}
+  .correcciones .tiempo{display:inline-block;margin-right:6px;padding:1px 6px;border-radius:5px;
+    background:#1E7A45;color:#fff;font-size:12px;font-weight:700;box-shadow:none;cursor:pointer}
+  .correcciones .tiempo:hover{background:#155C33}
   .onda{height:104px;margin:0 0 18px;border-radius:8px;
     background:repeating-linear-gradient(90deg,var(--mostaza) 0 5px,transparent 5px 13px);
     opacity:.5;
@@ -360,7 +368,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v23</span></h1>
+  <h1>Estantería de entregas <span class="version">v24</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -462,11 +470,13 @@
       </div>
       <audio id="audioFichaRep" controls preload="metadata"></audio>
     </div>
+    <div class="media-zona" id="mediaZona" hidden>
     <div class="reproductor" id="reproductor" hidden>
       <div class="onda" id="ondaFondo"></div>
       <audio id="repAudio" controls preload="metadata"></audio>
       <video id="repVideo" controls preload="metadata" playsinline hidden></video>
       <p class="pista" id="repPista"></p>
+    </div>
     </div>
     <button class="flecha izq" id="vAnt" aria-label="Anterior">‹</button>
     <button class="flecha der" id="vSig" aria-label="Siguiente">›</button>
@@ -1023,14 +1033,25 @@ async function abrir(i){
 
 function modoMedia(activo){
   $('reproductor').hidden = !activo;
+  $('mediaZona').hidden = !activo;
   $('apilado').style.display = activo ? 'none' : '';
-  document.querySelectorAll('[data-tool],#tDeshacer,#tLimpiar,#tGuardar')
+  document.querySelectorAll('[data-tool],#tDeshacer,#tLimpiar')
     .forEach(b => { b.disabled = activo; b.style.opacity = activo ? .35 : 1; });
+  // En vídeo y audio se comenta al lado y se guarda la corrección
+  $('tGuardar').disabled = false; $('tGuardar').style.opacity = 1;
+  if(activo){
+    $('mediaZona').appendChild($('correcciones'));
+    $('addCorr').textContent = '+ Comentario en este momento';
+    pintarCorrecciones();
+  }
 }
 
 function modoFicha(activo){
   $('fichaZona').hidden = !activo;
   if(activo){
+    $('fichaZona').appendChild($('correcciones'));
+    $('addCorr').textContent = '+ Añadir comentario';
+    $('mediaZona').hidden = true;
     $('reproductor').hidden = true;
     $('apilado').style.display = 'none';
     $('zoomCaja').style.display = 'none';
@@ -1074,6 +1095,18 @@ function pintarCorrecciones(){
       persistirMarcas(obras[vIdx]);
     });
     li.appendChild(x);
+    if(typeof d.t === 'number'){
+      const b = document.createElement('button');
+      b.className = 'tiempo';
+      b.textContent = minSeg(d.t);
+      b.title = 'Ir a este momento';
+      b.addEventListener('click', ev => {
+        ev.stopPropagation();
+        const m = reproductorActivo();
+        if(m){ m.currentTime = d.t; m.play().catch(() => {}); }
+      });
+      li.appendChild(b);
+    }
     li.appendChild(document.createTextNode(d.txt));
     li.addEventListener('click', () => editarCorr(li, d));
     ol.appendChild(li);
@@ -1105,8 +1138,30 @@ function editarCorr(li, d){
   ta.addEventListener('blur', cerrar);
 }
 
+function minSeg(t){
+  const m = Math.floor(t / 60), r = Math.floor(t % 60);
+  return m + ':' + String(r).padStart(2, '0');
+}
+function reproductorActivo(){
+  const o = obras[vIdx];
+  if(!o || !ES_MEDIA(o.tipo)) return null;
+  return o.tipo === 'video' ? $('repVideo') : $('repAudio');
+}
+
 $('addCorr').addEventListener('click', () => {
   const d = {x: 0, y: listaCorr().length, tam: 0, txt: ''};
+  const m = reproductorActivo();
+  if(m){
+    m.pause();
+    d.t = Math.floor(m.currentTime || 0);
+    listaCorr().push(d);
+    listaCorr().sort((a, b) => (a.t || 0) - (b.t || 0));
+    pintarCorrecciones();
+    const i = listaCorr().indexOf(d);
+    const li = $('listaCorr').children[i];
+    if(li) editarCorr(li, d);
+    return;
+  }
   listaCorr().push(d);
   pintarCorrecciones();
   const ol = $('listaCorr');
@@ -1941,6 +1996,46 @@ async function componerFicha(o){
   return new Blob([salida], {type: 'text/html'});
 }
 
+/* Corrección de un vídeo o un audio: el archivo va dentro (si no es enorme)
+   y los comentarios al lado, con el minuto en que se hicieron. */
+async function componerMedia(o){
+  const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const l = (textos.get(o.clave + ':1') || []).filter(d => d.txt);
+  const filas = l.map(d =>
+    '<li>' + (typeof d.t === 'number'
+      ? '<button class="t" data-t="' + d.t + '">' + minSeg(d.t) + '</button> ' : '') +
+    esc(d.txt).replace(/\n/g, '<br>') + '</li>').join('');
+  const MAX = 60 * 1024 * 1024;
+  let medio = '';
+  if(o.blob.size <= MAX){
+    const url = await new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(o.blob); });
+    medio = o.tipo === 'video'
+      ? '<video id="m" controls playsinline src="' + url + '"></video>'
+      : '<audio id="m" controls src="' + url + '"></audio>';
+  }else{
+    medio = '<p class="aviso">El archivo original es demasiado grande para ir dentro. Ábrelo aparte: ' +
+      esc(o.archivo) + '. Los minutos de los comentarios te dicen dónde mirar.</p>';
+  }
+  const html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">' +
+    '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>Corrección · ' + esc(o.archivo) + '</title><style>' +
+    'body{margin:0;background:#14211F;font-family:Arial,Helvetica,sans-serif;color:#14211F}' +
+    '.z{display:flex;gap:16px;padding:18px;align-items:flex-start;flex-wrap:wrap}' +
+    '.v{flex:1 1 480px;min-width:0}.v video,.v audio{width:100%;border-radius:10px;background:#000}' +
+    '.c{flex:0 1 380px;background:#FBF7EC;border-radius:10px;padding:14px 16px;border-left:5px solid #C8102E}' +
+    '.c h2{margin:0 0 10px;font-size:15px;letter-spacing:.05em;color:#8A3626}' +
+    '.c ol{margin:0;padding-left:22px;font-size:14px;line-height:1.55}.c li{margin-bottom:8px}' +
+    '.t{border:0;border-radius:5px;background:#1E7A45;color:#fff;font-weight:700;font-size:12px;padding:2px 7px;cursor:pointer}' +
+    '.aviso{color:#F2EDE3;font-size:14px;line-height:1.5}' +
+    '</style></head><body><div class="z"><div class="v">' + medio + '</div>' +
+    '<div class="c"><h2>CORRECCIÓN DE LA PROFESORA</h2>' +
+    (filas ? '<ol>' + filas + '</ol>' : '<p>Sin comentarios.</p>') + '</div></div>' +
+    '<script>document.querySelectorAll(".t").forEach(function(b){b.addEventListener("click",function(){' +
+    'var m=document.getElementById("m");if(!m)return;m.currentTime=+b.dataset.t;m.play();});});<\/script>' +
+    '</body></html>';
+  return new Blob([html], {type: 'text/html'});
+}
+
 async function escribirEn(dir, nombre, blob){
   const fh = await dir.getFileHandle(nombre, {create: true});
   const w = await fh.createWritable();
@@ -1962,7 +2057,8 @@ $('btnDestino').addEventListener('click', elegirDestino);
 $('tGuardar').addEventListener('click', async () => {
   const o = obras[vIdx];
   const esFicha = o.tipo === 'web' && fichaViva;
-  const nombre = esFicha
+  const esMedia = ES_MEDIA(o.tipo);
+  const nombre = (esFicha || esMedia)
     ? nombreSalida(o, vIdx, 1, 1).replace(/\.png$/, '.html')
     : nombreSalida(o, vIdx, vPag, vTotalPag);
 
@@ -1974,7 +2070,7 @@ $('tGuardar').addEventListener('click', async () => {
     }
   }
   const dir = await carpetaSalida(true);
-  const blob = esFicha ? await componerFicha(o) : await componer();
+  const blob = esFicha ? await componerFicha(o) : esMedia ? await componerMedia(o) : await componer();
 
   if(dir){
     try{
@@ -1983,7 +2079,7 @@ $('tGuardar').addEventListener('click', async () => {
       const dm = await carpetaDeAlumno(o);
       if(dm) aviso += ' y en «' + CARPETA_MOODLE + '»';
       if(dm) await escribirEn(dm, 'corregida_' + o.archivo.replace(/\.[^.]+$/, '') +
-                               (esFicha ? '.html' : '.png'), blob);
+                               ((esFicha || esMedia) ? '.html' : '.png'), blob);
       $('vPos').textContent = aviso;
       return;
     }catch(err){
@@ -2017,8 +2113,8 @@ $('tGuardarTodas').addEventListener('click', async () => {
       .map(k => +k.slice(o.clave.length + 1))
       .sort((a, b) => a - b);
     if(!paginas.length) paginas.push(1);
-    if(o.tipo === 'web'){
-      const blob = await componerFicha(o);
+    if(o.tipo === 'web' || ES_MEDIA(o.tipo)){
+      const blob = o.tipo === 'web' ? await componerFicha(o) : await componerMedia(o);
       const nombre = nombreSalida(o, i, 1, 1).replace(/\.png$/, '.html');
       if(dir){
         await escribirEn(dir, nombre, blob);
