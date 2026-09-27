@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Estantería de entregas v26</title>
+<title>Estantería de entregas v27</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
@@ -335,6 +335,17 @@
   .ficha-panel textarea{width:100%;min-height:52px;font-family:inherit;font-size:13px;line-height:1.4;
     border:1px solid #D9D2C5;border-radius:6px;padding:6px 7px;resize:vertical;background:#fff;color:#14211F}
   .ficha-panel textarea:focus{outline:none;border-color:#C8102E}
+  .ficha-panel .fp-ed{width:100%;font:700 13.5px Arial,Helvetica,sans-serif;color:#14211F;background:#fff;
+    border:1px dashed #C8102E;border-radius:5px;padding:5px 7px;margin:0 0 4px}
+  .ficha-panel textarea.fp-mirar{min-height:44px;font-size:12px;color:#555;border-style:dashed}
+  .ficha-panel .fp-fila{display:flex;gap:4px;align-items:flex-start}
+  .ficha-panel .fp-fila .fp-ed{flex:1}
+  .ficha-panel .fp-del{border:0;background:none;color:#C8102E;font-size:20px;cursor:pointer;line-height:1;padding:3px 4px;box-shadow:none}
+  .ficha-panel .fp-add{width:100%;border:1px dashed #C8102E;background:#fff;color:#C8102E;border-radius:6px;
+    padding:7px;cursor:pointer;font-size:13px;box-shadow:none;margin-bottom:10px}
+  .ficha-panel .fp-nota{font-size:11.5px;color:#777;margin:0 0 10px}
+  .ficha-panel.editando{border-left-color:#8A3626}
+  .ficha-panel.editando #fichaEditar{background:#8A3626;color:#fff}
   .audio-ficha.mini{width:auto;padding:6px 8px}
   .audio-ficha.mini audio{display:none}
   .audio-ficha.mini .af-cab{margin-bottom:0}
@@ -389,7 +400,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v26</span></h1>
+  <h1>Estantería de entregas <span class="version">v27</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -487,6 +498,7 @@
     <div class="ficha-panel" id="fichaPanel" hidden>
       <div class="fp-cab" id="fichaCab" title="Arrastra para moverla">
         <b id="fichaTit">Ficha de corrección</b>
+        <button id="fichaEditar" title="Editar, añadir o quitar puntos de la ficha">Editar</button>
         <button id="fichaCambiar" title="Cargar otra ficha">Cambiar</button>
         <button id="fichaQuitar" title="Quitar la ficha">Quitar</button>
         <button id="fichaMin" title="Encoger o desplegar">–</button>
@@ -1496,8 +1508,53 @@ function mostrarAudioFicha(src){
 /* ------------------ ficha de corrección
    Se carga un Word (.docx) o un .json con los apartados. Por cada entrega se
    escribe un comentario en cada apartado y al guardar sale un html aparte. */
-let fichaDef = null, fichaAbierta = false, fichaTimer = null;
-(async () => { try{ fichaDef = (await leerDe('config', 'fichaCorreccion')) || null; }catch(e){} })();
+let fichaDef = null, fichaAbierta = false, fichaTimer = null, fichaEditando = false, fichaDefTimer = null;
+(async () => { try{ fichaDef = (await leerDe('config', 'fichaCorreccion')) || null; idsFicha(); }catch(e){} })();
+// Cada punto lleva un id fijo, así los comentarios siguen en su sitio aunque se quiten o añadan puntos
+function idsFicha(){
+  if(fichaDef) fichaDef.criterios.forEach((c, i) => { if(c.id === undefined) c.id = i; if(!c.mirar) c.mirar = []; });
+}
+function guardarDefFicha(){
+  clearTimeout(fichaDefTimer);
+  fichaDefTimer = setTimeout(() => { guardarEn('config', 'fichaCorreccion', fichaDef).catch(() => {}); }, 400);
+}
+function pintarEdicionFicha(cuerpo){
+  const para = el => { el.addEventListener('keydown', e => e.stopPropagation()); return el; };
+  const nt = document.createElement('p'); nt.className = 'fp-nota';
+  nt.textContent = 'Los cambios valen para todas las entregas. Pulsa «Hecho» para volver a corregir.';
+  cuerpo.appendChild(nt);
+  const tit = para(document.createElement('input')); tit.className = 'fp-ed'; tit.value = fichaDef.titulo;
+  tit.title = 'Título de la ficha';
+  tit.addEventListener('input', () => { fichaDef.titulo = tit.value; $('fichaTit').textContent = tit.value; guardarDefFicha(); });
+  cuerpo.appendChild(tit);
+  fichaDef.criterios.forEach((c, i) => {
+    const div = document.createElement('div'); div.className = 'fp-crit';
+    const fila = document.createElement('div'); fila.className = 'fp-fila';
+    const inp = para(document.createElement('input')); inp.className = 'fp-ed'; inp.value = c.titulo;
+    inp.placeholder = 'Nombre del punto';
+    inp.addEventListener('input', () => { c.titulo = inp.value; guardarDefFicha(); });
+    const del = document.createElement('button'); del.className = 'fp-del'; del.textContent = '×'; del.title = 'Quitar este punto';
+    del.addEventListener('click', () => {
+      if(!confirm('¿Quitar el punto «' + (c.titulo || 'sin nombre') + '» de la ficha?')) return;
+      fichaDef.criterios.splice(fichaDef.criterios.indexOf(c), 1);
+      guardarDefFicha(); pintarFicha();
+    });
+    fila.appendChild(inp); fila.appendChild(del); div.appendChild(fila);
+    const mi = para(document.createElement('textarea')); mi.className = 'fp-mirar';
+    mi.value = c.mirar.join('\n'); mi.placeholder = 'Qué mirar (una cosa por línea, opcional)';
+    mi.addEventListener('input', () => { c.mirar = mi.value.split('\n').map(t => t.trim()).filter(Boolean); guardarDefFicha(); });
+    div.appendChild(mi);
+    cuerpo.appendChild(div);
+  });
+  const add = document.createElement('button'); add.className = 'fp-add'; add.textContent = '+ Añadir punto';
+  add.addEventListener('click', () => {
+    fichaDef.criterios.push({id: 'n' + Date.now(), titulo: (fichaDef.criterios.reduce((m, x) => Math.max(m, parseInt(x.titulo, 10) || 0), 0) + 1) + '. ', mirar: []});
+    guardarDefFicha(); pintarFicha();
+    const ins = cuerpo.querySelectorAll('.fp-crit .fp-ed');
+    const u = ins[ins.length - 1]; if(u){ u.focus(); u.setSelectionRange(u.value.length, u.value.length); }
+  });
+  cuerpo.appendChild(add);
+}
 
 function textoP(p){
   return [...p.getElementsByTagName('w:t')].map(t => t.textContent).join('').trim();
@@ -1550,11 +1607,14 @@ function pintarFicha(){
   const o = obras[vIdx];
   if(!fichaDef || !fichaAbierta || !o){ panel.hidden = true; return; }
   panel.hidden = false;
+  panel.classList.toggle('editando', fichaEditando);
+  $('fichaEditar').textContent = fichaEditando ? 'Hecho' : 'Editar';
   $('fichaTit').textContent = fichaDef.titulo;
   const r = respFicha(o);
   const cuerpo = $('fichaCuerpo');
   cuerpo.innerHTML = '';
-  const bloques = fichaDef.criterios.map((c, i) => ({c: i, titulo: c.titulo, mirar: c.mirar}))
+  if(fichaEditando){ pintarEdicionFicha(cuerpo); return; }
+  const bloques = fichaDef.criterios.map(c => ({c: c.id, titulo: c.titulo, mirar: c.mirar}))
     .concat([{c: 'g', titulo: 'Comentario general', mirar: []}]);
   bloques.forEach(b => {
     const div = document.createElement('div');
@@ -1586,10 +1646,14 @@ function pintarFicha(){
   });
 }
 function componerRespuestasFicha(o){
-  const r = (textos.get(o.clave + ':ficha') || []).filter(d => d.txt && d.txt.trim());
+  const crit = fichaDef ? fichaDef.criterios : null;
+  const pos = d => d.c === 'g' ? 1e9 : (crit ? crit.findIndex(c => c.id === d.c) : +d.c);
+  // Los comentarios de puntos quitados de la ficha no salen; los títulos salen como están ahora
+  const r = (textos.get(o.clave + ':ficha') || []).filter(d => d.txt && d.txt.trim() && pos(d) >= 0)
+    .map(d => { const c = crit && crit.find(x => x.id === d.c); return c ? Object.assign({}, d, {titulo: c.titulo}) : d; });
   if(!r.length) return null;
   const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const orden = d => d.c === 'g' ? 1e9 : +d.c;
+  const orden = pos;
   const filas = r.slice().sort((a, b) => orden(a) - orden(b)).map(d =>
     '<section><h3>' + esc(d.titulo) + '</h3><p>' + esc(d.txt).replace(/\n/g, '<br>') + '</p></section>').join('');
   const tit = fichaDef ? fichaDef.titulo : 'Ficha de corrección';
@@ -1619,9 +1683,14 @@ $('tFicha').addEventListener('click', () => {
   pintarFicha();
 });
 $('fichaCambiar').addEventListener('click', () => $('inFicha').click());
+$('fichaEditar').addEventListener('click', () => {
+  fichaEditando = !fichaEditando;
+  if(!fichaEditando){ clearTimeout(fichaDefTimer); guardarEn('config', 'fichaCorreccion', fichaDef).catch(() => {}); }
+  pintarFicha();
+});
 $('fichaQuitar').addEventListener('click', async () => {
   if(!confirm('¿Quitar la ficha? Los comentarios que ya has escrito se conservan.')) return;
-  fichaDef = null; fichaAbierta = false;
+  fichaDef = null; fichaAbierta = false; fichaEditando = false;
   try{ await borrarDe('config', 'fichaCorreccion'); }catch(e){}
   pintarFicha();
 });
@@ -1631,6 +1700,7 @@ $('inFicha').addEventListener('change', async e => {
   if(!f) return;
   try{
     fichaDef = await leerFicha(f);
+    idsFicha(); fichaEditando = false;
     try{ await guardarEn('config', 'fichaCorreccion', fichaDef); }catch(err){}
     fichaAbierta = true;
     pintarFicha();
