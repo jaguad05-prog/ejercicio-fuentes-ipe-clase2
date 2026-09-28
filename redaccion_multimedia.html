@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Redacción Multimedia · Radio, televisión y web</title>
+<style>
+  :root{
+    --red:#C8102E;--dark:#1B1B1F;--ink:#2B2B30;--bg:#F5F5F7;--tint:#FBF1F2;
+    --gold:#E8B54A;--muted:#6B6B72;--border:#D8D8DC;--green:#1E7A45;--azul:#1D6FB8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column}
+  .topbar{background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;gap:10px;flex-wrap:wrap;flex:0 0 auto}
+  .brand{display:flex;flex-direction:column}
+  .brand b{font-size:15px;letter-spacing:.03em}
+  .brand small{font-size:10px;color:var(--gold);letter-spacing:.06em}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap}
+  .tab{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#fff;padding:8px 13px;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:700;display:flex;align-items:center;gap:6px}
+  .tab:hover{background:rgba(255,255,255,.22)}
+  .tab.on{background:var(--gold);color:var(--dark);border-color:var(--gold)}
+  .tab .ok{display:inline-block;width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.3)}
+  .tab .ok.si{background:#4CD383}
+  .equipo-tag{font-size:12px;color:#fff;opacity:.85}
+
+  main{flex:1 1 auto;min-height:0;position:relative}
+  .vista{position:absolute;inset:0;overflow:auto}
+  .vista[hidden]{display:none}
+  .marco{position:absolute;inset:0;display:flex;flex-direction:column}
+  .marco iframe{flex:1 1 auto;border:0;width:100%;background:#fff}
+  .aviso-parte{flex:0 0 auto;background:#fff;border-bottom:1px solid var(--border);padding:9px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:13px}
+  .aviso-parte .estado{font-weight:700}
+  .aviso-parte .estado.si{color:var(--green)}
+  .aviso-parte audio,.aviso-parte video{height:34px;max-width:280px}
+  .aviso-parte video{height:60px}
+
+  .wrap{max-width:880px;margin:0 auto;padding:22px 16px 60px;display:flex;flex-direction:column;gap:16px}
+  .panel{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+  .panel-head{background:var(--dark);color:#fff;padding:10px 16px;font-size:12px;font-weight:700;letter-spacing:.06em;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .panel-body{padding:18px}
+  .field{margin-bottom:14px}
+  .field > label{display:block;font-size:12.5px;font-weight:700;margin-bottom:6px}
+  .field input[type=text],.field select,.field textarea{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:15px;font-family:inherit;color:var(--ink);background:#fff}
+  .field textarea{resize:vertical;min-height:70px;line-height:1.45}
+  .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--red)}
+  .hint{font-size:12px;color:var(--muted);line-height:1.45;margin-top:5px}
+  .fila{display:flex;gap:10px;flex-wrap:wrap}
+  .fila > *{flex:1 1 180px}
+  .btn{border:none;padding:11px 18px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;justify-content:center}
+  .btn-dark{background:var(--dark);color:#fff}
+  .btn-red{background:var(--red);color:#fff}
+  .btn-gold{background:var(--gold);color:var(--dark)}
+  .btn-outline{background:#fff;border:2px solid var(--border);color:var(--ink)}
+  .btn-outline:hover{border-color:var(--red);color:var(--red)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .acciones{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  button:focus-visible,input:focus-visible,select:focus-visible,[contenteditable]:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+  /* EDITOR WEB */
+  .barra{position:sticky;top:0;z-index:5;background:#fff;border:1px solid var(--border);border-radius:10px;padding:6px;display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;box-shadow:0 4px 12px rgba(0,0,0,.06)}
+  .barra button{border:1px solid var(--border);background:#fff;border-radius:7px;padding:7px 10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--ink)}
+  .barra button:hover{border-color:var(--red);color:var(--red)}
+  .barra .sep{width:1px;background:var(--border);margin:2px 3px}
+  .cuerpo{min-height:320px;border:1.5px solid var(--border);border-radius:10px;padding:18px 20px;font-family:Georgia,'Times New Roman',serif;font-size:18px;line-height:1.6;background:#fff;outline:none}
+  .cuerpo:focus{border-color:var(--red)}
+  .cuerpo:empty:before{content:attr(data-ph);color:#A0A0A8}
+  .cuerpo p{margin:0 0 14px}
+  .cuerpo h3{font-family:Arial,Helvetica,sans-serif;font-size:19px;margin:22px 0 8px}
+  .cuerpo blockquote{border-left:4px solid var(--red);padding:4px 0 4px 16px;margin:18px 0;font-size:21px;font-style:italic}
+  .cuerpo figure{margin:18px 0;position:relative;border:1px dashed var(--border);border-radius:8px;padding:8px;background:#FAFAFB}
+  .cuerpo figure img{max-width:100%;display:block;border-radius:4px}
+  .cuerpo figcaption{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:var(--muted);margin-top:6px;outline:none;min-height:1.2em}
+  .cuerpo figcaption:empty:before{content:'Escribid aquí el pie de foto';color:#B0B0B8}
+  .cuerpo .quitar{position:absolute;top:6px;right:6px;border:none;background:var(--red);color:#fff;border-radius:50%;width:26px;height:26px;font-size:16px;cursor:pointer;line-height:1}
+  .foto-principal{border:2px dashed var(--border);border-radius:10px;padding:14px;text-align:center;color:var(--muted);font-size:13px;background:#FAFAFB}
+  .foto-principal img{max-width:100%;border-radius:6px;display:block;margin:0 auto 8px}
+  .contador{font-size:12px;color:var(--muted);text-align:right;margin-top:6px}
+
+  /* tarjetas de redes y medios (editor, vista previa y archivo final comparten estilo) */
+  .red{border:1px solid #CFD9DE;border-radius:14px;padding:12px 14px;background:#fff;font-family:Arial,Helvetica,sans-serif;max-width:520px}
+  .red .cab{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .red .av{width:38px;height:38px;border-radius:50%;background:#1B1B1F;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:0 0 38px}
+  .red.ig .av{background:linear-gradient(45deg,#F9A826,#E1306C,#833AB4)}
+  .red .quien{line-height:1.2;font-size:14px}
+  .red .quien small{color:#536471;display:block;font-size:13px}
+  .red .marca{margin-left:auto;font-weight:800;font-size:12px;color:#536471;letter-spacing:.03em}
+  .red .txt{font-size:15.5px;line-height:1.45;white-space:pre-wrap;color:#0F1419}
+  .red img{width:100%;border-radius:10px;margin-top:8px;display:block}
+  .red .pie{font-size:12.5px;color:#536471;margin-top:8px}
+  .red .pie a{color:#1D6FB8}
+  .media-hueco{font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:14px;color:var(--dark);background:var(--tint);border-radius:8px;padding:14px;text-align:center}
+
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(20,20,24,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+  .modal[hidden]{display:none}
+  .modal .caja{background:#fff;border-radius:14px;max-width:520px;width:100%;max-height:90vh;overflow:auto;padding:20px}
+  .modal h3{margin-bottom:12px;font-size:18px}
+
+  /* juntar */
+  .parte{display:grid;grid-template-columns:44px 1fr;gap:6px 14px;padding:14px 0;border-bottom:1px solid var(--bg);align-items:start}
+  .parte:last-child{border-bottom:0}
+  .parte .ic{font-size:30px;line-height:1}
+  .parte h4{font-size:16px}
+  .parte .est{font-size:13px;color:var(--muted);margin:3px 0 8px}
+  .parte .est.si{color:var(--green);font-weight:700}
+  .parte audio,.parte video{width:100%;max-width:420px;display:block;margin-bottom:8px}
+  .parte video{max-height:240px;background:#000;border-radius:8px}
+  .parte select{border:1.5px solid var(--border);border-radius:7px;padding:6px 8px;font-family:inherit;font-size:13px}
+  .pasos{counter-reset:p;display:flex;flex-direction:column;gap:12px}
+  .paso{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:start}
+  .paso:before{counter-increment:p;content:counter(p);width:30px;height:30px;border-radius:50%;background:var(--red);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .paso p{font-size:14px;line-height:1.5;margin-bottom:8px}
+  .progreso{margin-top:10px;font-size:13px;font-weight:700;color:var(--red)}
+  #toastWrap{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:8px;align-items:center;width:min(560px,92vw)}
+  .toast{background:var(--dark);color:#fff;padding:12px 18px;border-radius:10px;font-size:13.5px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.3);opacity:0;transform:translateY(10px);transition:opacity .25s,transform .25s;text-align:center;line-height:1.4}
+  .toast.show{opacity:1;transform:translateY(0)}
+  .toast.warn{background:var(--red)}
+  .miembros{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  @media (max-width:560px){.miembros{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><b>LA REDACCIÓN MULTIMEDIA</b><small>RADIO · TELEVISIÓN · WEB</small></div>
+  <div class="tabs" role="tablist">
+    <button class="tab" data-v="equipo">👥 Equipo</button>
+    <button class="tab" data-v="radio">📻 Radio <span class="ok" id="okRadio"></span></button>
+    <button class="tab" data-v="tv">📺 Televisión <span class="ok" id="okTv"></span></button>
+    <button class="tab" data-v="web">📰 Noticia web <span class="ok" id="okWeb"></span></button>
+    <button class="tab" data-v="juntar">📦 Juntar y enviar</button>
+  </div>
+  <span class="equipo-tag" id="equipoTag"></span>
+</div>
+
+<main>
+  <!-- EQUIPO -->
+  <section class="vista" id="v-equipo" hidden>
+    <div class="wrap">
+      <div class="panel">
+        <div class="panel-head">EL EQUIPO</div>
+        <div class="panel-body">
+          <div class="field">
+            <label for="eqNombre">Nombre del equipo</label>
+            <input type="text" id="eqNombre" placeholder="Ej: Equipo 3 · Grupo A">
+          </div>
+          <div class="field">
+            <label>Quiénes sois (hasta cuatro)</label>
+            <div class="miembros">
+              <input type="text" class="eqM" id="eqM1" placeholder="Nombre y apellidos">
+              <input type="text" class="eqM" id="eqM2" placeholder="Nombre y apellidos">
+              <input type="text" class="eqM" id="eqM3" placeholder="Nombre y apellidos">
+              <input type="text" class="eqM" id="eqM4" placeholder="Nombre y apellidos">
+            </div>
+          </div>
+          <div class="field">
+            <label for="eqYo">¿Quién está trabajando en este ordenador o móvil?</label>
+            <select id="eqYo"></select>
+            <div class="hint">Sirve para que en el archivo final se vea quién hizo cada parte.</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">CÓMO SE TRABAJA</div>
+        <div class="panel-body">
+          <div class="pasos">
+            <div class="paso"><div><p><b>Repartíos las partes.</b> Cada uno abre esta misma página en su ordenador o móvil y hace la suya: la crónica de radio en «Radio», la pieza en «Televisión» y la noticia en «Noticia web». El cuarto puede ayudar con las fotos, los cortes o las redes.</p></div></div>
+            <div class="paso"><div><p><b>Todo se guarda solo</b> en el aparato donde trabajáis, así que si se cierra la página no se pierde nada.</p></div></div>
+            <div class="paso"><div><p><b>Al acabar, cada uno pulsa «Guardar mi parte»</b> en «Juntar y enviar» y se la pasa al compañero que junta, por WhatsApp como documento, AirDrop, correo o pendrive.</p></div></div>
+            <div class="paso"><div><p><b>El que junta añade las partes</b> de los demás, lo revisa todo y pulsa «Descargar todo». Sale un solo archivo HTML que se entrega a la profesora, y dentro se oye la radio, se ve la tele y se lee la noticia.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RADIO -->
+  <section class="vista" id="v-radio" hidden>
+    <div class="marco">
+      <div class="aviso-parte">
+        <span>Parte de radio:</span> <span class="estado" id="estRadio">todavía no hay</span>
+        <span id="repRadio"></span>
+        <label class="btn btn-outline" for="subeRadio" style="padding:7px 12px;font-size:13px">¿Ya la tenéis? Subid el audio</label>
+        <input type="file" id="subeRadio" accept="audio/*,.wav,.mp3,.m4a,.ogg,.opus,.webm" hidden>
+        <span class="hint" style="margin:0">Cuando La Emisora termine de montar, la crónica se guarda aquí sola.</span>
+      </div>
+      <iframe id="fRadio" title="La Emisora" allow="microphone; autoplay"></iframe>
+    </div>
+  </section>
+
+  <!-- TV -->
+  <section class="vista" id="v-tv" hidden>
+    <div class="marco">
+      <div class="aviso-parte">
+        <span>Parte de televisión:</span> <span class="estado" id="estTv">todavía no hay</span>
+        <span id="repTv"></span>
+        <label class="btn btn-outline" for="subeTv" style="padding:7px 12px;font-size:13px">¿Ya la tenéis? Subid el vídeo</label>
+        <input type="file" id="subeTv" accept="video/*,.mp4,.mov,.webm" hidden>
+        <span class="hint" style="margin:0">Cuando La Pieza termine de generar el vídeo, se guarda aquí solo.</span>
+      </div>
+      <iframe id="fTv" title="La Pieza" allow="microphone; camera; autoplay; fullscreen"></iframe>
+    </div>
+  </section>
+
+  <!-- WEB -->
+  <section class="vista" id="v-web" hidden>
+    <div class="wrap">
+      <div class="panel">
+        <div class="panel-head"><span>NOTICIA WEB</span><span id="webGuardado" style="color:var(--gold)"></span></div>
+        <div class="panel-body">
+          <div class="fila">
+            <div class="field"><label for="wSeccion">Sección</label><input type="text" id="wSeccion" placeholder="Ej: Fútbol · LaLiga"></div>
+            <div class="field"><label for="wFirma">Firma</label><input type="text" id="wFirma" placeholder="Nombre del periodista"></div>
+          </div>
+          <div class="field"><label for="wTitular">Titular</label><textarea id="wTitular" rows="2" placeholder="El titular de la noticia" style="font-family:Georgia,serif;font-size:22px;font-weight:700;min-height:0"></textarea></div>
+          <div class="field"><label for="wSubtitulo">Subtítulo</label><textarea id="wSubtitulo" rows="2" placeholder="Una o dos frases que completan el titular" style="min-height:0"></textarea></div>
+          <div class="field">
+            <label>Foto principal</label>
+            <div class="foto-principal" id="fotoPrincipal"></div>
+            <div class="acciones" style="margin-top:8px">
+              <label class="btn btn-outline" for="subeFotoP" style="padding:8px 12px;font-size:13px">📷 Elegir foto</label>
+              <input type="file" id="subeFotoP" accept="image/*" hidden>
+              <button class="btn btn-outline" id="quitaFotoP" style="padding:8px 12px;font-size:13px">Quitar foto</button>
+            </div>
+            <input type="text" id="wPieP" placeholder="Pie de la foto principal (y quién la hizo)" style="margin-top:8px;width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-family:inherit;font-size:14px">
+          </div>
+          <div class="field">
+            <label>Cuerpo de la noticia</label>
+            <div class="barra" id="barra">
+              <button data-c="bold" title="Negrita"><b>N</b></button>
+              <button data-c="italic" title="Cursiva"><i>K</i></button>
+              <span class="sep"></span>
+              <button data-c="p" title="Párrafo normal">¶ Párrafo</button>
+              <button data-c="h3" title="Ladillo">Ladillo</button>
+              <button data-c="blockquote" title="Cita destacada">“ Cita</button>
+              <button data-c="link" title="Enlace">🔗 Enlace</button>
+              <span class="sep"></span>
+              <button data-c="foto" title="Foto con pie">📷 Foto</button>
+              <button data-c="x" title="Publicación de X">𝕏 Post de X</button>
+              <button data-c="ig" title="Publicación de Instagram">◎ Instagram</button>
+              <button data-c="radio" title="Meter la crónica de radio del equipo">🎧 Radio</button>
+              <button data-c="tv" title="Meter la pieza de televisión del equipo">🎬 Vídeo</button>
+              <span class="sep"></span>
+              <button data-c="undo" title="Deshacer">↶</button>
+            </div>
+            <input type="file" id="subeFotoC" accept="image/*" hidden>
+            <div class="cuerpo" id="cuerpo" contenteditable="true" data-ph="Escribid aquí la noticia. Intro separa párrafos. Seleccionad un trozo y pulsad N para ponerlo en negrita."></div>
+            <div class="contador" id="contador">0 palabras</div>
+          </div>
+          <div class="acciones">
+            <button class="btn btn-gold" id="verWeb">👁 Ver cómo queda</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- JUNTAR -->
+  <section class="vista" id="v-juntar" hidden>
+    <div class="wrap">
+      <div class="panel">
+        <div class="panel-head"><span>LO QUE TENÉIS EN ESTE APARATO</span></div>
+        <div class="panel-body" id="resumen"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">PASAR LAS PARTES</div>
+        <div class="panel-body">
+          <div class="pasos">
+            <div class="paso"><div>
+              <p><b>Si habéis hecho una parte</b>, guardadla y pasádsela al compañero que junta. Por WhatsApp, mandadla como <b>documento</b>.</p>
+              <button class="btn btn-dark" id="btnMiParte">⬇ Guardar mi parte</button>
+            </div></div>
+            <div class="paso"><div>
+              <p><b>Si sois quien junta</b>, añadid aquí las partes que os han pasado. También vale el audio o el vídeo suelto.</p>
+              <label class="btn btn-dark" for="subePartes">＋ Añadir partes del equipo</label>
+              <input type="file" id="subePartes" multiple hidden accept=".html,.htm,audio/*,video/*">
+            </div></div>
+            <div class="paso"><div>
+              <p><b>Cuando esté todo</b>, descargad el archivo final y entregádselo a la profesora. Se abre en cualquier navegador y dentro se oye la radio y se ve la tele.</p>
+              <button class="btn btn-red" id="btnTodo">⬇ Descargar todo</button>
+              <div class="progreso" id="progreso"></div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- modal redes / enlaces -->
+<div class="modal" id="modal" hidden>
+  <div class="caja">
+    <h3 id="mTit"></h3>
+    <div id="mCuerpo"></div>
+    <div class="acciones" style="margin-top:14px;justify-content:flex-end">
+      <button class="btn btn-outline" id="mNo">Cancelar</button>
+      <button class="btn btn-red" id="mSi">Insertar</button>
+    </div>
+  </div>
+</div>
+
+<!-- vista previa -->
+<div class="modal" id="previa" hidden>
+  <div class="caja" style="max-width:860px;padding:0">
+    <div style="position:sticky;top:0;background:var(--dark);color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;z-index:2">
+      <b style="font-size:13px;letter-spacing:.06em">ASÍ SE VERÁ LA NOTICIA</b>
+      <button class="btn btn-gold" id="cierraPrevia" style="padding:7px 14px">Cerrar</button>
+    </div>
+    <div id="previaCuerpo"></div>
+  </div>
+</div>
+
+<div id="toastWrap"></div>
+
+<script>
+/* ================== Guardar archivos también en iPhone, iPad y Mac ================== */
+(function(){
+  var ua = navigator.userAgent;
+  var esIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var esSafari = /Safari/.test(ua) && !/Chrome|Chromium|Edg|OPR|Firefox/.test(ua);
+  function directa(blob, nombre){
+    var url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = nombre; a.rel = 'noopener';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 60000);
+  }
+  window.guardarArchivo = function(blob, nombre){
+    if(!(esIOS || esSafari)){ directa(blob, nombre); return; }
+    var capa = document.createElement('div');
+    capa.setAttribute('style','position:fixed;inset:0;background:rgba(20,20,24,.72);z-index:99999;display:flex;align-items:center;justify-content:center;padding:18px;font-family:Arial,Helvetica,sans-serif');
+    capa.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:380px;width:100%;padding:22px;text-align:center">' +
+      '<div style="font-size:19px;font-weight:800;margin-bottom:6px">Vuestro archivo está listo</div>' +
+      '<div style="font-size:13px;color:#6B6B72;margin-bottom:16px;word-break:break-all">' + String(nombre).replace(/</g,'&lt;') + '</div>' +
+      '<button id="gaSi" style="display:block;width:100%;border:0;border-radius:12px;padding:15px;font-size:17px;font-weight:800;background:#C8102E;color:#fff;cursor:pointer">Guardar archivo</button>' +
+      (esIOS ? '<div style="font-size:12.5px;color:#6B6B72;margin-top:10px">En el menú que se abre, elegid «Guardar en Archivos».</div>' : '') +
+      '<button id="gaNo" style="margin-top:12px;border:0;background:none;color:#6B6B72;font-size:14px;cursor:pointer;text-decoration:underline">Cerrar</button></div>';
+    document.body.appendChild(capa);
+    capa.querySelector('#gaSi').onclick = function(){
+      try{
+        var f = new File([blob], nombre, {type: blob.type || 'application/octet-stream'});
+        if(esIOS && navigator.canShare && navigator.canShare({files:[f]})){
+          navigator.share({files:[f]}).catch(function(e){ if(!e || e.name !== 'AbortError') directa(blob, nombre); });
+        }else directa(blob, nombre);
+      }catch(e){ directa(blob, nombre); }
+      setTimeout(function(){ capa.remove(); }, 400);
+    };
+    capa.querySelector('#gaNo').onclick = function(){ capa.remove(); };
+  };
+})();
+
+/* ================== UTILIDADES ================== */
+const $ = id => document.getElementById(id);
+function toast(msg, warn){
+  const t = document.createElement('div');
+  t.className = 'toast' + (warn ? ' warn' : '');
+  t.textContent = msg;
+  $('toastWrap').appendChild(t);
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3800);
+}
+function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function slug(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,''); }
+function mmss(s){ s = Math.round(s || 0); return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
+function blobADataURL(blob){
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); });
+}
+async function dataURLABlob(u){ return await (await fetch(u)).blob(); }
+
+/* ================== ALMACÉN ================== */
+const DB = 'redaccion-multimedia';
+let dbP = null;
+function db(){
+  if(dbP) return dbP;
+  dbP = new Promise((res, rej) => {
+    const r = indexedDB.open(DB, 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('kv');
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+  return dbP;
+}
+async function dbGet(k){ try{ const d = await db(); return await new Promise((res, rej) => { const q = d.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); }catch(e){ return undefined; } }
+async function dbSet(k, v){ try{ const d = await db(); await new Promise((res, rej) => { const tx = d.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); return true; }catch(e){ return false; } }
+async function dbDel(k){ try{ const d = await db(); await new Promise(res => { const tx = d.transaction('kv', 'readwrite'); tx.objectStore('kv').delete(k); tx.oncomplete = res; tx.onerror = res; }); }catch(e){} }
+
+/* ================== ESTADO ================== */
+let equipo = {nombre: '', miembros: ['', '', '', ''], yo: ''};
+let partes = {radio: null, tv: null};   // {blob, nombre, autor, dur}
+let web = {seccion: '', firma: '', titular: '', subtitulo: '', foto: '', pie: '', cuerpo: '', autor: ''};
+const urls = {};
+
+function yo(){ return equipo.yo || ''; }
+function guardarEquipo(){ try{ localStorage.setItem('redaccionEquipo', JSON.stringify(equipo)); }catch(e){} pintarEquipo(); }
+function pintarEquipo(){
+  $('equipoTag').textContent = equipo.nombre ? equipo.nombre + (yo() ? ' · ' + yo() : '') : '';
+  const sel = $('eqYo');
+  const nombres = equipo.miembros.filter(Boolean);
+  sel.innerHTML = '<option value="">Elegid vuestro nombre</option>' + nombres.map(n => `<option ${n === equipo.yo ? 'selected' : ''}>${esc(n)}</option>`).join('');
+}
+
+/* ================== PESTAÑAS ================== */
+let vista = 'equipo';
+function irA(v){
+  vista = v;
+  document.querySelectorAll('.vista').forEach(s => s.hidden = s.id !== 'v-' + v);
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.v === v));
+  if(v === 'radio' && !$('fRadio').src) $('fRadio').src = 'la_emisora.html';
+  if(v === 'tv' && !$('fTv').src) $('fTv').src = 'la-pieza-montaje.html';
+  if(v === 'juntar') pintarResumen();
+  try{ localStorage.setItem('redaccionVista', v); }catch(e){}
+}
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => irA(t.dataset.v)));
+
+/* ================== RADIO Y TELE ================== */
+async function duracionDe(blob, esVideo){
+  return new Promise(res => {
+    const m = document.createElement(esVideo ? 'video' : 'audio');
+    const u = URL.createObjectURL(blob);
+    m.preload = 'metadata';
+    m.onloadedmetadata = () => { const d = m.duration; URL.revokeObjectURL(u); res(isFinite(d) ? d : 0); };
+    m.onerror = () => { URL.revokeObjectURL(u); res(0); };
+    m.src = u;
+  });
+}
+async function ponerParte(tipo, blob, nombre, autor){
+  const dur = await duracionDe(blob, tipo === 'tv');
+  partes[tipo] = {blob, nombre: nombre || (tipo === 'tv' ? 'pieza' : 'cronica'), autor: autor != null ? autor : yo(), dur};
+  await dbSet('parte_' + tipo, partes[tipo]);
+  pintarPartes();
+}
+async function quitarParte(tipo){
+  if(!confirm('¿Quitar la parte de ' + (tipo === 'tv' ? 'televisión' : 'radio') + ' de este aparato?')) return;
+  partes[tipo] = null;
+  await dbDel('parte_' + tipo);
+  pintarPartes();
+}
+function urlDe(tipo){
+  const p = partes[tipo];
+  if(!p) return '';
+  if(!urls[tipo] || urls[tipo].blob !== p.blob){
+    if(urls[tipo]) URL.revokeObjectURL(urls[tipo].u);
+    urls[tipo] = {blob: p.blob, u: URL.createObjectURL(p.blob)};
+  }
+  return urls[tipo].u;
+}
+function pintarPartes(){
+  for(const tipo of ['radio', 'tv']){
+    const p = partes[tipo], k = tipo === 'tv' ? 'Tv' : 'Radio';
+    $('est' + k).textContent = p ? 'lista · ' + mmss(p.dur) + (p.autor ? ' · ' + p.autor : '') : 'todavía no hay';
+    $('est' + k).classList.toggle('si', !!p);
+    $('rep' + k).innerHTML = p ? (tipo === 'tv' ? `<video controls playsinline src="${urlDe(tipo)}"></video>` : `<audio controls src="${urlDe(tipo)}"></audio>`) : '';
+    $('ok' + k).classList.toggle('si', !!p);
+  }
+  $('okWeb').classList.toggle('si', !!(web.titular || textoPlano(web.cuerpo)));
+  if(vista === 'juntar') pintarResumen();
+}
+$('subeRadio').addEventListener('change', async e => { const f = e.target.files[0]; e.target.value = ''; if(f){ await ponerParte('radio', f, f.name.replace(/\.[^.]+$/, '')); toast('Audio guardado en la parte de radio.'); } });
+$('subeTv').addEventListener('change', async e => { const f = e.target.files[0]; e.target.value = ''; if(f){ await ponerParte('tv', f, f.name.replace(/\.[^.]+$/, '')); toast('Vídeo guardado en la parte de televisión.'); } });
+
+// La Emisora y La Pieza avisan cuando terminan de montar
+window.addEventListener('message', async e => {
+  if(e.origin !== location.origin || !e.data || !e.data.redaccion || !(e.data.blob instanceof Blob)) return;
+  const tipo = e.data.redaccion === 'tv' ? 'tv' : 'radio';
+  await ponerParte(tipo, e.data.blob, e.data.nombre);
+  toast(tipo === 'tv' ? 'La pieza de televisión se ha guardado en la parte de TV.' : 'La crónica se ha guardado en la parte de radio.');
+});
+
+/* ================== NOTICIA WEB ================== */
+const cuerpo = $('cuerpo');
+let rango = null;
+document.addEventListener('selectionchange', () => {
+  const s = getSelection();
+  if(s.rangeCount && cuerpo.contains(s.getRangeAt(0).commonAncestorContainer)) rango = s.getRangeAt(0).cloneRange();
+});
+function restaurarRango(){
+  cuerpo.focus();
+  if(rango){ const s = getSelection(); s.removeAllRanges(); s.addRange(rango); }
+  else{ const r = document.createRange(); r.selectNodeContents(cuerpo); r.collapse(false); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+}
+function insertarBloque(html){
+  restaurarRango();
+  // Siempre fuera del párrafo en el que esté el cursor
+  let nodo = getSelection().anchorNode;
+  while(nodo && nodo.parentNode !== cuerpo) nodo = nodo.parentNode;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html + '<p><br></p>';
+  const frag = document.createDocumentFragment();
+  let ultimo = null;
+  while(tmp.firstChild){ ultimo = tmp.firstChild; frag.appendChild(ultimo); }
+  if(nodo && nodo.nextSibling) cuerpo.insertBefore(frag, nodo.nextSibling);
+  else cuerpo.appendChild(frag);
+  if(ultimo){ const r = document.createRange(); r.setStart(ultimo, 0); r.collapse(true); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+  prepararBloques();
+  guardarWeb();
+}
+function prepararBloques(){
+  cuerpo.querySelectorAll('figure, .red-bloque').forEach(f => {
+    f.setAttribute('contenteditable', 'false');
+    const cap = f.querySelector('figcaption');
+    if(cap) cap.setAttribute('contenteditable', 'true');
+    if(!f.querySelector('.quitar')){
+      const b = document.createElement('button');
+      b.className = 'quitar'; b.type = 'button'; b.textContent = '×'; b.title = 'Quitar';
+      f.appendChild(b);
+    }
+  });
+}
+cuerpo.addEventListener('click', e => {
+  const q = e.target.closest('.quitar');
+  if(q){ q.parentNode.remove(); guardarWeb(); }
+});
+cuerpo.addEventListener('paste', e => {
+  e.preventDefault();
+  const t = (e.clipboardData || window.clipboardData).getData('text/plain');
+  const html = t.split(/\n{2,}|\r\n\r\n/).map(p => '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>').join('');
+  document.execCommand('insertHTML', false, html);
+});
+cuerpo.addEventListener('keydown', e => {
+  if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b'){ e.preventDefault(); document.execCommand('bold'); }
+});
+cuerpo.addEventListener('focus', () => {
+  if(!cuerpo.innerHTML.trim()){
+    cuerpo.innerHTML = '<p><br></p>';
+    const r = document.createRange(); r.setStart(cuerpo.firstChild, 0); r.collapse(true);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  }
+});
+cuerpo.addEventListener('blur', () => { if(!textoPlano(cuerpo.innerHTML) && !cuerpo.querySelector('figure,.red-bloque')) cuerpo.innerHTML = ''; });
+cuerpo.addEventListener('input', () => {
+  if(!cuerpo.innerHTML.trim() || cuerpo.innerHTML === '<br>') cuerpo.innerHTML = '';
+  guardarWeb();
+});
+document.execCommand('defaultParagraphSeparator', false, 'p');
+
+$('barra').addEventListener('mousedown', e => { if(e.target.closest('button')) e.preventDefault(); });
+$('barra').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if(!b) return;
+  const c = b.dataset.c;
+  if(c === 'bold' || c === 'italic' || c === 'undo'){ restaurarRango(); document.execCommand(c); guardarWeb(); return; }
+  if(c === 'p' || c === 'h3' || c === 'blockquote'){ restaurarRango(); document.execCommand('formatBlock', false, c); guardarWeb(); return; }
+  if(c === 'link') return abrirModal('link');
+  if(c === 'foto'){ $('subeFotoC').click(); return; }
+  if(c === 'x' || c === 'ig') return abrirModal(c);
+  if(c === 'radio' || c === 'tv'){
+    if(cuerpo.querySelector('[data-media="' + c + '"]')){ toast('Ya está metida en la noticia.', true); return; }
+    insertarBloque(`<figure class="media-bloque" data-media="${c}"><div class="media-hueco">${c === 'tv' ? '🎬 Aquí irá la pieza de televisión del equipo' : '🎧 Aquí irá la crónica de radio del equipo'}</div><figcaption>${c === 'tv' ? 'Pieza de televisión' : 'Crónica de radio'}</figcaption></figure>`);
+  }
+});
+
+// Fotos: se reducen para que el archivo final no pese demasiado
+async function reducirFoto(file, max){
+  const url = URL.createObjectURL(file);
+  try{
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+    const e = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.naturalWidth * e); c.height = Math.round(img.naturalHeight * e);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.85);
+  }finally{ URL.revokeObjectURL(url); }
+}
+$('subeFotoC').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if(!f) return;
+  try{
+    const d = await reducirFoto(f, 1600);
+    insertarBloque(`<figure><img src="${d}" alt=""><figcaption></figcaption></figure>`);
+  }catch(err){ toast('Esa imagen no se puede abrir. Probad con una foto JPG o PNG.', true); }
+});
+$('subeFotoP').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if(!f) return;
+  try{ web.foto = await reducirFoto(f, 1800); pintarFotoP(); guardarWeb(); }
+  catch(err){ toast('Esa imagen no se puede abrir. Probad con una foto JPG o PNG.', true); }
+});
+$('quitaFotoP').addEventListener('click', () => { web.foto = ''; pintarFotoP(); guardarWeb(); });
+function pintarFotoP(){
+  $('fotoPrincipal').innerHTML = web.foto ? `<img src="${web.foto}" alt="">` : 'Todavía no hay foto principal';
+  $('quitaFotoP').hidden = !web.foto;
+}
+
+// Publicaciones de X e Instagram (se ven igual sin internet)
+let modalTipo = '', imgRed = '';
+function abrirModal(tipo){
+  modalTipo = tipo; imgRed = '';
+  const cuerpoM = $('mCuerpo');
+  if(tipo === 'link'){
+    $('mTit').textContent = 'Poner un enlace';
+    cuerpoM.innerHTML = `<div class="field"><label for="mUrl">Dirección (https://…)</label><input type="text" id="mUrl" placeholder="https://"></div>
+      <div class="hint">Antes de pulsar el botón, seleccionad en la noticia las palabras que llevarán el enlace.</div>`;
+  }else{
+    const ig = tipo === 'ig';
+    $('mTit').textContent = ig ? 'Meter una publicación de Instagram' : 'Meter un post de X';
+    cuerpoM.innerHTML = `
+      <div class="fila">
+        <div class="field"><label for="mNombre">Nombre</label><input type="text" id="mNombre" placeholder="${ig ? 'Real Madrid C.F.' : 'Jude Bellingham'}"></div>
+        <div class="field"><label for="mUsuario">Usuario</label><input type="text" id="mUsuario" placeholder="@usuario"></div>
+      </div>
+      <div class="field"><label for="mTexto">Texto de la publicación, copiado tal cual</label><textarea id="mTexto" rows="4"></textarea></div>
+      <div class="fila">
+        <div class="field"><label for="mFecha">Fecha</label><input type="text" id="mFecha" placeholder="27 sept. 2026"></div>
+        <div class="field"><label for="mEnlace">Enlace a la publicación</label><input type="text" id="mEnlace" placeholder="https://"></div>
+      </div>
+      <div class="field"><label>Imagen ${ig ? '(la foto del post)' : '(si la lleva)'}</label>
+        <label class="btn btn-outline" for="mImg" style="padding:8px 12px;font-size:13px">📷 Elegir imagen</label>
+        <input type="file" id="mImg" accept="image/*" hidden> <span id="mImgOk" class="hint"></span></div>
+      <div class="hint">También podéis meter una captura de pantalla de la publicación con el botón «Foto».</div>`;
+    $('mImg').addEventListener('change', async ev => {
+      const f = ev.target.files[0]; if(!f) return;
+      try{ imgRed = await reducirFoto(f, 1200); $('mImgOk').textContent = 'Imagen lista'; }catch(err){ toast('Esa imagen no se puede abrir.', true); }
+    });
+  }
+  $('modal').hidden = false;
+  const primero = $('mCuerpo').querySelector('input,textarea'); if(primero) primero.focus();
+}
+$('mNo').addEventListener('click', () => { $('modal').hidden = true; });
+$('mSi').addEventListener('click', () => {
+  if(modalTipo === 'link'){
+    let u = ($('mUrl').value || '').trim();
+    if(!/^https?:\/\//i.test(u)){ toast('La dirección tiene que empezar por https://', true); return; }
+    $('modal').hidden = true;
+    restaurarRango();
+    if(getSelection().isCollapsed) document.execCommand('insertHTML', false, `<a href="${esc(u)}">${esc(u)}</a>`);
+    else document.execCommand('createLink', false, u);
+    cuerpo.querySelectorAll('a').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; });
+    guardarWeb();
+    return;
+  }
+  const ig = modalTipo === 'ig';
+  const nombre = $('mNombre').value.trim(), usuario = $('mUsuario').value.trim().replace(/^([^@])/, '@$1');
+  const texto = $('mTexto').value.trim(), fecha = $('mFecha').value.trim(), enlace = $('mEnlace').value.trim();
+  if(!texto && !imgRed){ toast('Falta el texto o la imagen de la publicación.', true); return; }
+  $('modal').hidden = true;
+  const ini = (nombre || usuario || '?').replace('@', '').charAt(0).toUpperCase();
+  insertarBloque(`<div class="red-bloque"><div class="red ${ig ? 'ig' : 'x'}">
+      <div class="cab"><div class="av">${esc(ini)}</div><div class="quien"><b>${esc(nombre || usuario)}</b><small>${esc(usuario)}</small></div><span class="marca">${ig ? 'INSTAGRAM' : 'X'}</span></div>
+      ${texto ? `<div class="txt">${esc(texto)}</div>` : ''}${imgRed ? `<img src="${imgRed}" alt="">` : ''}
+      <div class="pie">${esc(fecha)}${/^https?:\/\//i.test(enlace) ? ` · <a href="${esc(enlace)}" target="_blank" rel="noopener">Ver la publicación original</a>` : ''}</div>
+    </div></div>`);
+});
+
+function textoPlano(html){ const d = document.createElement('div'); d.innerHTML = html || ''; d.querySelectorAll('figure,.red-bloque').forEach(x => x.remove()); return d.textContent.trim(); }
+let tWeb = null;
+function guardarWeb(){
+  web.seccion = $('wSeccion').value; web.firma = $('wFirma').value; web.titular = $('wTitular').value;
+  web.subtitulo = $('wSubtitulo').value; web.pie = $('wPieP').value;
+  web.cuerpo = cuerpo.innerHTML;
+  if(!web.autor && yo()) web.autor = yo();
+  const n = textoPlano(web.cuerpo).split(/\s+/).filter(Boolean).length;
+  $('contador').textContent = n + (n === 1 ? ' palabra' : ' palabras');
+  $('okWeb').classList.toggle('si', !!(web.titular || n));
+  $('webGuardado').textContent = 'guardando…';
+  clearTimeout(tWeb);
+  tWeb = setTimeout(async () => { const ok = await dbSet('web', web); $('webGuardado').textContent = ok ? 'guardado' : 'no se puede guardar en este navegador'; }, 500);
+}
+['wSeccion','wFirma','wTitular','wSubtitulo','wPieP'].forEach(id => $(id).addEventListener('input', guardarWeb));
+function pintarWeb(){
+  $('wSeccion').value = web.seccion || ''; $('wFirma').value = web.firma || ''; $('wTitular').value = web.titular || '';
+  $('wSubtitulo').value = web.subtitulo || ''; $('wPieP').value = web.pie || '';
+  cuerpo.innerHTML = web.cuerpo || '';
+  prepararBloques();
+  pintarFotoP();
+  const n = textoPlano(web.cuerpo).split(/\s+/).filter(Boolean).length;
+  $('contador').textContent = n + (n === 1 ? ' palabra' : ' palabras');
+}
+
+/* ================== LA NOTICIA TAL COMO SE PUBLICA ================== */
+const CSS_NOTICIA = `
+.noticia{max-width:760px;margin:0 auto;padding:28px 20px 40px;font-family:Georgia,'Times New Roman',serif;color:#1B1B1F;background:#fff}
+.noticia .seccion{font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#C8102E;margin-bottom:10px}
+.noticia h1{font-size:clamp(28px,5vw,40px);line-height:1.12;margin:0 0 14px}
+.noticia .subtitulo{font-size:20px;line-height:1.45;color:#3A3A40;margin:0 0 16px}
+.noticia .firma{font-family:Arial,Helvetica,sans-serif;font-size:13.5px;color:#6B6B72;border-top:1px solid #E2E2E6;border-bottom:1px solid #E2E2E6;padding:8px 0;margin-bottom:20px}
+.noticia .firma b{color:#1B1B1F}
+.noticia figure{margin:22px 0}
+.noticia figure img{width:100%;height:auto;display:block;border-radius:3px}
+.noticia figcaption{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#6B6B72;margin-top:6px;line-height:1.4}
+.noticia .cuerpo-n{font-size:19px;line-height:1.65}
+.noticia .cuerpo-n p{margin:0 0 16px}
+.noticia .cuerpo-n h3{font-family:Arial,Helvetica,sans-serif;font-size:20px;margin:28px 0 10px}
+.noticia .cuerpo-n blockquote{border-left:4px solid #C8102E;margin:22px 0;padding:4px 0 4px 18px;font-size:23px;font-style:italic;line-height:1.4}
+.noticia .cuerpo-n a{color:#1D6FB8}
+.noticia .red-bloque{margin:22px 0}
+.noticia audio{width:100%}
+.noticia video{width:100%;background:#000;border-radius:4px;display:block}
+.red{border:1px solid #CFD9DE;border-radius:14px;padding:12px 14px;background:#fff;font-family:Arial,Helvetica,sans-serif;max-width:520px}
+.red .cab{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.red .av{width:38px;height:38px;border-radius:50%;background:#1B1B1F;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:0 0 38px}
+.red.ig .av{background:linear-gradient(45deg,#F9A826,#E1306C,#833AB4)}
+.red .quien{line-height:1.2;font-size:14px}
+.red .quien small{color:#536471;display:block;font-size:13px}
+.red .marca{margin-left:auto;font-weight:800;font-size:12px;color:#536471;letter-spacing:.03em}
+.red .txt{font-size:15.5px;line-height:1.45;white-space:pre-wrap;color:#0F1419}
+.red img{width:100%;border-radius:10px;margin-top:8px;display:block}
+.red .pie{font-size:12.5px;color:#536471;margin-top:8px}
+.red .pie a{color:#1D6FB8}
+.media-hueco{font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:14px;background:#FBF1F2;border-radius:8px;padding:14px;text-align:center}`;
+
+// medios: {radio: src|null, tv: src|null}; devuelve el html de la noticia y qué medios lleva dentro
+function htmlNoticia(w, medios){
+  const d = document.createElement('div');
+  d.innerHTML = w.cuerpo || '';
+  d.querySelectorAll('.quitar').forEach(x => x.remove());
+  d.querySelectorAll('[contenteditable]').forEach(x => x.removeAttribute('contenteditable'));
+  const dentro = {};
+  d.querySelectorAll('[data-media]').forEach(f => {
+    const t = f.dataset.media, src = medios && medios[t];
+    const hueco = f.querySelector('.media-hueco');
+    if(src && hueco){
+      dentro[t] = true;
+      hueco.outerHTML = t === 'tv' ? `<video controls playsinline preload="metadata" src="${src}"></video>` : `<audio controls preload="metadata" src="${src}"></audio>`;
+    }else if(hueco && medios){
+      hueco.textContent = t === 'tv' ? 'La pieza de televisión todavía no está' : 'La crónica de radio todavía no está';
+    }
+  });
+  const fecha = new Date().toLocaleDateString('es-ES', {day: 'numeric', month: 'long', year: 'numeric'});
+  const html = `<article class="noticia">
+    ${w.seccion ? `<div class="seccion">${esc(w.seccion)}</div>` : ''}
+    <h1>${esc(w.titular || 'Sin titular')}</h1>
+    ${w.subtitulo ? `<p class="subtitulo">${esc(w.subtitulo)}</p>` : ''}
+    <div class="firma">${w.firma ? `<b>${esc(w.firma)}</b> · ` : ''}${fecha}</div>
+    ${w.foto ? `<figure><img src="${w.foto}" alt="">${w.pie ? `<figcaption>${esc(w.pie)}</figcaption>` : ''}</figure>` : ''}
+    <div class="cuerpo-n">${d.innerHTML}</div>
+  </article>`;
+  return {html, dentro};
+}
+$('verWeb').addEventListener('click', () => {
+  guardarWeb();
+  const medios = {radio: partes.radio ? urlDe('radio') : null, tv: partes.tv ? urlDe('tv') : null};
+  $('previaCuerpo').innerHTML = `<style>${CSS_NOTICIA}</style>` + htmlNoticia(web, medios).html;
+  $('previa').hidden = false;
+});
+$('cierraPrevia').addEventListener('click', () => { $('previa').hidden = true; $('previaCuerpo').innerHTML = ''; });
+
+/* ================== JUNTAR ================== */
+function pintarResumen(){
+  const opts = sel => '<option value="">¿Quién la hizo?</option>' + equipo.miembros.filter(Boolean).map(n => `<option ${n === sel ? 'selected' : ''}>${esc(n)}</option>`).join('');
+  const r = partes.radio, t = partes.tv, hayWeb = !!(web.titular || textoPlano(web.cuerpo));
+  $('resumen').innerHTML = `
+    <div class="parte"><div class="ic">📻</div><div><h4>Radio</h4>
+      <div class="est ${r ? 'si' : ''}">${r ? 'Lista · ' + mmss(r.dur) : 'Todavía no hay crónica de radio en este aparato'}</div>
+      ${r ? `<audio controls src="${urlDe('radio')}"></audio><div class="acciones"><select data-autor="radio">${opts(r.autor)}</select><button class="btn btn-outline" style="padding:6px 12px;font-size:13px" onclick="quitarParte('radio')">Quitar</button></div>` : ''}
+    </div></div>
+    <div class="parte"><div class="ic">📺</div><div><h4>Televisión</h4>
+      <div class="est ${t ? 'si' : ''}">${t ? 'Lista · ' + mmss(t.dur) : 'Todavía no hay pieza de televisión en este aparato'}</div>
+      ${t ? `<video controls playsinline src="${urlDe('tv')}"></video><div class="acciones"><select data-autor="tv">${opts(t.autor)}</select><button class="btn btn-outline" style="padding:6px 12px;font-size:13px" onclick="quitarParte('tv')">Quitar</button></div>` : ''}
+    </div></div>
+    <div class="parte"><div class="ic">📰</div><div><h4>Noticia web</h4>
+      <div class="est ${hayWeb ? 'si' : ''}">${hayWeb ? esc(web.titular || 'Sin titular') + ' · ' + textoPlano(web.cuerpo).split(/\s+/).filter(Boolean).length + ' palabras' : 'Todavía no hay noticia en este aparato'}</div>
+      ${hayWeb ? `<div class="acciones"><select data-autor="web">${opts(web.autor)}</select><button class="btn btn-outline" style="padding:6px 12px;font-size:13px" onclick="irA('web')">Abrir la noticia</button></div>` : ''}
+    </div></div>`;
+  $('resumen').querySelectorAll('[data-autor]').forEach(s => s.addEventListener('change', async () => {
+    const k = s.dataset.autor;
+    if(k === 'web'){ web.autor = s.value; await dbSet('web', web); }
+    else{ partes[k].autor = s.value; await dbSet('parte_' + k, partes[k]); }
+  }));
+}
+
+// Parte: un html que se puede abrir y que lleva dentro los datos para juntarlo
+async function guardarMiParte(){
+  const hayWeb = !!(web.titular || textoPlano(web.cuerpo));
+  if(!partes.radio && !partes.tv && !hayWeb){ toast('Todavía no hay nada que guardar en este aparato.', true); return; }
+  $('progreso').textContent = 'Preparando vuestra parte…';
+  const datos = {redaccionMultimedia: 1, equipo: equipo.nombre, miembros: equipo.miembros, de: yo(), creado: Date.now()};
+  if(partes.radio) datos.radio = {src: await blobADataURL(partes.radio.blob), nombre: partes.radio.nombre, autor: partes.radio.autor, dur: partes.radio.dur};
+  if(partes.tv) datos.tv = {src: await blobADataURL(partes.tv.blob), nombre: partes.tv.nombre, autor: partes.tv.autor, dur: partes.tv.dur};
+  if(hayWeb) datos.web = web;
+  const qué = [datos.radio && 'radio', datos.tv && 'tele', datos.web && 'web'].filter(Boolean).join('_');
+  const json = JSON.stringify(datos).replace(/<\//g, '<\\/');
+  const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Parte de ${esc(equipo.nombre || 'equipo')} · ${esc(yo())}</title>
+<style>body{font-family:Arial,Helvetica,sans-serif;background:#F5F5F7;color:#2B2B30;max-width:640px;margin:0 auto;padding:24px 16px}h1{font-size:20px}p{line-height:1.5}audio,video{width:100%;margin:8px 0}video{background:#000}</style></head>
+<body><h1>Parte de ${esc(equipo.nombre || 'un equipo')} ${yo() ? '· ' + esc(yo()) : ''}</h1>
+<p>Este archivo es una parte del trabajo. Para juntarla con las demás, abrid La Redacción Multimedia, id a «Juntar y enviar» y pulsad «Añadir partes del equipo».</p>
+<div id="ver"></div>
+<script type="application/json" id="parte-redaccion">${json}<\/script>
+<script>try{var d=JSON.parse(document.getElementById('parte-redaccion').textContent),v=document.getElementById('ver');if(d.radio){var a=document.createElement('audio');a.controls=true;a.src=d.radio.src;v.appendChild(a);}if(d.tv){var x=document.createElement('video');x.controls=true;x.setAttribute('playsinline','');x.src=d.tv.src;v.appendChild(x);}if(d.web){var p=document.createElement('p');p.innerHTML='<b>Noticia web:</b> '+String(d.web.titular||'sin titular').replace(/</g,'&lt;');v.appendChild(p);}}catch(e){}<\/script>
+</body></html>`;
+  $('progreso').textContent = '';
+  guardarArchivo(new Blob([html], {type: 'text/html'}), `parte_${slug(equipo.nombre) || 'equipo'}_${slug(yo()) || 'yo'}_${qué}.html`);
+}
+$('btnMiParte').addEventListener('click', () => guardarMiParte().catch(() => { $('progreso').textContent = ''; toast('No se ha podido preparar la parte.', true); }));
+
+async function añadirPartes(lista){
+  for(const f of [...lista]){
+    try{
+      if(/^audio\//.test(f.type) || /\.(wav|mp3|m4a|ogg|opus|aac)$/i.test(f.name)){ await ponerParte('radio', f, f.name.replace(/\.[^.]+$/, ''), ''); toast('Audio añadido como parte de radio.'); continue; }
+      if(/^video\//.test(f.type) || /\.(mp4|mov|webm|m4v)$/i.test(f.name)){ await ponerParte('tv', f, f.name.replace(/\.[^.]+$/, ''), ''); toast('Vídeo añadido como parte de televisión.'); continue; }
+      $('progreso').textContent = 'Leyendo ' + f.name + '…';
+      const t = await f.text();
+      const m = t.match(/<script type="application\/json" id="parte-redaccion">([\s\S]*?)<\/script>/);
+      if(!m) throw new Error('no es una parte');
+      const d = JSON.parse(m[1]);
+      if(!equipo.nombre && d.equipo){ equipo.nombre = d.equipo; }
+      (d.miembros || []).forEach(n => { if(n && !equipo.miembros.includes(n)){ const i = equipo.miembros.indexOf(''); if(i >= 0) equipo.miembros[i] = n; } });
+      guardarEquipo(); pintarCamposEquipo();
+      if(d.radio && (!partes.radio || confirm('Ya hay una crónica de radio aquí. ¿La cambiáis por la de ' + (d.radio.autor || d.de || 'la parte') + '?')))
+        await ponerParte('radio', await dataURLABlob(d.radio.src), d.radio.nombre, d.radio.autor || d.de || '');
+      if(d.tv && (!partes.tv || confirm('Ya hay una pieza de televisión aquí. ¿La cambiáis por la de ' + (d.tv.autor || d.de || 'la parte') + '?')))
+        await ponerParte('tv', await dataURLABlob(d.tv.src), d.tv.nombre, d.tv.autor || d.de || '');
+      const hayWeb = !!(web.titular || textoPlano(web.cuerpo));
+      if(d.web && (!hayWeb || confirm('Ya hay una noticia web aquí. ¿La cambiáis por la de ' + (d.web.autor || d.de || 'la parte') + '?'))){
+        web = Object.assign({seccion: '', firma: '', titular: '', subtitulo: '', foto: '', pie: '', cuerpo: '', autor: ''}, d.web);
+        if(!web.autor) web.autor = d.de || '';
+        await dbSet('web', web); pintarWeb();
+      }
+      toast('Parte de ' + (d.de || 'un compañero') + ' añadida.');
+    }catch(e){ toast('«' + f.name + '» no es una parte de La Redacción Multimedia.', true); }
+  }
+  $('progreso').textContent = '';
+  pintarPartes();
+}
+$('subePartes').addEventListener('change', e => { const l = e.target.files; añadirPartes(l).finally(() => { e.target.value = ''; }); });
+
+// Las crónicas en WAV pesan mucho: se pasan a mono y 32 kHz, que para voz sobra
+async function aligerarAudio(blob){
+  if(!/wav/i.test(blob.type) && !/wav/i.test((partes.radio && partes.radio.nombre) || '')) return blob;
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+    ctx.close && ctx.close();
+    const sr = 32000;
+    const off = new OfflineAudioContext(1, Math.ceil(buf.duration * sr), sr);
+    const s = off.createBufferSource(); s.buffer = buf; s.connect(off.destination); s.start();
+    const r = await off.startRendering();
+    const d = r.getChannelData(0), n = d.length;
+    const v = new DataView(new ArrayBuffer(44 + n * 2));
+    const w = (o, t) => { for(let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+    w(0,'RIFF'); v.setUint32(4, 36 + n*2, true); w(8,'WAVE'); w(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true);
+    v.setUint16(22,1,true); v.setUint32(24,sr,true); v.setUint32(28,sr*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true);
+    w(36,'data'); v.setUint32(40, n*2, true);
+    for(let i = 0; i < n; i++){ const x = Math.max(-1, Math.min(1, d[i])); v.setInt16(44 + i*2, x < 0 ? x*0x8000 : x*0x7FFF, true); }
+    return new Blob([v], {type: 'audio/wav'});
+  }catch(e){ return blob; }
+}
+
+async function descargarTodo(){
+  const hayWeb = !!(web.titular || textoPlano(web.cuerpo));
+  if(!partes.radio && !partes.tv && !hayWeb){ toast('Todavía no hay nada que juntar.', true); return; }
+  const faltan = [!partes.radio && 'la radio', !partes.tv && 'la televisión', !hayWeb && 'la noticia web'].filter(Boolean);
+  if(faltan.length && !confirm('Falta ' + faltan.join(' y ') + '. ¿Descargáis igualmente lo que hay?')) return;
+  $('btnTodo').disabled = true;
+  try{
+    $('progreso').textContent = 'Preparando la radio…';
+    const radioSrc = partes.radio ? await blobADataURL(await aligerarAudio(partes.radio.blob)) : null;
+    $('progreso').textContent = 'Preparando la televisión…';
+    const tvSrc = partes.tv ? await blobADataURL(partes.tv.blob) : null;
+    $('progreso').textContent = 'Montando el archivo…';
+    const noticia = hayWeb ? htmlNoticia(web, {radio: radioSrc, tv: tvSrc}) : {html: '', dentro: {}};
+    const miembros = equipo.miembros.filter(Boolean);
+    const quien = a => a ? `<span class="autor">Hecho por ${esc(a)}</span>` : '';
+    const fecha = new Date().toLocaleDateString('es-ES', {day: 'numeric', month: 'long', year: 'numeric'});
+    const trozos = [];
+    trozos.push(`<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${esc(equipo.nombre || 'Trabajo en equipo')} · Radio, televisión y web</title>
+<style>
+body{margin:0;background:#F5F5F7;font-family:Arial,Helvetica,sans-serif;color:#2B2B30}
+.portada{background:#1B1B1F;color:#fff;padding:22px 20px}
+.portada .k{font-size:11px;letter-spacing:.1em;color:#E8B54A;font-weight:700}
+.portada h1{margin:6px 0 6px;font-size:26px}
+.portada p{margin:0;font-size:14px;opacity:.85;line-height:1.5}
+.indice{display:flex;gap:8px;flex-wrap:wrap;padding:12px 20px;background:#fff;border-bottom:1px solid #D8D8DC;position:sticky;top:0;z-index:3}
+.indice a{text-decoration:none;color:#1B1B1F;font-weight:700;font-size:14px;border:1.5px solid #D8D8DC;border-radius:18px;padding:6px 12px}
+.bloque{max-width:860px;margin:22px auto;background:#fff;border:1px solid #D8D8DC;border-radius:14px;overflow:hidden}
+.bloque > h2{margin:0;background:#1B1B1F;color:#fff;font-size:13px;letter-spacing:.08em;padding:11px 18px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.bloque > h2 .autor{color:#E8B54A;letter-spacing:0;font-weight:700}
+.bloque .dentro{padding:18px}
+.bloque audio{width:100%}
+.bloque video{width:100%;max-height:78vh;background:#000;display:block;border-radius:6px}
+.nota{font-size:13px;color:#6B6B72;margin-top:8px}
+${CSS_NOTICIA}
+</style></head><body>
+<div class="portada"><div class="k">RADIO · TELEVISIÓN · WEB</div><h1>${esc(equipo.nombre || 'Trabajo en equipo')}</h1>
+<p>${miembros.length ? esc(miembros.join(', ')) + '<br>' : ''}Entregado el ${fecha}</p></div>
+<nav class="indice">${hayWeb ? '<a href="#web">📰 Noticia web</a>' : ''}${radioSrc ? '<a href="#radio">📻 Radio</a>' : ''}${tvSrc ? '<a href="#tv">📺 Televisión</a>' : ''}</nav>
+`);
+    if(hayWeb) trozos.push(`<section class="bloque" id="web"><h2><span>📰 NOTICIA WEB</span>${quien(web.autor)}</h2>${noticia.html}</section>\n`);
+    if(radioSrc){
+      trozos.push(`<section class="bloque" id="radio"><h2><span>📻 RADIO · ${mmss(partes.radio.dur)}</span>${quien(partes.radio.autor)}</h2><div class="dentro">`);
+      if(noticia.dentro.radio) trozos.push(`<p class="nota">La crónica de radio está dentro de la noticia web. <a href="#web">Ir a la noticia</a></p>`);
+      else trozos.push(`<audio controls preload="metadata" src="`, radioSrc, `"></audio>`);
+      trozos.push(`</div></section>\n`);
+    }
+    if(tvSrc){
+      trozos.push(`<section class="bloque" id="tv"><h2><span>📺 TELEVISIÓN · ${mmss(partes.tv.dur)}</span>${quien(partes.tv.autor)}</h2><div class="dentro">`);
+      if(noticia.dentro.tv) trozos.push(`<p class="nota">La pieza de televisión está dentro de la noticia web. <a href="#web">Ir a la noticia</a></p>`);
+      else trozos.push(`<video controls playsinline preload="metadata" src="`, tvSrc, `"></video>`);
+      trozos.push(`<p class="nota">Si el vídeo no se ve en este navegador, abrid el archivo con Chrome.</p></div></section>\n`);
+    }
+    trozos.push(`</body></html>`);
+    const blob = new Blob(trozos, {type: 'text/html'});
+    $('progreso').textContent = 'Listo · ' + (blob.size / 1048576).toFixed(1) + ' MB';
+    guardarArchivo(blob, 'redaccion_' + (slug(equipo.nombre) || 'equipo') + '.html');
+  }catch(e){
+    $('progreso').textContent = '';
+    toast('No se ha podido montar el archivo. Probad de nuevo con Chrome.', true);
+  }finally{ $('btnTodo').disabled = false; }
+}
+$('btnTodo').addEventListener('click', descargarTodo);
+
+/* ================== EQUIPO ================== */
+function pintarCamposEquipo(){
+  $('eqNombre').value = equipo.nombre || '';
+  for(let i = 0; i < 4; i++) $('eqM' + (i + 1)).value = equipo.miembros[i] || '';
+  pintarEquipo();
+}
+$('eqNombre').addEventListener('input', e => { equipo.nombre = e.target.value; guardarEquipo(); });
+document.querySelectorAll('.eqM').forEach((inp, i) => inp.addEventListener('input', () => { equipo.miembros[i] = inp.value.trim(); guardarEquipo(); }));
+$('eqYo').addEventListener('change', e => { equipo.yo = e.target.value; guardarEquipo(); });
+
+/* ================== ARRANQUE ================== */
+(async function(){
+  try{ const e = JSON.parse(localStorage.getItem('redaccionEquipo') || 'null'); if(e) equipo = Object.assign(equipo, e); }catch(err){}
+  pintarCamposEquipo();
+  const w = await dbGet('web'); if(w) web = Object.assign(web, w);
+  pintarWeb();
+  for(const t of ['radio', 'tv']){ const p = await dbGet('parte_' + t); if(p && p.blob) partes[t] = p; }
+  pintarPartes();
+  let v = 'equipo';
+  try{ v = localStorage.getItem('redaccionVista') || (equipo.nombre ? 'web' : 'equipo'); }catch(err){}
+  irA(['equipo','radio','tv','web','juntar'].includes(v) ? v : 'equipo');
+})();
+</script>
+</body>
+</html>

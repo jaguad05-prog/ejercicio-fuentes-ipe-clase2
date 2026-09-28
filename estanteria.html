@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Estantería de entregas v28</title>
+<title>Estantería de entregas v29</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
@@ -314,6 +314,14 @@
   .audio-ficha .af-cab button{border:0;background:#EEF5F0;color:#1E7A45;border-radius:6px;width:24px;height:22px;
     font-size:14px;line-height:1;cursor:pointer}
   .audio-ficha audio{width:100%;display:block}
+  .audio-ficha video{width:100%;display:block;max-height:46vh;background:#000;border-radius:6px}
+  .audio-ficha.con-video{width:440px}
+  .audio-ficha audio[hidden],.audio-ficha video[hidden]{display:none}
+  .audio-ficha .af-sel{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+  .audio-ficha .af-sel:empty{display:none}
+  .audio-ficha .af-sel button{border:1px solid #CFE3D6;background:#fff;color:#1E7A45;border-radius:14px;padding:3px 10px;font-size:12px;font-weight:700;cursor:pointer}
+  .audio-ficha .af-sel button.on{background:#1E7A45;color:#fff;border-color:#1E7A45}
+  .audio-ficha.mini video,.audio-ficha.mini .af-sel{display:none}
   /* ficha de corrección al lado de la entrega */
   .ficha-panel{position:fixed;right:24px;top:70px;z-index:9998;width:380px;max-height:calc(100vh - 200px);
     display:flex;flex-direction:column;background:#FBF7EC;color:#14211F;border-radius:12px;
@@ -400,7 +408,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v28</span></h1>
+  <h1>Estantería de entregas <span class="version">v29</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -510,10 +518,12 @@
     <input type="file" id="inFicha" accept=".docx,.json" hidden>
     <div class="audio-ficha" id="audioFicha" hidden>
       <div class="af-cab" id="audioFichaCab" title="Arrastra para moverlo">
-        <b>♪ AUDIO DE LA ENTREGA</b>
+        <b id="audioFichaTit">♪ AUDIO DE LA ENTREGA</b>
         <button id="audioFichaMin" title="Encoger o desplegar">–</button>
       </div>
+      <div class="af-sel" id="audioFichaSel"></div>
       <audio id="audioFichaRep" controls preload="metadata"></audio>
+      <video id="videoFichaRep" controls playsinline preload="metadata" hidden></video>
     </div>
     <div class="media-zona" id="mediaZona" hidden>
     <div class="reproductor" id="reproductor" hidden>
@@ -1451,15 +1461,34 @@ function guardarAnotacion(){
 async function audioDeFicha(o){
   if(o.audioFicha !== undefined) return o.audioFicha;
   const t = await o.blob.text();
-  const m = t.match(/<audio\b[^>]*\ssrc="(data:(?:audio|video)\/[^"]+)"/i);
-  o.audioFicha = m ? m[1] : null;
+  // Todos los audios y vídeos que la entrega lleva dentro (radio, tele, cortes)
+  const lista = [];
+  const re = /<(audio|video)\b[^>]*\ssrc="(data:(?:audio|video)\/[^"]+)"/gi;
+  let m;
+  while((m = re.exec(t))){ if(!lista.some(x => x.src === m[2])) lista.push({tipo: m[1].toLowerCase(), src: m[2]}); }
+  o.audioFicha = lista.length ? lista : null;
   return o.audioFicha;
 }
-function mostrarAudioFicha(src){
-  const c = $('audioFicha'), a = $('audioFichaRep');
-  a.pause();
-  if(!src){ c.hidden = true; a.removeAttribute('src'); return; }
-  if(a.getAttribute('src') !== src) a.src = src;
+function mostrarAudioFicha(lista){
+  const c = $('audioFicha'), a = $('audioFichaRep'), v = $('videoFichaRep'), sel = $('audioFichaSel');
+  a.pause(); v.pause();
+  if(typeof lista === 'string') lista = [{tipo: 'audio', src: lista}];
+  if(!lista || !lista.length){ c.hidden = true; a.removeAttribute('src'); v.removeAttribute('src'); sel.innerHTML = ''; return; }
+  let nA = 0, nV = 0;
+  const nombres = lista.map(x => x.tipo === 'video' ? (++nV > 1 ? 'Vídeo ' + nV : 'Vídeo') : (++nA > 1 ? 'Audio ' + nA : 'Audio'));
+  function poner(i){
+    const x = lista[i], esV = x.tipo === 'video';
+    a.pause(); v.pause();
+    a.hidden = esV; v.hidden = !esV;
+    const el = esV ? v : a;
+    if(el.getAttribute('src') !== x.src) el.src = x.src;
+    c.classList.toggle('con-video', esV);
+    $('audioFichaTit').textContent = esV ? '▶ VÍDEO DE LA ENTREGA' : '♪ AUDIO DE LA ENTREGA';
+    sel.querySelectorAll('button').forEach((b, j) => b.classList.toggle('on', j === i));
+  }
+  sel.innerHTML = lista.length > 1 ? nombres.map((n, i) => `<button type="button" data-i="${i}">${n}</button>`).join('') : '';
+  sel.querySelectorAll('button').forEach(b => b.onclick = () => poner(+b.dataset.i));
+  poner(0);
   c.hidden = false;
 }
 

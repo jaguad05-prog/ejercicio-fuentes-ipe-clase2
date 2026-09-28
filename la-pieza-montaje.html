@@ -1944,7 +1944,8 @@ async function exportar(){
 
   let mime = 'video/webm';
   // Safari (iPhone, iPad y Mac) graba en mp4
-  for(const m of ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4;codecs=avc1,mp4a','video/mp4']){
+  // mp4 primero: se ve en todos los navegadores, también en iPhone y Mac
+  for(const m of ['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1,mp4a','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4']){
     if(MediaRecorder.isTypeSupported(m)){ mime = m; break; }
   }
   trozosPieza = [];
@@ -1955,6 +1956,8 @@ async function exportar(){
     const ext = tipo.indexOf('mp4') >= 0 ? 'mp4' : 'webm';
     const blob = new Blob(trozosPieza, {type: tipo});
     guardarArchivo(blob, 'pieza_' + Date.now() + '.' + ext);
+    // Dentro de La Redacción Multimedia, el vídeo pasa solo a la parte de televisión
+    try{ if(window.parent !== window) window.parent.postMessage({redaccion: 'tv', blob, nombre: 'pieza'}, location.origin); }catch(e){}
     document.getElementById('expTit').textContent = 'Vídeo listo';
     document.getElementById('expTxt').textContent =
       'Se ha guardado en formato ' + ext + '. Se ve en cualquier navegador y en VLC.';

@@ -959,6 +959,8 @@ async function mixFinal(){
   finalBlob = audioBufferToWav(finalBuffer);
   if(finalBlobUrl) URL.revokeObjectURL(finalBlobUrl);
   finalBlobUrl = URL.createObjectURL(finalBlob);
+  // Dentro de La Redacción Multimedia, la emisión pasa sola a la parte de radio
+  try{ if(window.parent !== window) window.parent.postMessage({redaccion: 'radio', blob: finalBlob, nombre: slug(etiqueta) || 'cronica'}, location.origin); }catch(e){}
   phase = 'done';
   render();
   setStatus('EMISIÓN LISTA', 'done');
