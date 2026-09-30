@@ -215,6 +215,8 @@ const TOTAL_CIRC = 2 * Math.PI * 100;
 // Lo que suena al empezar y al acabar
 let sel = {senal: 'senal-clasica', sintonia: 'sint-emisora', voz: '', salida: 'sal-metales'};
 let formato = 'boletin';
+// #directo: versión sin opciones para La Redacción Multimedia, sin entradas ni salidas
+const DIRECTO = (location.hash || '') === '#directo';
 
 // Sonidos guardados en este dispositivo: cortes y entradas o salidas añadidas
 let items = [];                  // {id, kind, nombre, blob, ini, fin, vol, suave, bajarMicro, created, buffer, picos}
@@ -287,7 +289,7 @@ function base64ToArrayBuffer(b64){
   for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
   return bytes.buffer;
 }
-function guardarLocal(){ try{ localStorage.setItem('laEmisoraSel', JSON.stringify({sel, formato, durationSec})); }catch(e){} }
+function guardarLocal(){ if(DIRECTO) return; try{ localStorage.setItem('laEmisoraSel', JSON.stringify({sel, formato, durationSec})); }catch(e){} }
 function leerLocal(){ try{ const o = JSON.parse(localStorage.getItem('laEmisoraSel') || 'null'); if(o){ sel = Object.assign(sel, o.sel || {}); formato = o.formato || formato; if(o.durationSec) setDur(o.durationSec); } }catch(e){} }
 
 // ================= SONIDOS SINTETIZADOS =================
@@ -1082,6 +1084,30 @@ function render(){
     return;
   }
 
+  if(phase === 'config' && DIRECTO){
+    el.innerHTML = `
+      <div class="panel">
+        <div class="panel-head"><span>VUESTRA NOTICIA DE RADIO</span></div>
+        <div class="panel-body">
+          <div class="field">
+            <label for="labelInput">Nombre del equipo o del reportero</label>
+            <input type="text" id="labelInput" placeholder="Ej: Equipo A" value="${escapeAttr(etiqueta)}" oninput="etiqueta=this.value">
+          </div>
+          <div class="field">
+            <label>Cortes preparados (${cortes().length})</label>
+            <div class="hint">${cortes().length ? 'Durante la grabación aparecerán como botones para lanzarlos cuando toque.' : 'Si queréis meter declaraciones, preparadlas antes en la pestaña «✂ Cortes».'}
+              <a href="#" onclick="irA('cortes'); return false;" style="color:var(--red);font-weight:700">${cortes().length ? 'Editar cortes' : 'Preparar cortes'}</a></div>
+          </div>
+          ${cargando ? '<div class="cargando">Cargando sonidos guardados…</div>' : ''}
+          <div style="text-align:center;margin-top:8px">
+            <button class="big-btn" onclick="startEmission()">🔴 Empezar la noticia</button>
+          </div>
+          <div class="hint" style="text-align:center;margin-top:10px">Al pulsar se abre el micrófono y empezáis a contar la noticia. Tenéis hasta ${Math.round(durationSec/60)} minutos y podéis cerrar antes con «Cerrar y devolver».</div>
+        </div>
+      </div>`;
+    return;
+  }
+
   if(phase === 'config'){
     el.innerHTML = `
       <div class="panel">
@@ -1222,6 +1248,10 @@ leerLocal();
 (function(){
   const h = (location.hash || '').replace('#', '');
   if(FORMATOS[h]){ formato = h; sel = Object.assign({}, FORMATOS[h].sel); setDur(FORMATOS[h].dur); }
+  if(DIRECTO){
+    formato = ''; sel = {senal: '', sintonia: '', voz: '', salida: ''}; setDur(180);
+    const ns = document.getElementById('navSonidos'); if(ns) ns.style.display = 'none';
+  }
 })();
 render();
 cargarGuardados();
