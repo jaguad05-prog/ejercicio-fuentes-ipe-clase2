@@ -76,6 +76,9 @@
   .foto-principal{border:2px dashed var(--border);border-radius:10px;padding:14px;text-align:center;color:var(--muted);font-size:13px;background:#FAFAFB}
   .foto-principal img{max-width:100%;border-radius:6px;display:block;margin:0 auto 8px}
   .contador{font-size:12px;color:var(--muted);text-align:right;margin-top:6px}
+  .contador.corta{color:var(--red);font-weight:700}
+  .contador.vale{color:var(--green);font-weight:700}
+  .est.corta{color:var(--red)}
 
   /* tarjetas de redes y medios (editor, vista previa y archivo final comparten estilo) */
   .red{border:1px solid #CFD9DE;border-radius:14px;padding:12px 14px;background:#fff;font-family:Arial,Helvetica,sans-serif;max-width:520px}
@@ -133,7 +136,7 @@
 <div class="topbar">
   <div class="brand"><b>LA REDACCIÓN MULTIMEDIA</b><small>RADIO · TELEVISIÓN · WEB</small></div>
   <div class="tabs" role="tablist">
-    <button class="tab" data-v="equipo">👥 Equipo</button>
+    <button class="tab" data-v="como">ℹ️ Cómo se hace</button>
     <button class="tab" data-v="radio">📻 Radio <span class="ok" id="okRadio"></span></button>
     <button class="tab" data-v="tv">📺 Televisión <span class="ok" id="okTv"></span></button>
     <button class="tab" data-v="web">📰 Noticia web 1 <span class="ok" id="okWeb"></span></button>
@@ -144,46 +147,20 @@
 </div>
 
 <main>
-  <!-- EQUIPO -->
-  <section class="vista" id="v-equipo" hidden>
+  <!-- CÓMO SE HACE -->
+  <section class="vista" id="v-como" hidden>
     <div class="wrap">
       <div class="panel">
-        <div class="panel-head">EL EQUIPO</div>
-        <div class="panel-body">
-          <div class="field">
-            <label for="eqNombre">Nombre del equipo</label>
-            <input type="text" id="eqNombre" placeholder="Ej: Equipo 3 · Grupo A">
-          </div>
-          <div class="field">
-            <label>Quiénes sois (hasta cuatro)</label>
-            <div class="miembros">
-              <input type="text" class="eqM" id="eqM1" placeholder="Nombre y apellidos">
-              <input type="text" class="eqM" id="eqM2" placeholder="Nombre y apellidos">
-              <input type="text" class="eqM" id="eqM3" placeholder="Nombre y apellidos">
-              <input type="text" class="eqM" id="eqM4" placeholder="Nombre y apellidos">
-            </div>
-          </div>
-          <div class="field">
-            <label for="eqYo">¿Quién está trabajando en este ordenador o móvil?</label>
-            <select id="eqYo"></select>
-            <div class="hint">Sirve para que en el archivo final se vea quién hizo cada parte.</div>
-          </div>
-          <div class="field">
-            <label for="eqJunta">¿Quién junta todas las partes y lo entrega?</label>
-            <select id="eqJunta"></select>
-            <div class="hint">Elegid a una sola persona. Los demás le mandan su parte al acabar.</div>
-          </div>
-        </div>
-      </div>
-      <div class="panel">
-        <div class="panel-head">CÓMO SE TRABAJA</div>
+        <div class="panel-head">CÓMO SE HACE</div>
         <div class="panel-body">
           <div class="pasos">
-            <div class="paso"><div><p><b>Repartíos las partes.</b> Cada uno abre esta misma página en su ordenador o móvil y hace la suya: la crónica de radio en «Radio», la pieza en «Televisión» y las dos noticias en «Noticia web 1» y «Noticia web 2».</p></div></div>
-            <div class="paso"><div><p><b>Todo se guarda solo</b> en el aparato donde trabajáis, así que si se cierra la página no se pierde nada.</p></div></div>
-            <div class="paso"><div><p><b>Cuando acabéis, descargad lo que habéis hecho</b> y mandádselo al compañero que junta todo.</p></div></div>
-            <div class="paso"><div><p><b>El que junta mete lo de todos</b>, descarga el trabajo completo y lo sube a Moodle.</p></div></div>
+            <div class="paso"><div><p><b>Repartíos las piezas.</b> Cada uno abre esta página en su ordenador o móvil y hace la suya: la crónica en «Radio», la pieza en «Televisión» o una de las dos noticias en «Noticia web 1» y «Noticia web 2». Cada noticia tiene que tener al menos 500 palabras, y si no llega no se puede descargar.</p></div></div>
+            <div class="paso"><div><p><b>Cuando acabéis vuestra pieza, descargadla</b> en «Al acabar» con el botón «Descargar lo que he hecho».</p></div></div>
+            <div class="paso"><div><p><b>Mandádsela al compañero que junta</b> por WhatsApp, como documento, o por correo.</p></div></div>
+            <div class="paso"><div><p><b>El que junta mete lo de todos</b> en «Al acabar», descarga el trabajo completo y lo sube a Moodle. Es un solo archivo en el que se oye la radio, se ve la tele y se leen las dos noticias.</p></div></div>
           </div>
+          <p class="hint" style="margin-top:14px">Si alguien hace su pieza con otro programa, vale igual. El audio (grabadora del móvil, Audacity) o el vídeo (CapCut, el móvil) se manda tal cual al que junta, y una noticia escrita en Word o Docs se copia y se pega en «Noticia web».</p>
+          <p class="hint" style="margin-top:8px"><b>Con iPhone:</b> los vídeos hechos con otro programa hay que exportarlos en MP4, por ejemplo desde CapCut. El formato MOV del iPhone no se ve en todos los ordenadores.</p>
         </div>
       </div>
     </div>
@@ -214,6 +191,7 @@
         <label class="btn btn-outline" for="subeTv" style="padding:7px 12px;font-size:13px">¿Ya la tenéis? Subid el vídeo</label>
         <input type="file" id="subeTv" accept="video/*,.mp4,.mov,.webm" hidden>
         <span class="hint" style="margin:0">Cuando La Pieza termine de generar el vídeo, se guarda aquí solo.</span>
+        <span class="mic"><b>Con iPhone:</b> si el vídeo está hecho con otro programa, exportadlo en MP4 (por ejemplo desde CapCut). El formato MOV del iPhone no se ve en todos los ordenadores.</span>
         <button class="btn-fin" type="button" onclick="irA('juntar')">✔ He terminado</button>
       </div>
       <iframe id="fTv" title="La Pieza" allow="microphone; camera; autoplay; fullscreen"></iframe>
@@ -281,8 +259,7 @@
       <div class="panel">
         <div class="panel-head">CUANDO HAYÁIS ACABADO</div>
         <div class="panel-body">
-          <div class="aviso-rol" id="avisoRol" hidden></div>
-          <div class="rol" id="rolParte">
+                    <div class="rol" id="rolParte">
             <h3 id="rolParteTit">Si otro compañero junta el trabajo</h3>
             <div class="pasos">
               <div class="paso"><div>
@@ -290,7 +267,7 @@
                 <button class="btn btn-dark" id="btnMiParte">⬇ Descargar lo que he hecho</button>
               </div></div>
               <div class="paso"><div>
-                <p><b>Mandádselo a <span class="nomJunta">quien junta</span></b> por WhatsApp, como documento, o por correo.</p>
+                <p><b>Mandádselo al compañero que junta</b> por WhatsApp, como documento, o por correo.</p>
                 <p class="hint">Si lo habéis hecho con otro programa, mandad ese audio o ese vídeo tal cual.</p>
               </div></div>
             </div>
@@ -299,7 +276,7 @@
             <h3 id="rolJuntaTit">Si juntáis vosotros el trabajo</h3>
             <div class="pasos">
               <div class="paso"><div>
-                <p><b>Guardad lo que os manden vuestros compañeros</b> y metedlo aquí.</p>
+                <p><b>Guardad lo que os manden vuestros compañeros</b> (los archivos «mi_parte_…» y los audios o vídeos sueltos) y metedlo aquí.</p>
                 <label class="btn btn-dark" for="subePartes">＋ Meter lo de mis compañeros</label>
                 <input type="file" id="subePartes" multiple hidden accept=".html,.htm,audio/*,video/*">
               </div></div>
@@ -389,7 +366,7 @@ function toast(msg, warn){
   t.textContent = msg;
   $('toastWrap').appendChild(t);
   requestAnimationFrame(() => t.classList.add('show'));
-  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3800);
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, warn ? 6500 : 3800);
 }
 function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function slug(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,''); }
@@ -426,6 +403,17 @@ let wi = 0;                                    // noticia que se está editando
 let web = webs[0];
 function hayNoticia(w){ return !!(w && (w.titular || textoPlano(w.cuerpo))); }
 function palabras(w){ return textoPlano(w && w.cuerpo).split(/\s+/).filter(Boolean).length; }
+const MIN_PALABRAS = 500;   // una noticia no se puede entregar con menos
+function pintarContador(n){
+  const c = $('contador');
+  c.textContent = n + (n === 1 ? ' palabra' : ' palabras') + (n < MIN_PALABRAS ? ' · faltan ' + (MIN_PALABRAS - n) + ' para llegar a ' + MIN_PALABRAS : ' · ya llega al mínimo de ' + MIN_PALABRAS);
+  c.className = 'contador ' + (n < MIN_PALABRAS ? 'corta' : 'vale');
+}
+// Noticias que están empezadas pero no llegan al mínimo
+function noticiasCortas(soloEmpezadas){
+  return [0, 1].filter(i => (!soloEmpezadas || hayNoticia(webs[i])) && palabras(webs[i]) < MIN_PALABRAS)
+    .map(i => 'la noticia ' + (i + 1) + ' tiene ' + palabras(webs[i]) + ' palabras');
+}
 function pintarOkWeb(){ $('okWeb').classList.toggle('si', hayNoticia(webs[0])); $('okWeb2').classList.toggle('si', hayNoticia(webs[1])); }
 function cambiarNoticia(i){
   if(i === wi) return;
@@ -439,31 +427,13 @@ const urls = {};
 
 function yo(){ return equipo.yo || ''; }
 function guardarEquipo(){ try{ localStorage.setItem('redaccionEquipo', JSON.stringify(equipo)); }catch(e){} pintarEquipo(); }
-function pintarEquipo(){
-  $('equipoTag').textContent = equipo.nombre ? equipo.nombre + (yo() ? ' · ' + yo() : '') : '';
-  const sel = $('eqYo');
-  const nombres = equipo.miembros.filter(Boolean);
-  sel.innerHTML = '<option value="">Elegid vuestro nombre</option>' + nombres.map(n => `<option ${n === equipo.yo ? 'selected' : ''}>${esc(n)}</option>`).join('');
-  $('eqJunta').innerHTML = '<option value="">Elegid quién junta</option>' + nombres.map(n => `<option ${n === equipo.junta ? 'selected' : ''}>${esc(n)}</option>`).join('');
-  pintarRol();
-}
+function pintarEquipo(){ pintarRol(); }
 function pintarRol(){
-  const j = equipo.junta, y = equipo.yo;
-  document.querySelectorAll('.nomJunta').forEach(x => x.textContent = j || 'quien junta');
-  const conocido = !!(j && y);
-  const soyJunta = conocido && j === y;
-  $('rolParte').hidden = conocido && soyJunta;
-  $('rolJunta').hidden = conocido && !soyJunta;
-  $('rolParte').classList.toggle('tuyo', conocido && !soyJunta);
-  $('rolJunta').classList.toggle('tuyo', soyJunta);
-  $('rolParteTit').textContent = conocido ? 'Junta ' + j + '. Esto es lo que tenéis que hacer' : 'Si otro compañero junta el trabajo';
-  $('rolJuntaTit').textContent = soyJunta ? 'Juntáis vosotros. Esto es lo que tenéis que hacer' : 'Si juntáis vosotros el trabajo';
-  $('avisoRol').hidden = conocido;
-  $('avisoRol').innerHTML = 'En la pestaña <b>«👥 Equipo»</b> elegid quién está en este aparato y quién junta, y aquí os saldrán solo vuestros pasos.';
+  document.querySelectorAll('.nomJunta').forEach(x => x.textContent = 'el compañero que junta');
 }
 
 /* ================== PESTAÑAS ================== */
-let vista = 'equipo';
+let vista = 'como';
 function irA(v){
   vista = v;
   const sec = v === 'web2' ? 'web' : v;
@@ -769,7 +739,7 @@ function guardarWeb(ya){
   web.cuerpo = cuerpo.innerHTML;
   if(!web.autor && yo()) web.autor = yo();
   const n = textoPlano(web.cuerpo).split(/\s+/).filter(Boolean).length;
-  $('contador').textContent = n + (n === 1 ? ' palabra' : ' palabras');
+  pintarContador(n);
   pintarOkWeb();
   const clave = WEB_CLAVE[wi], obj = web;
   clearTimeout(tWeb);
@@ -785,7 +755,7 @@ function pintarWeb(){
   prepararBloques();
   pintarFotoP();
   const n = textoPlano(web.cuerpo).split(/\s+/).filter(Boolean).length;
-  $('contador').textContent = n + (n === 1 ? ' palabra' : ' palabras');
+  pintarContador(n);
 }
 
 /* ================== LA NOTICIA TAL COMO SE PUBLICA ================== */
@@ -863,16 +833,16 @@ function pintarResumen(){
   $('resumen').innerHTML = `
     <div class="parte"><div class="ic">📻</div><div><h4>Radio</h4>
       <div class="est ${r ? 'si' : ''}">${r ? 'Lista · ' + mmss(r.dur) : 'Todavía no hay crónica de radio en este aparato'}</div>
-      ${r ? `<audio controls src="${urlDe('radio')}"></audio><div class="acciones"><select data-autor="radio">${opts(r.autor)}</select><button class="btn btn-outline" style="padding:6px 12px;font-size:13px" onclick="quitarParte('radio')">Quitar</button></div>` : ''}
+      ${r ? `<audio controls src="${urlDe('radio')}"></audio><div class="acciones"><button class="btn btn-outline" style="padding:6px 12px;font-size:13px" onclick="quitarParte('radio')">Quitar</button></div>` : ''}
     </div></div>
     <div class="parte"><div class="ic">📺</div><div><h4>Televisión</h4>
       <div class="est ${t ? 'si' : ''}">${t ? 'Lista · ' + mmss(t.dur) : 'Todavía no hay pieza de televisión en este aparato'}</div>
-      ${t ? `<video controls playsinline src="${urlDe('tv')}"></video><div class="acciones"><select data-autor="tv">${opts(t.autor)}</select><button class="btn btn-outline" style="padding:6px 12px;font-size:13px" onclick="quitarParte('tv')">Quitar</button></div>` : ''}
+      ${t ? `<video controls playsinline src="${urlDe('tv')}"></video><div class="acciones"><button class="btn btn-outline" style="padding:6px 12px;font-size:13px" onclick="quitarParte('tv')">Quitar</button></div>` : ''}
     </div></div>
     ${[0, 1].map(i => { const w = webs[i], h = hayNoticia(w); return `
     <div class="parte"><div class="ic">📰</div><div><h4>Noticia web ${i + 1}</h4>
-      <div class="est ${h ? 'si' : ''}">${h ? esc(w.titular || 'Sin titular') + ' · ' + palabras(w) + ' palabras' : 'Todavía no hay noticia ' + (i + 1) + ' en este aparato'}</div>
-      ${h ? `<div class="acciones"><select data-autor="web${i}">${opts(w.autor)}</select><button class="btn btn-outline" style="padding:6px 12px;font-size:13px" onclick="irA('${WEB_CLAVE[i]}')">Abrir la noticia</button></div>` : ''}
+      <div class="est ${h ? (palabras(w) < MIN_PALABRAS ? 'corta' : 'si') : ''}">${h ? esc(w.titular || 'Sin titular') + ' · ' + palabras(w) + ' palabras' + (palabras(w) < MIN_PALABRAS ? ' (faltan ' + (MIN_PALABRAS - palabras(w)) + ' para las ' + MIN_PALABRAS + ')' : '') : 'Todavía no hay noticia ' + (i + 1) + ' en este aparato'}</div>
+      ${h ? `<div class="acciones"><button class="btn btn-outline" style="padding:6px 12px;font-size:13px" onclick="irA('${WEB_CLAVE[i]}')">Abrir la noticia</button></div>` : ''}
     </div></div>`; }).join('')}`;
   $('resumen').querySelectorAll('[data-autor]').forEach(s => s.addEventListener('change', async () => {
     const k = s.dataset.autor;
@@ -886,13 +856,15 @@ async function guardarMiParte(){
   guardarWeb(true);
   const hayWeb = hayNoticia(webs[0]) || hayNoticia(webs[1]);
   if(!partes.radio && !partes.tv && !hayWeb){ toast('Todavía no hay nada que guardar en este aparato.', true); return; }
+  const cortas = noticiasCortas(true);
+  if(cortas.length){ toast('No se puede descargar todavía: ' + cortas.join(' y ') + '. Cada noticia tiene que llegar a ' + MIN_PALABRAS + '.', true); return; }
   $('progreso').textContent = 'Preparando vuestra parte…';
   const datos = {redaccionMultimedia: 1, equipo: equipo.nombre, miembros: equipo.miembros, junta: equipo.junta, de: yo(), creado: Date.now()};
   if(partes.radio) datos.radio = {src: await blobADataURL(partes.radio.blob), nombre: partes.radio.nombre, autor: partes.radio.autor, dur: partes.radio.dur};
   if(partes.tv) datos.tv = {src: await blobADataURL(partes.tv.blob), nombre: partes.tv.nombre, autor: partes.tv.autor, dur: partes.tv.dur};
   if(hayNoticia(webs[0])) datos.web = webs[0];
   if(hayNoticia(webs[1])) datos.web2 = webs[1];
-  const qué = [datos.radio && 'radio', datos.tv && 'tele', datos.web && 'web1', datos.web2 && 'web2'].filter(Boolean).join('_');
+  const qué = [datos.radio && 'radio', datos.tv && 'tele', datos.web && 'noticia1', datos.web2 && 'noticia2'].filter(Boolean).join('_');
   const json = JSON.stringify(datos).replace(/<\//g, '<\\/');
   const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Parte de ${esc(equipo.nombre || 'equipo')} · ${esc(yo())}</title>
@@ -904,7 +876,7 @@ async function guardarMiParte(){
 <script>try{var d=JSON.parse(document.getElementById('parte-redaccion').textContent),v=document.getElementById('ver');if(d.radio){var a=document.createElement('audio');a.controls=true;a.src=d.radio.src;v.appendChild(a);}if(d.tv){var x=document.createElement('video');x.controls=true;x.setAttribute('playsinline','');x.src=d.tv.src;v.appendChild(x);}[d.web,d.web2].forEach(function(w,i){if(w){var p=document.createElement('p');p.innerHTML='<b>Noticia web '+(i+1)+':</b> '+String(w.titular||'sin titular').replace(/</g,'&lt;');v.appendChild(p);}});}catch(e){}<\/script>
 </body></html>`;
   $('progreso').textContent = '';
-  guardarArchivo(new Blob([html], {type: 'text/html'}), `parte_${slug(equipo.nombre) || 'equipo'}_${slug(yo()) || 'yo'}_${qué}.html`);
+  guardarArchivo(new Blob([html], {type: 'text/html'}), `mi_parte_${qué}.html`);
 }
 $('btnMiParte').addEventListener('click', () => guardarMiParte().catch(() => { $('progreso').textContent = ''; toast('No se ha podido preparar la parte.', true); }));
 
@@ -972,6 +944,8 @@ async function descargarTodo(){
   guardarWeb(true);
   const hay = [hayNoticia(webs[0]), hayNoticia(webs[1])];
   if(!partes.radio && !partes.tv && !hay[0] && !hay[1]){ toast('Todavía no hay nada que juntar.', true); return; }
+  const cortas = noticiasCortas(false);
+  if(cortas.length){ toast('No se puede descargar todavía: ' + cortas.join(' y ') + '. Las dos noticias tienen que llegar a ' + MIN_PALABRAS + ' palabras.', true); return; }
   const faltan = [!partes.radio && 'la radio', !partes.tv && 'la televisión', !hay[0] && 'la noticia web 1', !hay[1] && 'la noticia web 2'].filter(Boolean);
   if(faltan.length && !confirm('Falta ' + faltan.join(' y ') + '. ¿Descargáis igualmente lo que hay?')) return;
   $('btnTodo').disabled = true;
@@ -1037,28 +1011,19 @@ ${CSS_NOTICIA}
 $('btnTodo').addEventListener('click', descargarTodo);
 
 /* ================== EQUIPO ================== */
-function pintarCamposEquipo(){
-  $('eqNombre').value = equipo.nombre || '';
-  for(let i = 0; i < 4; i++) $('eqM' + (i + 1)).value = equipo.miembros[i] || '';
-  pintarEquipo();
-}
-$('eqNombre').addEventListener('input', e => { equipo.nombre = e.target.value; guardarEquipo(); });
-document.querySelectorAll('.eqM').forEach((inp, i) => inp.addEventListener('input', () => { equipo.miembros[i] = inp.value.trim(); guardarEquipo(); }));
-$('eqYo').addEventListener('change', e => { equipo.yo = e.target.value; guardarEquipo(); });
-$('eqJunta').addEventListener('change', e => { equipo.junta = e.target.value; guardarEquipo(); });
+function pintarCamposEquipo(){ pintarEquipo(); }
 
 /* ================== ARRANQUE ================== */
 (async function(){
-  try{ const e = JSON.parse(localStorage.getItem('redaccionEquipo') || 'null'); if(e) equipo = Object.assign(equipo, e); }catch(err){}
   pintarCamposEquipo();
   for(let i = 0; i < 2; i++){ const w = await dbGet(WEB_CLAVE[i]); if(w) webs[i] = Object.assign(WEB_VACIA(), w); }
   web = webs[wi];
   pintarWeb();
   for(const t of ['radio', 'tv']){ const p = await dbGet('parte_' + t); if(p && p.blob) partes[t] = p; }
   pintarPartes();
-  let v = 'equipo';
-  try{ v = localStorage.getItem('redaccionVista') || (equipo.nombre ? 'web' : 'equipo'); }catch(err){}
-  irA(['equipo','radio','tv','web','web2','juntar'].includes(v) ? v : 'equipo');
+  let v = 'como';
+  try{ v = localStorage.getItem('redaccionVista') || 'como'; }catch(err){}
+  irA(['como','radio','tv','web','web2','juntar'].includes(v) ? v : 'como');
 })();
 </script>
 </body>
