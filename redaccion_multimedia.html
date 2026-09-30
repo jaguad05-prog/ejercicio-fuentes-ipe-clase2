@@ -138,7 +138,7 @@
     <button class="tab" data-v="tv">📺 Televisión <span class="ok" id="okTv"></span></button>
     <button class="tab" data-v="web">📰 Noticia web 1 <span class="ok" id="okWeb"></span></button>
     <button class="tab" data-v="web2">📰 Noticia web 2 <span class="ok" id="okWeb2"></span></button>
-    <button class="tab" data-v="juntar">📦 Juntar y enviar</button>
+    <button class="tab" data-v="juntar">📦 Al acabar</button>
   </div>
   <span class="equipo-tag" id="equipoTag"></span>
 </div>
@@ -181,8 +181,8 @@
           <div class="pasos">
             <div class="paso"><div><p><b>Repartíos las partes.</b> Cada uno abre esta misma página en su ordenador o móvil y hace la suya: la crónica de radio en «Radio», la pieza en «Televisión» y las dos noticias en «Noticia web 1» y «Noticia web 2».</p></div></div>
             <div class="paso"><div><p><b>Todo se guarda solo</b> en el aparato donde trabajáis, así que si se cierra la página no se pierde nada.</p></div></div>
-            <div class="paso"><div><p><b>Al acabar, pulsad «✔ He terminado»</b> y la página os dice qué hacer. Los que no juntan guardan su parte y se la mandan al que junta.</p></div></div>
-            <div class="paso"><div><p><b>El que junta añade las partes</b> de los demás y pulsa «Descargar todo». Sale un solo archivo HTML, con la radio, la tele y las dos noticias dentro, que se sube a Moodle.</p></div></div>
+            <div class="paso"><div><p><b>Cuando acabéis, descargad lo que habéis hecho</b> y mandádselo al compañero que junta todo.</p></div></div>
+            <div class="paso"><div><p><b>El que junta mete lo de todos</b>, descarga el trabajo completo y lo sube a Moodle.</p></div></div>
           </div>
         </div>
       </div>
@@ -279,39 +279,33 @@
   <section class="vista" id="v-juntar" hidden>
     <div class="wrap">
       <div class="panel">
-        <div class="panel-head">QUÉ HACER AHORA</div>
+        <div class="panel-head">CUANDO HAYÁIS ACABADO</div>
         <div class="panel-body">
           <div class="aviso-rol" id="avisoRol" hidden></div>
           <div class="rol" id="rolParte">
-            <h3 id="rolParteTit">Si no sois quien junta</h3>
+            <h3 id="rolParteTit">Si otro compañero junta el trabajo</h3>
             <div class="pasos">
               <div class="paso"><div>
-                <p><b>Guardad vuestra parte.</b> Se descarga un archivo que empieza por «parte_».</p>
-                <button class="btn btn-dark" id="btnMiParte">⬇ Guardar mi parte</button>
+                <p><b>Descargad lo que habéis hecho.</b></p>
+                <button class="btn btn-dark" id="btnMiParte">⬇ Descargar lo que he hecho</button>
               </div></div>
               <div class="paso"><div>
-                <p><b>Mandádsela a <span class="nomJunta">quien junta</span></b> por WhatsApp como <b>documento</b> (con el clip, «Documento»), por AirDrop, por correo o en un pendrive.</p>
-                <p class="hint"><b>¿Lo habéis hecho con otro programa?</b> Si es un audio o un vídeo (grabadora del móvil, Audacity, CapCut…), mandad ese archivo tal cual, sin pasar por «Guardar mi parte». Si es una noticia escrita en Word o Docs, pegadla antes en «Noticia web» y guardad la parte.</p>
-              </div></div>
-              <div class="paso"><div>
-                <p><b>Ya habéis terminado.</b> No hace falta subir nada a Moodle, eso lo hace <span class="nomJunta">quien junta</span>.</p>
+                <p><b>Mandádselo a <span class="nomJunta">quien junta</span></b> por WhatsApp, como documento, o por correo.</p>
+                <p class="hint">Si lo habéis hecho con otro programa, mandad ese audio o ese vídeo tal cual.</p>
               </div></div>
             </div>
           </div>
           <div class="rol" id="rolJunta">
-            <h3 id="rolJuntaTit">Si sois quien junta</h3>
+            <h3 id="rolJuntaTit">Si juntáis vosotros el trabajo</h3>
             <div class="pasos">
               <div class="paso"><div>
-                <p><b>Guardad en este aparato los archivos que os manden</b> y añadidlos aquí. Valen las partes «parte_…» y también los audios y vídeos hechos con otros programas: el audio va a la radio y el vídeo a la televisión. Una noticia escrita en Word o Docs se copia y se pega en «Noticia web».</p>
-                <label class="btn btn-dark" for="subePartes">＋ Añadir partes del equipo</label>
+                <p><b>Guardad lo que os manden vuestros compañeros</b> y metedlo aquí.</p>
+                <label class="btn btn-dark" for="subePartes">＋ Meter lo de mis compañeros</label>
                 <input type="file" id="subePartes" multiple hidden accept=".html,.htm,audio/*,video/*">
               </div></div>
               <div class="paso"><div>
-                <p><b>Comprobad abajo, en «Lo que tenéis en este aparato»,</b> que están la radio, la tele y las dos noticias.</p>
-              </div></div>
-              <div class="paso"><div>
-                <p><b>Descargad el archivo final</b> y <b>subidlo a Moodle</b>. Es un solo archivo con todo dentro.</p>
-                <button class="btn btn-red" id="btnTodo">⬇ Descargar todo</button>
+                <p><b>Descargad el trabajo completo y subidlo a Moodle.</b></p>
+                <button class="btn btn-red" id="btnTodo">⬇ Descargar el trabajo completo</button>
                 <div class="progreso" id="progreso"></div>
               </div></div>
             </div>
@@ -462,8 +456,8 @@ function pintarRol(){
   $('rolJunta').hidden = conocido && !soyJunta;
   $('rolParte').classList.toggle('tuyo', conocido && !soyJunta);
   $('rolJunta').classList.toggle('tuyo', soyJunta);
-  $('rolParteTit').textContent = conocido ? 'Tú no juntas: esto es lo que te toca' : 'Si no sois quien junta';
-  $('rolJuntaTit').textContent = soyJunta ? 'Tú juntas: esto es lo que te toca' : 'Si sois quien junta';
+  $('rolParteTit').textContent = conocido ? 'Junta ' + j + '. Esto es lo que tenéis que hacer' : 'Si otro compañero junta el trabajo';
+  $('rolJuntaTit').textContent = soyJunta ? 'Juntáis vosotros. Esto es lo que tenéis que hacer' : 'Si juntáis vosotros el trabajo';
   $('avisoRol').hidden = conocido;
   $('avisoRol').innerHTML = 'En la pestaña <b>«👥 Equipo»</b> elegid quién está en este aparato y quién junta, y aquí os saldrán solo vuestros pasos.';
 }
@@ -904,7 +898,7 @@ async function guardarMiParte(){
 <title>Parte de ${esc(equipo.nombre || 'equipo')} · ${esc(yo())}</title>
 <style>body{font-family:Arial,Helvetica,sans-serif;background:#F5F5F7;color:#2B2B30;max-width:640px;margin:0 auto;padding:24px 16px}h1{font-size:20px}p{line-height:1.5}audio,video{width:100%;margin:8px 0}video{background:#000}</style></head>
 <body><h1>Parte de ${esc(equipo.nombre || 'un equipo')} ${yo() ? '· ' + esc(yo()) : ''}</h1>
-<p>Este archivo es una parte del trabajo. Para juntarla con las demás, abrid La Redacción Multimedia, id a «Juntar y enviar» y pulsad «Añadir partes del equipo».</p>
+<p>Este archivo es una parte del trabajo. Para juntarla con las demás, abrid La Redacción Multimedia, id a «Al acabar» y pulsad «Meter lo de mis compañeros».</p>
 <div id="ver"></div>
 <script type="application/json" id="parte-redaccion">${json}<\/script>
 <script>try{var d=JSON.parse(document.getElementById('parte-redaccion').textContent),v=document.getElementById('ver');if(d.radio){var a=document.createElement('audio');a.controls=true;a.src=d.radio.src;v.appendChild(a);}if(d.tv){var x=document.createElement('video');x.controls=true;x.setAttribute('playsinline','');x.src=d.tv.src;v.appendChild(x);}[d.web,d.web2].forEach(function(w,i){if(w){var p=document.createElement('p');p.innerHTML='<b>Noticia web '+(i+1)+':</b> '+String(w.titular||'sin titular').replace(/</g,'&lt;');v.appendChild(p);}});}catch(e){}<\/script>
