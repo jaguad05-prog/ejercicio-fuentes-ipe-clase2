@@ -393,7 +393,9 @@
   <h2 id="expTit">Generando el vídeo…</h2>
   <p id="expTxt">El navegador solo puede grabar en tiempo real: la pieza se está reproduciendo y
     grabando a la vez. No cierres esta pestaña.</p>
+  <p id="expAviso" style="font-weight:700">No cambiéis de pestaña ni de app y no bloqueéis la pantalla hasta que termine. En iPad y iPhone, si la pantalla se apaga, el vídeo se estropea.</p>
   <div class="exp-barra"><div class="exp-prog" id="expProg"></div></div>
+  <button class="tbtn" id="expOtraVez" style="display:none;background:#C8102E;border-color:#C8102E;color:#fff" onclick="guardarOtraVez()">⬇ Guardar el vídeo otra vez</button>
   <button class="tbtn" id="expCerrar" onclick="cerrarExport()" style="display:none">Cerrar</button>
 </div>
 
@@ -1958,18 +1960,34 @@ async function exportar(){
     if(MediaRecorder.isTypeSupported(m)){ mime = m; break; }
   }
   trozosPieza = [];
+  salioDuranteExport = false;
+  document.getElementById('expAviso').style.display = '';
+  document.getElementById('expOtraVez').style.display = 'none';
   grabadorPieza = new MediaRecorder(stream, {mimeType:mime, videoBitsPerSecond:2500000});
   grabadorPieza.ondataavailable = e => { if(e.data.size) trozosPieza.push(e.data); };
   grabadorPieza.onstop = () => {
     const tipo = (grabadorPieza.mimeType || mime).split(';')[0];
     const ext = tipo.indexOf('mp4') >= 0 ? 'mp4' : 'webm';
     const blob = new Blob(trozosPieza, {type: tipo});
-    guardarArchivo(blob, 'pieza_' + Date.now() + '.' + ext);
+    document.getElementById('expAviso').style.display = 'none';
+    if(!blob.size || salioDuranteExport){
+      document.getElementById('expTit').textContent = 'El vídeo no ha salido bien';
+      document.getElementById('expTxt').textContent = salioDuranteExport
+        ? 'Mientras se grababa se ha cambiado de pestaña o de app, o se ha apagado la pantalla. Volved a generarlo sin salir de esta página.'
+        : 'No se ha grabado nada. Volved a generarlo sin salir de esta página.';
+      document.getElementById('expCerrar').style.display = 'inline-block';
+      if(!blob.size) return;
+    }
+    ultimoVideo = {blob, nombre: 'pieza_' + Date.now() + '.' + ext};
+    guardarArchivo(ultimoVideo.blob, ultimoVideo.nombre);
     // Dentro de La Redacción Multimedia, el vídeo pasa solo a la parte de televisión
     try{ if(window.parent !== window) window.parent.postMessage({redaccion: 'tv', blob, nombre: 'pieza'}, location.origin); }catch(e){}
-    document.getElementById('expTit').textContent = 'Vídeo listo';
-    document.getElementById('expTxt').textContent =
-      'Se ha guardado en formato ' + ext + '. Se ve en cualquier navegador y en VLC.';
+    if(!salioDuranteExport){
+      document.getElementById('expTit').textContent = 'Vídeo listo';
+      document.getElementById('expTxt').textContent =
+        'Formato ' + ext + '. Se ve en cualquier navegador y en VLC. Si no se ha guardado, pulsad «Guardar el vídeo otra vez».';
+    }
+    document.getElementById('expOtraVez').style.display = 'inline-block';
     document.getElementById('expProg').style.width = '100%';
     document.getElementById('expCerrar').style.display = 'inline-block';
   };
@@ -2020,6 +2038,9 @@ async function exportar(){
   }, {}, () => { grabadorPieza.start(); dibujar(); });
 }
 
+let ultimoVideo = null, salioDuranteExport = false;
+document.addEventListener('visibilitychange', () => { if(document.hidden && exportando) salioDuranteExport = true; });
+function guardarOtraVez(){ if(ultimoVideo) guardarArchivo(ultimoVideo.blob, ultimoVideo.nombre); }
 function cerrarExport(){ document.getElementById('expPanel').classList.remove('on'); }
 
 
