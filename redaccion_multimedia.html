@@ -111,6 +111,14 @@
   .paso{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:start}
   .paso:before{counter-increment:p;content:counter(p);width:30px;height:30px;border-radius:50%;background:var(--red);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center}
   .paso p{font-size:14px;line-height:1.5;margin-bottom:8px}
+  .rol{border:2px solid var(--border);border-radius:12px;padding:14px 16px}
+  .rol h3{margin:0 0 12px;font-size:16px}
+  .rol + .rol{margin-top:14px}
+  .rol.tuyo{border-color:var(--red)}
+  .aviso-rol{background:#FFF6E0;border-radius:10px;padding:10px 14px;font-size:14px;margin-bottom:14px}
+  .btn-fin{background:var(--green);color:#fff;border:0;border-radius:8px;padding:8px 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+  .aviso-parte .mic{font-size:12.5px;color:var(--muted)}
+  .aviso-parte .mic a{color:var(--red);font-weight:700}
   .progreso{margin-top:10px;font-size:13px;font-weight:700;color:var(--red)}
   #toastWrap{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:8px;align-items:center;width:min(560px,92vw)}
   .toast{background:var(--dark);color:#fff;padding:12px 18px;border-radius:10px;font-size:13.5px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.3);opacity:0;transform:translateY(10px);transition:opacity .25s,transform .25s;text-align:center;line-height:1.4}
@@ -160,6 +168,11 @@
             <select id="eqYo"></select>
             <div class="hint">Sirve para que en el archivo final se vea quién hizo cada parte.</div>
           </div>
+          <div class="field">
+            <label for="eqJunta">¿Quién junta todas las partes y lo entrega?</label>
+            <select id="eqJunta"></select>
+            <div class="hint">Elegid a una sola persona. Los demás le mandan su parte al acabar.</div>
+          </div>
         </div>
       </div>
       <div class="panel">
@@ -168,8 +181,8 @@
           <div class="pasos">
             <div class="paso"><div><p><b>Repartíos las partes.</b> Cada uno abre esta misma página en su ordenador o móvil y hace la suya: la crónica de radio en «Radio», la pieza en «Televisión» y las dos noticias en «Noticia web 1» y «Noticia web 2».</p></div></div>
             <div class="paso"><div><p><b>Todo se guarda solo</b> en el aparato donde trabajáis, así que si se cierra la página no se pierde nada.</p></div></div>
-            <div class="paso"><div><p><b>Al acabar, cada uno pulsa «Guardar mi parte»</b> en «Juntar y enviar» y se la pasa al compañero que junta, por WhatsApp como documento, AirDrop, correo o pendrive.</p></div></div>
-            <div class="paso"><div><p><b>El que junta añade las partes</b> de los demás, lo revisa todo y pulsa «Descargar todo». Sale un solo archivo HTML que se entrega a la profesora, y dentro se oye la radio, se ve la tele y se leen las dos noticias.</p></div></div>
+            <div class="paso"><div><p><b>Al acabar, pulsad «✔ He terminado»</b> y la página os dice qué hacer. Los que no juntan guardan su parte y se la mandan al que junta.</p></div></div>
+            <div class="paso"><div><p><b>El que junta añade las partes</b> de los demás y pulsa «Descargar todo». Sale un solo archivo HTML, con la radio, la tele y las dos noticias dentro, que se sube a Moodle.</p></div></div>
           </div>
         </div>
       </div>
@@ -185,6 +198,8 @@
         <label class="btn btn-outline" for="subeRadio" style="padding:7px 12px;font-size:13px">¿Ya la tenéis? Subid el audio</label>
         <input type="file" id="subeRadio" accept="audio/*,.wav,.mp3,.m4a,.ogg,.opus,.webm" hidden>
         <span class="hint" style="margin:0">Cuando La Emisora termine de montar, la crónica se guarda aquí sola.</span>
+        <button class="btn-fin" type="button" onclick="irA('juntar')">✔ He terminado</button>
+        <span class="mic">¿No os deja usar el micrófono? <a href="la_emisora.html#directo" target="_blank" rel="noopener">Abrid la radio en otra pestaña</a>. Al terminar, la crónica vuelve aquí sola.</span>
       </div>
       <iframe id="fRadio" title="La Emisora" allow="microphone; autoplay"></iframe>
     </div>
@@ -199,6 +214,7 @@
         <label class="btn btn-outline" for="subeTv" style="padding:7px 12px;font-size:13px">¿Ya la tenéis? Subid el vídeo</label>
         <input type="file" id="subeTv" accept="video/*,.mp4,.mov,.webm" hidden>
         <span class="hint" style="margin:0">Cuando La Pieza termine de generar el vídeo, se guarda aquí solo.</span>
+        <button class="btn-fin" type="button" onclick="irA('juntar')">✔ He terminado</button>
       </div>
       <iframe id="fTv" title="La Pieza" allow="microphone; camera; autoplay; fullscreen"></iframe>
     </div>
@@ -248,9 +264,11 @@
             <input type="file" id="subeFotoC" accept="image/*" hidden>
             <div class="cuerpo" id="cuerpo" contenteditable="true" data-ph="Escribid aquí la noticia. Intro separa párrafos. Seleccionad un trozo y pulsad N para ponerlo en negrita."></div>
             <div class="contador" id="contador">0 palabras</div>
+            <div class="hint">¿La habéis escrito en Word o Google Docs? Copiadla entera y pegadla aquí, y se quedan los párrafos, las negritas y los enlaces. Las fotos se meten después con el botón «📷 Foto».</div>
           </div>
           <div class="acciones">
             <button class="btn btn-gold" id="verWeb">👁 Ver cómo queda</button>
+            <button class="btn-fin" type="button" onclick="irA('juntar')" style="padding:11px 16px;font-size:14px">✔ He terminado mi noticia</button>
           </div>
         </div>
       </div>
@@ -261,29 +279,48 @@
   <section class="vista" id="v-juntar" hidden>
     <div class="wrap">
       <div class="panel">
-        <div class="panel-head"><span>LO QUE TENÉIS EN ESTE APARATO</span></div>
-        <div class="panel-body" id="resumen"></div>
-      </div>
-      <div class="panel">
-        <div class="panel-head">PASAR LAS PARTES</div>
+        <div class="panel-head">QUÉ HACER AHORA</div>
         <div class="panel-body">
-          <div class="pasos">
-            <div class="paso"><div>
-              <p><b>Si habéis hecho una parte</b>, guardadla y pasádsela al compañero que junta. Por WhatsApp, mandadla como <b>documento</b>.</p>
-              <button class="btn btn-dark" id="btnMiParte">⬇ Guardar mi parte</button>
-            </div></div>
-            <div class="paso"><div>
-              <p><b>Si sois quien junta</b>, añadid aquí las partes que os han pasado. También vale el audio o el vídeo suelto.</p>
-              <label class="btn btn-dark" for="subePartes">＋ Añadir partes del equipo</label>
-              <input type="file" id="subePartes" multiple hidden accept=".html,.htm,audio/*,video/*">
-            </div></div>
-            <div class="paso"><div>
-              <p><b>Cuando esté todo</b>, descargad el archivo final y entregádselo a la profesora. Se abre en cualquier navegador y dentro se oye la radio y se ve la tele.</p>
-              <button class="btn btn-red" id="btnTodo">⬇ Descargar todo</button>
-              <div class="progreso" id="progreso"></div>
-            </div></div>
+          <div class="aviso-rol" id="avisoRol" hidden></div>
+          <div class="rol" id="rolParte">
+            <h3 id="rolParteTit">Si no sois quien junta</h3>
+            <div class="pasos">
+              <div class="paso"><div>
+                <p><b>Guardad vuestra parte.</b> Se descarga un archivo que empieza por «parte_».</p>
+                <button class="btn btn-dark" id="btnMiParte">⬇ Guardar mi parte</button>
+              </div></div>
+              <div class="paso"><div>
+                <p><b>Mandádsela a <span class="nomJunta">quien junta</span></b> por WhatsApp como <b>documento</b> (con el clip, «Documento»), por AirDrop, por correo o en un pendrive.</p>
+                <p class="hint"><b>¿Lo habéis hecho con otro programa?</b> Si es un audio o un vídeo (grabadora del móvil, Audacity, CapCut…), mandad ese archivo tal cual, sin pasar por «Guardar mi parte». Si es una noticia escrita en Word o Docs, pegadla antes en «Noticia web» y guardad la parte.</p>
+              </div></div>
+              <div class="paso"><div>
+                <p><b>Ya habéis terminado.</b> No hace falta subir nada a Moodle, eso lo hace <span class="nomJunta">quien junta</span>.</p>
+              </div></div>
+            </div>
+          </div>
+          <div class="rol" id="rolJunta">
+            <h3 id="rolJuntaTit">Si sois quien junta</h3>
+            <div class="pasos">
+              <div class="paso"><div>
+                <p><b>Guardad en este aparato los archivos que os manden</b> y añadidlos aquí. Valen las partes «parte_…» y también los audios y vídeos hechos con otros programas: el audio va a la radio y el vídeo a la televisión. Una noticia escrita en Word o Docs se copia y se pega en «Noticia web».</p>
+                <label class="btn btn-dark" for="subePartes">＋ Añadir partes del equipo</label>
+                <input type="file" id="subePartes" multiple hidden accept=".html,.htm,audio/*,video/*">
+              </div></div>
+              <div class="paso"><div>
+                <p><b>Comprobad abajo, en «Lo que tenéis en este aparato»,</b> que están la radio, la tele y las dos noticias.</p>
+              </div></div>
+              <div class="paso"><div>
+                <p><b>Descargad el archivo final</b> y <b>subidlo a Moodle</b>. Es un solo archivo con todo dentro.</p>
+                <button class="btn btn-red" id="btnTodo">⬇ Descargar todo</button>
+                <div class="progreso" id="progreso"></div>
+              </div></div>
+            </div>
           </div>
         </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><span>LO QUE TENÉIS EN ESTE APARATO</span></div>
+        <div class="panel-body" id="resumen"></div>
       </div>
     </div>
   </section>
@@ -386,7 +423,7 @@ async function dbSet(k, v){ try{ const d = await db(); await new Promise((res, r
 async function dbDel(k){ try{ const d = await db(); await new Promise(res => { const tx = d.transaction('kv', 'readwrite'); tx.objectStore('kv').delete(k); tx.oncomplete = res; tx.onerror = res; }); }catch(e){} }
 
 /* ================== ESTADO ================== */
-let equipo = {nombre: '', miembros: ['', '', '', ''], yo: ''};
+let equipo = {nombre: '', miembros: ['', '', '', ''], yo: '', junta: ''};
 let partes = {radio: null, tv: null};   // {blob, nombre, autor, dur}
 const WEB_VACIA = () => ({seccion: '', firma: '', titular: '', subtitulo: '', foto: '', pie: '', cuerpo: '', autor: ''});
 const WEB_CLAVE = ['web', 'web2'];            // dónde se guarda cada noticia
@@ -413,6 +450,22 @@ function pintarEquipo(){
   const sel = $('eqYo');
   const nombres = equipo.miembros.filter(Boolean);
   sel.innerHTML = '<option value="">Elegid vuestro nombre</option>' + nombres.map(n => `<option ${n === equipo.yo ? 'selected' : ''}>${esc(n)}</option>`).join('');
+  $('eqJunta').innerHTML = '<option value="">Elegid quién junta</option>' + nombres.map(n => `<option ${n === equipo.junta ? 'selected' : ''}>${esc(n)}</option>`).join('');
+  pintarRol();
+}
+function pintarRol(){
+  const j = equipo.junta, y = equipo.yo;
+  document.querySelectorAll('.nomJunta').forEach(x => x.textContent = j || 'quien junta');
+  const conocido = !!(j && y);
+  const soyJunta = conocido && j === y;
+  $('rolParte').hidden = conocido && soyJunta;
+  $('rolJunta').hidden = conocido && !soyJunta;
+  $('rolParte').classList.toggle('tuyo', conocido && !soyJunta);
+  $('rolJunta').classList.toggle('tuyo', soyJunta);
+  $('rolParteTit').textContent = conocido ? 'Tú no juntas: esto es lo que te toca' : 'Si no sois quien junta';
+  $('rolJuntaTit').textContent = soyJunta ? 'Tú juntas: esto es lo que te toca' : 'Si sois quien junta';
+  $('avisoRol').hidden = conocido;
+  $('avisoRol').innerHTML = 'En la pestaña <b>«👥 Equipo»</b> elegid quién está en este aparato y quién junta, y aquí os saldrán solo vuestros pasos.';
 }
 
 /* ================== PESTAÑAS ================== */
@@ -484,6 +537,20 @@ window.addEventListener('message', async e => {
   toast(tipo === 'tv' ? 'La pieza de televisión se ha guardado en la parte de TV.' : 'La crónica se ha guardado en la parte de radio.');
 });
 
+// La Emisora abierta en otra pestaña deja la crónica en el almacén y avisa
+async function recogerRadioDeFuera(){
+  const p = await dbGet('parte_radio');
+  if(!p || !p.blob || !p.t || (partes.radio && partes.radio.t === p.t)) return;
+  if(!p.dur) p.dur = await duracionDe(p.blob, false);
+  if(!p.autor) p.autor = yo();
+  partes.radio = p;
+  await dbSet('parte_radio', p);
+  pintarPartes();
+  toast('La crónica de radio se ha guardado en la parte de radio.');
+}
+try{ new BroadcastChannel('redaccion-multimedia').onmessage = e => { if(e.data === 'radio') recogerRadioDeFuera(); }; }catch(e){}
+window.addEventListener('focus', () => { recogerRadioDeFuera(); });
+
 /* ================== NOTICIA WEB ================== */
 const cuerpo = $('cuerpo');
 let rango = null;
@@ -528,10 +595,51 @@ cuerpo.addEventListener('click', e => {
   const q = e.target.closest('.quitar');
   if(q){ q.parentNode.remove(); guardarWeb(); }
 });
+// Pegar desde Word, Google Docs o una web: se quedan párrafos, ladillos, negritas, cursivas y enlaces
+function limpiarPegado(html){
+  const src = new DOMParser().parseFromString(html, 'text/html').body;
+  const out = document.createElement('div');
+  let p = null;
+  const nuevoP = () => { p = document.createElement('p'); out.appendChild(p); return p; };
+  const esNegrita = el => /^(B|STRONG)$/.test(el.tagName) || /font-weight:\s*(bold|[6-9]00)/i.test(el.getAttribute('style') || '');
+  const esCursiva = el => /^(I|EM)$/.test(el.tagName) || /font-style:\s*italic/i.test(el.getAttribute('style') || '');
+  function copiar(n, dest){
+    for(const c of [...n.childNodes]){
+      if(c.nodeType === 3){ if(c.textContent) dest.appendChild(document.createTextNode(c.textContent.replace(/\s+/g, ' '))); continue; }
+      if(c.nodeType !== 1 || /^(STYLE|SCRIPT|META|TITLE|IMG|svg)$/i.test(c.tagName)) continue;
+      if(c.tagName === 'BR'){ dest.appendChild(document.createElement('br')); continue; }
+      let d = dest;
+      if(c.tagName === 'A' && /^https?:/i.test(c.getAttribute('href') || '')){ d = document.createElement('a'); d.href = c.getAttribute('href'); d.target = '_blank'; d.rel = 'noopener'; dest.appendChild(d); }
+      if(esNegrita(c) && !/font-weight:\s*normal/i.test(c.getAttribute('style') || '')){ const b = document.createElement('b'); d.appendChild(b); d = b; }
+      if(esCursiva(c)){ const i = document.createElement('i'); d.appendChild(i); d = i; }
+      copiar(c, d);
+    }
+  }
+  function bloques(n){
+    for(const c of [...n.childNodes]){
+      if(c.nodeType === 1 && /^(P|DIV|LI|H1|H2|H3|H4|H5|H6|BLOCKQUOTE|SECTION|ARTICLE|UL|OL|TABLE|TBODY|TR|TD)$/.test(c.tagName)){
+        if(c.querySelector('p,div,li,h1,h2,h3,h4,h5,h6,blockquote,tr')){ bloques(c); continue; }
+        const tipo = /^H[1-6]$/.test(c.tagName) ? 'h3' : c.tagName === 'BLOCKQUOTE' ? 'blockquote' : 'p';
+        const el = document.createElement(tipo); out.appendChild(el); copiar(c, el); p = null;
+        if(!el.textContent.trim()) el.remove();
+      }else if(c.nodeType === 3 && !c.textContent.trim()){ continue; }
+      else{ const w = document.createElement('div'); w.appendChild(c.cloneNode(true)); copiar(w, p || nuevoP()); }
+    }
+  }
+  bloques(src);
+  out.querySelectorAll('p').forEach(x => { if(!x.textContent.trim()) x.remove(); });
+  return out.innerHTML;
+}
 cuerpo.addEventListener('paste', e => {
   e.preventDefault();
-  const t = (e.clipboardData || window.clipboardData).getData('text/plain');
-  const html = t.split(/\n{2,}|\r\n\r\n/).map(p => '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>').join('');
+  const cd = e.clipboardData || window.clipboardData;
+  const h = cd.getData('text/html');
+  let html = '';
+  if(h){ try{ html = limpiarPegado(h); }catch(err){ html = ''; } }
+  if(!html){
+    const t = cd.getData('text/plain');
+    html = t.split(/\n{2,}|\r\n\r\n/).map(p => '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>').join('');
+  }
   document.execCommand('insertHTML', false, html);
 });
 cuerpo.addEventListener('keydown', e => {
@@ -785,7 +893,7 @@ async function guardarMiParte(){
   const hayWeb = hayNoticia(webs[0]) || hayNoticia(webs[1]);
   if(!partes.radio && !partes.tv && !hayWeb){ toast('Todavía no hay nada que guardar en este aparato.', true); return; }
   $('progreso').textContent = 'Preparando vuestra parte…';
-  const datos = {redaccionMultimedia: 1, equipo: equipo.nombre, miembros: equipo.miembros, de: yo(), creado: Date.now()};
+  const datos = {redaccionMultimedia: 1, equipo: equipo.nombre, miembros: equipo.miembros, junta: equipo.junta, de: yo(), creado: Date.now()};
   if(partes.radio) datos.radio = {src: await blobADataURL(partes.radio.blob), nombre: partes.radio.nombre, autor: partes.radio.autor, dur: partes.radio.dur};
   if(partes.tv) datos.tv = {src: await blobADataURL(partes.tv.blob), nombre: partes.tv.nombre, autor: partes.tv.autor, dur: partes.tv.dur};
   if(hayNoticia(webs[0])) datos.web = webs[0];
@@ -817,6 +925,7 @@ async function añadirPartes(lista){
       if(!m) throw new Error('no es una parte');
       const d = JSON.parse(m[1]);
       if(!equipo.nombre && d.equipo){ equipo.nombre = d.equipo; }
+      if(!equipo.junta && d.junta){ equipo.junta = d.junta; }
       (d.miembros || []).forEach(n => { if(n && !equipo.miembros.includes(n)){ const i = equipo.miembros.indexOf(''); if(i >= 0) equipo.miembros[i] = n; } });
       guardarEquipo(); pintarCamposEquipo();
       if(d.radio && (!partes.radio || confirm('Ya hay una crónica de radio aquí. ¿La cambiáis por la de ' + (d.radio.autor || d.de || 'la parte') + '?')))
@@ -942,6 +1051,7 @@ function pintarCamposEquipo(){
 $('eqNombre').addEventListener('input', e => { equipo.nombre = e.target.value; guardarEquipo(); });
 document.querySelectorAll('.eqM').forEach((inp, i) => inp.addEventListener('input', () => { equipo.miembros[i] = inp.value.trim(); guardarEquipo(); }));
 $('eqYo').addEventListener('change', e => { equipo.yo = e.target.value; guardarEquipo(); });
+$('eqJunta').addEventListener('change', e => { equipo.junta = e.target.value; guardarEquipo(); });
 
 /* ================== ARRANQUE ================== */
 (async function(){

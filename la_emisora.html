@@ -217,6 +217,21 @@ let sel = {senal: 'senal-clasica', sintonia: 'sint-emisora', voz: '', salida: 's
 let formato = 'boletin';
 // #directo: versión sin opciones para La Redacción Multimedia, sin entradas ni salidas
 const DIRECTO = (location.hash || '') === '#directo';
+const EN_REDACCION = window.parent !== window;
+// Abierta en una pestaña aparte: deja la crónica en la parte de radio de La Redacción Multimedia
+function guardarEnRedaccion(blob, nombre){
+  try{
+    const r = indexedDB.open('redaccion-multimedia', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('kv');
+    r.onsuccess = () => {
+      const d = r.result;
+      let autor = ''; try{ autor = (JSON.parse(localStorage.getItem('redaccionEquipo') || '{}').yo) || ''; }catch(e){}
+      const tx = d.transaction('kv', 'readwrite');
+      tx.objectStore('kv').put({blob, nombre, autor, dur: 0, t: Date.now()}, 'parte_radio');
+      tx.oncomplete = () => { d.close(); try{ new BroadcastChannel('redaccion-multimedia').postMessage('radio'); }catch(e){} };
+    };
+  }catch(e){}
+}
 
 // Sonidos guardados en este dispositivo: cortes y entradas o salidas añadidas
 let items = [];                  // {id, kind, nombre, blob, ini, fin, vol, suave, bajarMicro, created, buffer, picos}
@@ -963,6 +978,7 @@ async function mixFinal(){
   finalBlobUrl = URL.createObjectURL(finalBlob);
   // Dentro de La Redacción Multimedia, la emisión pasa sola a la parte de radio
   try{ if(window.parent !== window) window.parent.postMessage({redaccion: 'radio', blob: finalBlob, nombre: slug(etiqueta) || 'cronica'}, location.origin); }catch(e){}
+  if(DIRECTO && window.parent === window) guardarEnRedaccion(finalBlob, slug(etiqueta) || 'cronica');
   phase = 'done';
   render();
   setStatus('EMISIÓN LISTA', 'done');
@@ -1209,6 +1225,7 @@ function render(){
             <button class="btn btn-dark" onclick="guardarArchivo(finalBlob,'${nombre}')">⬇ Descargar (.wav)</button>
             <button class="btn btn-outline" onclick="resetAll()">↺ Grabar otra</button>
           </div>
+          ${DIRECTO ? `<div class="hint" style="font-size:15px;margin-top:14px"><b>La crónica ya está guardada en la parte de radio.</b> ${EN_REDACCION ? 'Ahora pulsad «✔ He terminado» arriba y seguid los pasos.' : 'Volved a la pestaña de La Redacción Multimedia y pulsad «✔ He terminado» en la parte de radio.'} No hace falta descargarla.</div>` : ''}
           <div class="nota-pie">${cortes().length ? 'Los cortes se quedan preparados para la siguiente.' : ''}</div>
         </div>
       </div>`;
@@ -1219,6 +1236,8 @@ function render(){
     el.innerHTML = `<div class="panel"><div class="panel-body stage-center">
         <div class="icon">🎙️🚫</div><h2>No se ha podido acceder al micrófono</h2>
         <p>Revisad el permiso del micrófono en el navegador (el candado junto a la dirección) y volved a intentarlo.</p>
+        ${DIRECTO && EN_REDACCION ? `<p><b>Si sigue sin dejaros,</b> abrid la radio en una pestaña aparte. Al terminar, la crónica vuelve sola a vuestro trabajo.</p>
+        <div class="btn-row"><a class="btn btn-dark" href="la_emisora.html#directo" target="_blank" rel="noopener" style="text-decoration:none">Abrir la radio en otra pestaña</a></div>` : ''}
         <div class="btn-row"><button class="btn btn-dark" onclick="phase='ready'; render(); setStatus('LISTO PARA EMITIR','idle')">Reintentar</button></div>
       </div></div>`;
   }
