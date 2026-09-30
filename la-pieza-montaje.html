@@ -458,7 +458,8 @@ let fallidos = [];
 let bloques = [];      // {id, tipo, clipId, ini, fin, texto, rotulos[], locURL, locDur}
                        // rotulo: {l1, l2, desde, hasta}  — segundos relativos al inicio del bloque
 let idc = 0, idb = 0;
-const AMBIENTE = 0.35;      // volumen del sonido ambiente bajo la locución
+const AMBIENTE = 0.2;       // volumen del sonido ambiente bajo la locución
+const VOZ_REFUERZO = 2.5;   // la locución se comprime y se sube para que se oiga clara sobre el ambiente
 const PRE = 0.12;           // segundos que el vídeo entrante rueda antes del corte
 const FUNDIDO = 0.03;       // fundido cruzado del sonido en cada corte
 const esc = x => String(x ?? '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
@@ -1316,14 +1317,22 @@ function grafo(){
   ac = new (window.AudioContext || window.webkitAudioContext)();
   destExport = ac.createMediaStreamDestination();
   const conectar = g => { g.connect(ac.destination); g.connect(destExport); return g; };
+  // Cadena de la voz: compresor, refuerzo y limitador, para que la locución quede por encima del ambiente sin saturar
+  const vozComp = ac.createDynamicsCompressor();
+  vozComp.threshold.value = -30; vozComp.knee.value = 10; vozComp.ratio.value = 4; vozComp.attack.value = 0.003; vozComp.release.value = 0.25;
+  const vozGan = ac.createGain(); vozGan.gain.value = VOZ_REFUERZO;
+  const vozLim = ac.createDynamicsCompressor();
+  vozLim.threshold.value = -2; vozLim.knee.value = 0; vozLim.ratio.value = 20; vozLim.attack.value = 0.001; vozLim.release.value = 0.1;
+  vozComp.connect(vozGan); vozGan.connect(vozLim); conectar(vozLim);
+  const aVoz = g => { g.connect(vozComp); return g; };
   ['A','B'].forEach(k => {
     gV[k] = conectar(ac.createGain());
-    gL[k] = conectar(ac.createGain());
+    gL[k] = aVoz(ac.createGain());
     ac.createMediaElementSource(SLOT[k].v).connect(gV[k]);
     ac.createMediaElementSource(SLOT[k].a).connect(gL[k]);
   });
   gMus = conectar(ac.createGain());
-  gLocP = conectar(ac.createGain());
+  gLocP = aVoz(ac.createGain());
   ac.createMediaElementSource(document.getElementById('emMus')).connect(gMus);
   ac.createMediaElementSource(document.getElementById('emLocP')).connect(gLocP);
 }
