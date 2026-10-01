@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Guerra de Portadas · Pantalla</title>
+<style>
+:root{--red:#C8102E;--dark:#1B1B1F;--ink:#2B2B30;--paper:#fff;--tint:#FBF1F2;--gold:#E8B54A;--muted:#6B6B72;--border:#D8D8DC;--green:#1E7A45;--bg:#F5F5F7}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+.topbar{background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:12px 18px;gap:10px;flex-wrap:wrap}
+.tt{font-size:16px;font-weight:800;letter-spacing:.04em}
+.ts{font-size:11px;color:var(--gold);letter-spacing:.06em}
+.tr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.badge{background:var(--red);color:#fff;font-weight:800;font-size:13px;padding:7px 14px;border-radius:20px;letter-spacing:.03em}
+.codebadge{background:#fff;color:var(--dark);font-weight:800;font-size:15px;padding:6px 12px;border-radius:8px;letter-spacing:.12em}
+.tbtn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;padding:8px 13px;border-radius:8px;font-size:12.5px;cursor:pointer;font-family:inherit;font-weight:700}
+.tbtn:hover{background:rgba(255,255,255,.22)}
+.layout{display:grid;grid-template-columns:1fr 320px;gap:18px;padding:18px;max-width:1500px;margin:0 auto}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.panel{background:#fff;border-radius:14px;border:1px solid var(--border);overflow:hidden}
+.ph{background:var(--dark);color:#fff;padding:11px 16px;font-size:12.5px;font-weight:800;letter-spacing:.06em;display:flex;justify-content:space-between;gap:10px}
+.ph span{color:var(--gold)}
+.pb{padding:18px}
+.btn{border:none;padding:13px 20px;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.b-red{background:var(--red);color:#fff}.b-dark{background:var(--dark);color:#fff}.b-gold{background:var(--gold);color:var(--dark)}
+.b-out{background:#fff;border:2px solid var(--border);color:var(--ink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.muted{color:var(--muted)}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
+.field input,.field textarea{width:100%;border:1.5px solid var(--border);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit}
+.field textarea{min-height:110px}
+.err{color:var(--red);font-weight:700;margin-top:10px;min-height:18px}
+/* lobby */
+.lobby{display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center}
+@media(max-width:700px){.lobby{grid-template-columns:1fr}}
+.bigcode{font-size:64px;font-weight:900;letter-spacing:.14em;color:var(--dark)}
+.link{font-size:14px;word-break:break-all;color:var(--muted);margin-top:6px}
+#qr{background:#fff;padding:6px;border-radius:10px;border:1px solid var(--border)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{display:flex;align-items:center;gap:7px;border:2px solid var(--border);border-radius:30px;padding:7px 13px;font-weight:800;font-size:14px;background:#fff}
+.chip i{width:12px;height:12px;border-radius:50%;display:block}
+.chip small{font-weight:600;color:var(--muted)}
+.chip.ok{border-color:var(--green);background:#eef7f1}
+.chip.wr{border-color:var(--gold);background:#fffaf0}
+/* noticias */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.nc{border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;background:#fff;text-align:left;font-family:inherit}
+.nc:hover{border-color:var(--red)}
+.nc.used{opacity:.45}
+.nc .tg{font-size:10.5px;font-weight:800;letter-spacing:.08em;color:var(--red)}
+.nc .ti{font-size:15px;font-weight:800;margin:4px 0 6px;color:var(--ink)}
+.nc .tx{font-size:12.5px;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.story{border-left:6px solid var(--red);background:var(--tint);border-radius:0 12px 12px 0;padding:18px 22px}
+.story .tg{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--red)}
+.story .ti{font-size:24px;font-weight:900;margin:4px 0 10px}
+.story .tx{font-size:21px;line-height:1.5}
+/* papeleta */
+.ballot{display:flex;flex-direction:column;gap:12px}
+.bal{display:flex;gap:14px;align-items:center;border:2px solid var(--border);border-radius:12px;padding:14px 16px;background:#fff}
+.bal .L{width:46px;height:46px;border-radius:50%;background:var(--dark);color:var(--gold);font-size:22px;font-weight:900;display:flex;align-items:center;justify-content:center;flex:none}
+.bal .h{flex:1;font-size:22px;font-weight:800;line-height:1.3}
+.bal.disq{background:#fdeceb;border-color:var(--red)}
+.bal.disq .h{text-decoration:line-through;color:var(--red)}
+.bal.disq .L{background:var(--red);color:#fff}
+.xbtn{border:1px solid var(--border);background:#fff;border-radius:8px;padding:8px 11px;font-weight:800;cursor:pointer;font-family:inherit;font-size:12.5px;flex:none}
+.xbtn.on{background:var(--red);color:#fff;border-color:var(--red)}
+.counter{font-size:18px;font-weight:800}
+.counter b{color:var(--red);font-size:26px}
+/* resultados */
+.res{display:flex;gap:14px;align-items:center;border:2px solid var(--border);border-radius:12px;padding:12px 16px;background:#fff}
+.res.win{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold);background:#fffaf0}
+.res .who{font-size:13px;font-weight:800;letter-spacing:.04em}
+.res .h{font-size:19px;font-weight:800;line-height:1.3;margin-top:3px}
+.res .pts{margin-left:auto;text-align:right;flex:none}
+.res .pts b{font-size:30px;color:var(--red);display:block;line-height:1}
+.res .pts small{font-size:12px;color:var(--muted)}
+.res.disq .h{text-decoration:line-through;color:var(--red)}
+/* clasificación */
+.st{display:flex;align-items:center;gap:9px;background:var(--bg);border-radius:9px;padding:8px 10px;margin-bottom:7px}
+.st .rk{width:24px;height:24px;border-radius:50%;background:var(--dark);color:var(--gold);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+.st.top .rk{background:var(--gold);color:var(--dark)}
+.st .dt{width:12px;height:12px;border-radius:50%;flex:none}
+.st .nm{flex:1;font-weight:800;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st .pt{font-size:18px;font-weight:900;color:var(--red)}
+.adj{border:1px solid var(--border);background:#fff;border-radius:6px;width:22px;height:22px;cursor:pointer;font-weight:800;font-size:13px;line-height:1;padding:0}
+.notes{background:#fffaf0;border:2px dashed var(--gold);border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.55}
+.notes b{color:var(--dark)}
+.notes .mal{color:var(--red)}.notes .bien{color:var(--green)}
+.champ{background:linear-gradient(135deg,var(--gold),#f3d38a);border-radius:16px;padding:30px;text-align:center}
+.champ .tr{font-size:52px}
+.champ h3{font-size:13px;letter-spacing:.1em;margin:6px 0}
+.champ .nm{font-size:40px;font-weight:900}
+.empty{text-align:center;color:var(--muted);padding:20px;font-style:italic;font-size:13px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--dark);color:#fff;padding:12px 18px;border-radius:10px;font-weight:700;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:99;max-width:90vw;text-align:center}
+#toast.show{opacity:1}#toast.warn{background:var(--red)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div><div class="tt">LA GUERRA DE PORTADAS</div><div class="ts">CLASE 8 · PERIODISMO DEPORTIVO · PANTALLA DE LA PROFESORA</div></div>
+  <div class="tr" id="topRight"></div>
+</div>
+<div class="layout">
+  <div class="col" id="main"></div>
+  <div class="col" id="side"></div>
+</div>
+<div id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+// Noticias inventadas pero verosímiles. Cada una lleva su trampa para la auditoría.
+const NOTICIAS = [
+  { tag:"FICHAJE", title:"Reunión en París",
+    text:"El entorno de Lamine Yamal ha mantenido esta semana una reunión con dirigentes del PSG en un hotel de París. El Barcelona asegura que no ha recibido ninguna oferta y recuerda que el jugador tiene contrato hasta 2031.",
+    tentacion:"Una reunión del entorno no es una oferta, y menos una salida.",
+    linea:"Dar por hecho que se va o que hay acuerdo con el PSG.",
+    bien:"El entorno de Lamine Yamal se reúne con el PSG en París" },
+  { tag:"LESIÓN", title:"Molestias en los libres",
+    text:"Fernando Alonso ha abandonado la primera sesión de entrenamientos libres del Gran Premio por unas molestias en el cuello. Aston Martin ha explicado que el piloto se someterá a pruebas: «Fernando tiene unas molestias y lo vamos a valorar con calma». La decisión de si corre se tomará mañana.",
+    tentacion:"«Molestias» y «pruebas» no son una lesión ni una baja confirmada.",
+    linea:"Decir que no corre, que se lesiona o dar un diagnóstico que no existe.",
+    bien:"Susto en los libres: Alonso se retira por molestias en el cuello" },
+  { tag:"ECONOMÍA", title:"Las cuentas del Barça",
+    text:"El FC Barcelona ha presentado sus cuentas anuales ante la asamblea de compromisarios. La deuda del club se reduce un 12% respecto al año anterior, aunque la entidad sigue debiendo 2.300 millones de euros a corto y largo plazo. «Vamos por el buen camino, pero queda trabajo», ha dicho el tesorero.",
+    tentacion:"Quedarse solo con la mitad del dato para titular en una dirección.",
+    linea:"Omitir la cifra que contradice el ángulo del titular.",
+    bien:"El Barça reduce un 12% su deuda, pero aún debe 2.300 millones" },
+  { tag:"POLÉMICA", title:"Un gesto a la grada",
+    text:"Vinícius ha hecho un gesto hacia la grada en el minuto 78. El árbitro no ha recogido ningún incidente en el acta y el Real Madrid no ha querido hacer declaraciones.",
+    tentacion:"El acta no recoge el gesto y nadie lo ha explicado.",
+    linea:"Calificarlo (insulto, provocación, peineta) sin que conste en ningún sitio.",
+    bien:"El gesto de Vinícius a la grada que no aparece en el acta" },
+  { tag:"JURÍDICA", title:"Expediente por insultos racistas",
+    text:"El Comité de Competición ha abierto un expediente informativo al Sevilla por los insultos racistas que se escucharon desde la grada del Sánchez-Pizjuán en el último partido de Liga. El club ha anunciado que presentará alegaciones y ha difundido un comunicado: «Condenamos cualquier comportamiento racista y colaboraremos con Competición».",
+    tentacion:"Un expediente informativo no es una sanción y el club aún puede alegar.",
+    linea:"Dar la sanción por hecha (cierre de grada, multa, puntos) o señalar al club como autor de los insultos.",
+    bien:"Competición abre un expediente al Sevilla por insultos racistas en su estadio" },
+  { tag:"INESPERADA", title:"El recogepelotas viral",
+    text:"Un recogepelotas de 15 años evitó que un balón suelto entrara en una portería vacía durante el calentamiento previo al Real Madrid-Barcelona en el Bernabéu. El vídeo se ha hecho viral en las últimas horas y Courtois lo ha compartido en sus redes.",
+    tentacion:"Ocurrió en el calentamiento, no durante el partido.",
+    linea:"Situar la jugada en el partido o hablar de salvar un gol del rival.",
+    bien:"El paradón viral de un recogepelotas en el calentamiento del Clásico" },
+  { tag:"BANQUILLO", title:"Entrenador por un fin de semana",
+    text:"Sami Khedira, segundo entrenador del Real Madrid, dirigirá al equipo este fin de semana por un proceso gripal de José Mourinho. «Hablamos todos los días y el plan es el suyo», ha explicado Khedira en la rueda de prensa previa.",
+    tentacion:"Dirigir un partido por una gripe no es asumir el cargo.",
+    linea:"Decir que es el nuevo entrenador o que Mourinho deja el banquillo.",
+    bien:"Khedira dirigirá al Real Madrid este fin de semana por la gripe de Mourinho" },
+  { tag:"RENOVACIÓN", title:"Contrato que acaba en junio",
+    text:"Koke termina su contrato con el Atlético de Madrid el próximo mes de junio. Su agente ha declarado a los medios: «No hay prisa por renovar, estamos hablando con el club».",
+    tentacion:"«No hay prisa» no es ni ruptura ni acuerdo.",
+    linea:"Inventar el desenlace que la propia cita desmiente.",
+    bien:"El futuro de Koke, en el aire a meses de acabar contrato" },
+  { tag:"DECLARACIONES", title:"Luis Enrique y el premio",
+    text:"Luis Enrique ha asegurado en una entrevista en la radio que, «con todo el respeto», merece el premio al mejor entrenador del Balón de Oro más que Luis de la Fuente. «Ganar la Champions pesa más», ha añadido el técnico del PSG.",
+    tentacion:"Una opinión dicha con respeto no es un ataque ni una guerra.",
+    linea:"Convertirlo en desprecio, burla o enfrentamiento abierto.",
+    bien:"Luis Enrique: «Merezco el premio más que De la Fuente»" },
+  { tag:"CICLISMO", title:"Vuelta antes de tiempo",
+    text:"Tadej Pogačar ha asegurado en sus redes que ya puede volver a correr, cuatro semanas antes de lo previsto tras su caída. «Me siento bien y tengo ganas», ha escrito el esloveno. Su equipo no ha confirmado en qué carrera reaparecerá.",
+    tentacion:"Que él diga que puede volver no es una fecha ni una carrera confirmada.",
+    linea:"Dar por hecho que reaparece en una carrera concreta o que el equipo lo ha confirmado.",
+    bien:"Pogačar asegura que ya puede volver, cuatro semanas antes de lo previsto" }
+];
+
+
+// ===== CONFIGURACIÓN =====
+const API_URL = "https://script.google.com/macros/s/AKfycbwmse6cdBpej6POqNRC7_YPxiokiHL9e05R-3zfBHGF5T69T6JDu-JwBlRJJNuG-FCH/exec";          // dirección /exec del servidor de Apps Script
+const PAGINA_EQUIPO = "guerra_equipo_v1.html";
+// =========================
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const lsGet = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch(e){ return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch(e){} };
+const lsDel = k => { try { localStorage.removeItem(k); } catch(e){} };
+
+let API = new URLSearchParams(location.search).get("api") || (API_URL.startsWith("http") ? API_URL : "") || lsGet("guerra_api", "");
+let CODE = lsGet("guerra_code", ""), KEY = lsGet("guerra_key", "");
+let viendoEntrada = false;
+let S = null, verNotas = false, eligiendo = false, propia = false, ultimaVista = "";
+
+function toast(msg, warn){
+  const t = $("toast"); t.textContent = msg; t.className = warn ? "warn show" : "show";
+  clearTimeout(t._h); t._h = setTimeout(() => t.className = "", 3800);
+}
+async function api(params){
+  const r = await fetch(API, { method:"POST", body: JSON.stringify(params) });
+  const j = await r.json();
+  if (j.error) throw new Error(j.error);
+  return j;
+}
+async function accion(params, okMsg){
+  try { await api(Object.assign({ c: CODE, k: KEY }, params)); if (okMsg) toast(okMsg); await refrescar(); }
+  catch(e){ toast(e.message, true); }
+}
+
+// ── crear partida ──
+function pintarInicio(){
+  $("topRight").innerHTML = "";
+  $("side").innerHTML = "";
+  $("main").innerHTML = `
+    <div class="panel"><div class="ph">NUEVA PARTIDA</div><div class="pb">
+      <p class="muted" style="margin-bottom:16px;line-height:1.5">Los equipos entran desde el móvil con el nombre de su equipo. En cada ronda escribe el titular un solo miembro de cada equipo, que va rotando, y luego vota toda la clase sin saber de quién es cada titular. Nadie puede votar el de su equipo y cada voto es un punto.</p>
+      ${API ? "" : `<div class="field"><label>Dirección del servidor (termina en /exec)</label><input id="inApi" placeholder="https://script.google.com/macros/s/.../exec"></div>`}
+      <div class="field"><label>Número de rondas</label><input id="inRondas" type="number" min="1" max="20" value="${NOTICIAS.length}"></div>
+      <button class="btn b-red" id="btnCrear">Crear partida</button>
+      <div class="err" id="errCrear"></div>
+    </div></div>`;
+  $("btnCrear").onclick = crear;
+}
+async function crear(){
+  if (!API){ API = ($("inApi").value || "").trim(); }
+  if (!API){ $("errCrear").textContent = "Falta la dirección del servidor"; return; }
+  $("btnCrear").disabled = true; $("btnCrear").textContent = "Creando…";
+  try {
+    const j = await api({ a:"new", rounds: $("inRondas").value });
+    CODE = j.code; KEY = j.admin;
+    lsSet("guerra_api", API); lsSet("guerra_code", CODE); lsSet("guerra_key", KEY);
+    ultimaVista = ""; await refrescar();
+  } catch(e){
+    $("errCrear").textContent = e.message;
+    $("btnCrear").disabled = false; $("btnCrear").textContent = "Crear partida";
+  }
+}
+function nuevaPartida(){
+  if (!confirmar("nueva", "Pulsa otra vez para empezar una partida nueva (la actual se queda guardada en el servidor hasta mañana).")) return;
+  CODE = ""; KEY = ""; S = null; lsDel("guerra_code"); lsDel("guerra_key"); pintarInicio();
+}
+const armado = {};
+function confirmar(k, msg){
+  if (armado[k]) { armado[k] = false; return true; }
+  armado[k] = true; toast(msg, true); setTimeout(() => armado[k] = false, 4000); return false;
+}
+
+// ── estado ──
+let pidiendo = false;
+async function refrescar(){
+  if (!CODE || pidiendo) return;
+  pidiendo = true;
+  try { S = await api({ a:"state", c: CODE, k: KEY }); pintar(); }
+  catch(e){ if (/No existe/.test(e.message)) { toast(e.message, true); CODE = ""; lsDel("guerra_code"); pintarInicio(); } }
+  finally { pidiendo = false; }
+}
+setInterval(refrescar, 2500);
+
+function urlEquipo(){
+  const u = new URL(PAGINA_EQUIPO, location.href);
+  u.searchParams.set("c", CODE);
+  if (!API_URL.startsWith("http")) u.searchParams.set("api", API);
+  return u.toString();
+}
+function equipo(id){ return S.teams.find(t => t.id === id) || { name:"?", color:"#999" }; }
+
+function pintar(){
+  const g = S.game;
+  const etiqueta = { lobby:"ESPERANDO EQUIPOS", write:`RONDA ${g.round}/${g.maxRounds} · ESCRIBIENDO`, vote:`RONDA ${g.round}/${g.maxRounds} · VOTACIÓN`, results:`RONDA ${g.round}/${g.maxRounds} · RESULTADOS`, over:"🏆 PARTIDA TERMINADA" }[g.status];
+  $("topRight").innerHTML = `<span class="codebadge">${esc(g.code)}</span><span class="badge">${etiqueta}</span>
+    <button class="tbtn" onclick="mostrarEntrada()">📱 Cómo entrar</button>
+    ${g.status !== "over" ? `<button class="tbtn" onclick="terminar()">🏁 Terminar</button>` : ""}
+    <button class="tbtn" onclick="nuevaPartida()">＋ Nueva partida</button>`;
+  pintarLateral();
+
+  if (viendoEntrada) return;
+  // Solo se repinta la columna central cuando cambia algo que se ve en ella
+  const vista = JSON.stringify([g.status, g.round, eligiendo, propia, verNotas, S.teams.map(t => [t.name, t.devs, t.sent, t.writing]), S.ballot, S.votesCast, S.totalDevs, S.last]);
+  if (vista === ultimaVista) return;
+  if (propia && document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+  ultimaVista = vista;
+
+  if (g.status === "over") return pintarFinal();
+  if (g.status === "lobby" && !eligiendo) return pintarSala();
+  if ((g.status === "lobby" || g.status === "results") && eligiendo) return pintarEleccion();
+  if (g.status === "write") return pintarEscritura();
+  if (g.status === "vote") return pintarVotacion();
+  if (g.status === "results") return pintarResultados();
+}
+
+function pintarLateral(){
+  const ord = [...S.teams].sort((a, b) => b.pts - a.pts);
+  $("side").innerHTML = `<div class="panel"><div class="ph">CLASIFICACIÓN <span>${S.teams.length} equipos</span></div><div class="pb">
+    ${ord.length ? ord.map((t, i) => `<div class="st ${i < 3 && t.pts > 0 ? "top" : ""}">
+      <div class="rk">${i+1}</div><i class="dt" style="background:${t.color}"></i>
+      <div class="nm" title="${esc(t.name)}">${esc(t.name)}</div>
+      <button class="adj" title="Quitar un punto" onclick="ajustar('${t.id}',-1)">−</button>
+      <div class="pt">${t.pts}</div>
+      <button class="adj" title="Sumar un punto" onclick="ajustar('${t.id}',1)">+</button></div>`).join("")
+      : `<div class="empty">Aún no ha entrado ningún equipo</div>`}
+    <p class="muted" style="font-size:12px;margin-top:10px">${S.totalDevs} móviles conectados</p>
+  </div></div>`;
+}
+function ajustar(t, d){ accion({ a:"adjust", t, d }); }
+
+function pintarSala(){
+  $("main").innerHTML = `
+    <div class="panel"><div class="ph">ENTRAD CON EL NOMBRE DE VUESTRO EQUIPO</div><div class="pb">
+      <div class="lobby"><div id="qr"></div><div>
+        <div class="muted" style="font-weight:700">Código de la partida</div>
+        <div class="bigcode">${esc(S.game.code)}</div>
+        <div class="link">${esc(urlEquipo())}</div>
+        <p style="margin-top:14px;line-height:1.5">Cada uno entra desde su móvil y escribe <b>el nombre de su equipo</b>, igual que sus compañeros.</p>
+      </div></div>
+      <div class="chips">${S.teams.map(t => `<span class="chip"><i style="background:${t.color}"></i>${esc(t.name)} <small>${t.devs} 📱</small></span>`).join("") || `<span class="muted">Esperando equipos…</span>`}</div>
+      <div class="row" style="margin-top:20px"><button class="btn b-red" onclick="elegir()" ${S.teams.length < 2 ? "disabled" : ""}>▶ Elegir la noticia de la ronda 1</button></div>
+    </div></div>`;
+  pintarQR();
+}
+function pintarQR(){
+  try { const q = qrcode(0, "L"); q.addData(urlEquipo()); q.make(); $("qr").innerHTML = q.createSvgTag({ cellSize:4, margin:2, scalable:true }); $("qr").querySelector("svg").setAttribute("style","width:240px;height:240px;display:block"); }
+  catch(e){ $("qr").textContent = ""; }
+}
+function mostrarEntrada(){
+  eligiendo = false; ultimaVista = "";
+  if (S.game.status === "lobby") return pintar();
+  viendoEntrada = true;
+  $("main").innerHTML = `<div class="panel"><div class="ph">CÓMO ENTRAR <span>se puede entrar en cualquier momento</span></div><div class="pb">
+    <div class="lobby"><div id="qr"></div><div><div class="bigcode">${esc(S.game.code)}</div><div class="link">${esc(urlEquipo())}</div></div></div>
+    <div class="row" style="margin-top:18px"><button class="btn b-dark" onclick="viendoEntrada=false;ultimaVista='';pintar()">← Volver a la ronda</button></div></div></div>`;
+  pintarQR();
+}
+
+function elegir(){ eligiendo = true; propia = false; ultimaVista = ""; pintar(); }
+function pintarEleccion(){
+  const n = S.game.round + 1;
+  $("main").innerHTML = `
+    <div class="panel"><div class="ph">ELIGE LA NOTICIA DE LA RONDA ${n} <span>las usadas salen más claras</span></div><div class="pb">
+      <div class="grid">${NOTICIAS.map((x, i) => `<button class="nc ${S.game.used.includes(i) ? "used" : ""}" onclick="empezar(${i})">
+        <div class="tg">${i+1} · ${esc(x.tag)}</div><div class="ti">${esc(x.title)}</div><div class="tx">${esc(x.text)}</div></button>`).join("")}</div>
+      <div style="margin-top:18px">
+        ${propia ? `<div class="field"><label>Etiqueta</label><input id="pTag" placeholder="FICHAJE, LESIÓN…"></div>
+          <div class="field"><label>Título corto</label><input id="pTit"></div>
+          <div class="field"><label>Texto de la noticia</label><textarea id="pTxt"></textarea></div>
+          <div class="row"><button class="btn b-red" onclick="empezarPropia()">▶ Empezar con esta noticia</button><button class="btn b-out" onclick="propia=false;ultimaVista='';pintar()">Cancelar</button></div>`
+        : `<div class="row"><button class="btn b-out" onclick="propia=true;ultimaVista='';pintar()">✎ Escribir otra noticia</button>
+           <button class="btn b-out" onclick="eligiendo=false;ultimaVista='';pintar()">Cancelar</button></div>`}
+      </div>
+    </div></div>`;
+}
+function empezar(i){ eligiendo = false; ultimaVista = ""; accion({ a:"round", idx:i, story: NOTICIAS[i] }); }
+function empezarPropia(){
+  const story = { tag: $("pTag").value.trim().toUpperCase() || "NOTICIA", title: $("pTit").value.trim(), text: $("pTxt").value.trim() };
+  if (!story.text) return toast("Escribe el texto de la noticia", true);
+  eligiendo = false; propia = false; ultimaVista = ""; accion({ a:"round", idx:-1, story });
+}
+
+function bloqueNoticia(){
+  const s = S.game.story || {};
+  return `<div class="story"><div class="tg">${esc(s.tag)}</div><div class="ti">${esc(s.title)}</div><div class="tx">${esc(s.text)}</div></div>`;
+}
+function bloqueNotas(){
+  const x = NOTICIAS[S.game.storyIdx];
+  if (!x) return "";
+  return `<div class="row"><button class="btn b-out" onclick="verNotas=!verNotas;ultimaVista='';pintar()">${verNotas ? "🙈 Ocultar notas de auditoría" : "🔎 Notas de auditoría (solo profe)"}</button></div>
+    ${verNotas ? `<div class="notes"><b>La tentación:</b> ${esc(x.tentacion)}<br><b>La línea roja:</b> ${esc(x.linea)}<br>
+      <span class="bien">✓ Legítimo: «${esc(x.bien)}»</span></div>` : ""}`;
+}
+
+function pintarEscritura(){
+  const enviados = S.teams.filter(t => t.sent).length;
+  $("main").innerHTML = `
+    ${bloqueNoticia()}
+    <div class="panel"><div class="ph">ESCRIBIENDO <span>${enviados} de ${S.teams.length} titulares enviados</span></div><div class="pb">
+      <p class="muted" style="margin-bottom:6px">En cada equipo, uno pulsa «Escribo yo» en su móvil. Los titulares no se ven hasta la votación.</p>
+      <div class="chips">${S.teams.map(t => `<span class="chip ${t.sent ? "ok" : t.writing ? "wr" : ""}"><i style="background:${t.color}"></i>${esc(t.name)}
+        <small>${t.sent ? "✓ enviado" : t.writing ? "✍ escribiendo" : t.devs ? "esperando" : "sin móviles"}</small></span>`).join("")}</div>
+      <div class="row" style="margin-top:20px"><button class="btn b-red" onclick="abrirVotacion()" ${enviados < 2 ? "disabled" : ""}>🗳 Cerrar escritura y abrir la votación</button></div>
+      ${enviados < S.teams.length ? `<p class="muted" style="font-size:12.5px;margin-top:8px">Si abres ya la votación, los equipos que no han enviado se quedan sin titular en esta ronda.</p>` : ""}
+    </div></div>
+    ${bloqueNotas()}`;
+}
+function abrirVotacion(){
+  const faltan = S.teams.filter(t => !t.sent).length;
+  if (faltan && !confirmar("votar", `Faltan ${faltan} equipos por enviar. Pulsa otra vez para abrir la votación igualmente.`)) return;
+  accion({ a:"vote_open" });
+}
+
+function pintarVotacion(){
+  $("main").innerHTML = `
+    ${bloqueNoticia()}
+    <div class="panel"><div class="ph">VOTAD DESDE EL MÓVIL <span>no se puede votar el titular de tu equipo</span></div><div class="pb">
+      <div class="ballot">${S.ballot.map(b => `<div class="bal ${b.disq ? "disq" : ""}"><div class="L">${b.L}</div><div class="h">${esc(b.text)}</div>
+        <button class="xbtn ${b.disq ? "on" : ""}" onclick="descalificar('${b.L}')">${b.disq ? "✕ Descalificado" : "✕ Descalificar"}</button></div>`).join("")}</div>
+      <div class="row" style="margin-top:18px;justify-content:space-between">
+        <div class="counter"><b>${S.votesCast}</b> de ${S.totalDevs} móviles han votado</div>
+        <button class="btn b-red" onclick="cerrar()">🏁 Cerrar votación y repartir puntos</button>
+      </div>
+      <p class="muted" style="font-size:12.5px;margin-top:8px">Lee la noticia en voz alta antes de descalificar. Un titular descalificado vale 0 puntos aunque tenga votos.</p>
+    </div></div>
+    ${bloqueNotas()}`;
+}
+function descalificar(L){ accion({ a:"disq", L }); }
+function cerrar(){
+  if (S.votesCast < S.totalDevs && !confirmar("cerrar", `Han votado ${S.votesCast} de ${S.totalDevs}. Pulsa otra vez para cerrar la votación.`)) return;
+  accion({ a:"close" });
+}
+
+function bloqueResultados(){
+  const r = (S.last && S.last.results) || [];
+  return `<div class="panel"><div class="ph">RESULTADOS DE LA RONDA ${S.last ? S.last.round : ""} <span>ya se sabe de quién era cada titular</span></div><div class="pb">
+    <div class="ballot">${r.map((x, i) => { const t = equipo(x.team); return `<div class="res ${i === 0 && x.pts > 0 ? "win" : ""} ${x.disq ? "disq" : ""}">
+      <div style="min-width:0"><div class="who" style="color:${t.color}">${esc(t.name)}${i === 0 && x.pts > 0 ? " · 🏆 titular de la ronda" : ""}</div>
+      <div class="h">${esc(x.text)}</div>${x.disq ? `<div class="who" style="color:var(--red);margin-top:4px">DESCALIFICADO, la noticia no dice eso</div>` : ""}</div>
+      <div class="pts"><b>+${x.pts}</b><small>${x.votes} voto${x.votes === 1 ? "" : "s"}</small></div></div>`; }).join("")}</div>
+  </div></div>`;
+}
+function pintarResultados(){
+  $("main").innerHTML = `${bloqueResultados()}
+    <div class="row"><button class="btn b-red" onclick="elegir()">▶ Siguiente ronda (${S.game.round + 1}/${S.game.maxRounds})</button></div>`;
+}
+function pintarFinal(){
+  const ord = [...S.teams].sort((a, b) => b.pts - a.pts);
+  const top = ord[0], empate = ord.length > 1 && ord[1].pts === top.pts;
+  $("main").innerHTML = `
+    <div class="champ"><div class="tr">🏆</div><h3>${empate ? "EMPATE EN CABEZA" : "CAMPEÓN DE LA GUERRA DE PORTADAS"}</h3>
+      <div class="nm">${empate ? ord.filter(t => t.pts === top.pts).map(t => esc(t.name)).join(" y ") : esc(top ? top.name : "")}</div>
+      <div style="font-weight:800;margin-top:6px">${top ? top.pts : 0} puntos</div></div>
+    ${S.last ? bloqueResultados() : ""}`;
+}
+function terminar(){
+  if (!confirmar("fin", "Pulsa «Terminar» otra vez para acabar la partida y proclamar al campeón.")) return;
+  accion({ a:"end" });
+}
+
+if (CODE && API) refrescar(); else pintarInicio();
+
+</script>
+</body>
+</html>
