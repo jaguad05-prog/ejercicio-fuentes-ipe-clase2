@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>La Guerra de Portadas · Equipo</title>
+<style>
+:root{--red:#C8102E;--ink:#1B1B1F;--paper:#fff;--bg:#F3F1EC;--muted:#6B6B72;--border:#D8D8DC;--green:#1E7A45;--gold:#E8B54A;--team:#C8102E}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg)}
+body{font-family:Arial,Helvetica,sans-serif;color:var(--ink);min-height:100vh;-webkit-tap-highlight-color:transparent}
+.top{background:var(--ink);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:5}
+.t1{font-size:14px;font-weight:800;letter-spacing:.04em}
+.t2{font-size:11px;color:var(--gold);letter-spacing:.06em}
+.chip{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;text-align:right}
+.dot{width:16px;height:16px;border-radius:50%;background:var(--team);border:2px solid #fff;flex:none}
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 60px}
+.card{background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}
+h1{font-size:23px;line-height:1.2;margin-bottom:8px}
+h2{font-size:18px;line-height:1.3;margin-bottom:10px}
+p{line-height:1.45}
+.muted{color:var(--muted);font-size:14px}
+label{display:block;font-weight:700;font-size:13px;margin:14px 0 6px}
+input,textarea{width:100%;border:2px solid var(--border);border-radius:10px;padding:13px;font-size:17px;font-family:inherit;color:var(--ink);background:#fff}
+input:focus,textarea:focus{outline:none;border-color:var(--team)}
+textarea{min-height:110px;resize:vertical;line-height:1.4}
+.btn{display:block;width:100%;border:none;border-radius:12px;padding:16px;font-size:18px;font-weight:800;font-family:inherit;color:#fff;background:var(--red);cursor:pointer;margin-top:14px}
+.btn:disabled{opacity:.45}
+.btn.team{background:var(--team)}
+.btn.out{background:#fff;color:var(--ink);border:2px solid var(--border);font-size:15px;padding:12px}
+.err{color:var(--red);font-weight:700;font-size:14px;margin-top:10px;min-height:18px}
+.tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.08em;padding:4px 10px;border-radius:20px;background:var(--ink);color:#fff;margin-bottom:10px}
+.story{border-left:5px solid var(--red);padding-left:14px}
+.story .ti{font-size:18px;font-weight:800;margin-bottom:6px}
+.story .tx{font-size:16px;line-height:1.5}
+.mine{background:#fff;border:2px solid var(--team);border-radius:12px;padding:14px;font-size:19px;font-weight:800;line-height:1.3}
+.count{font-size:13px;color:var(--muted);text-align:right;margin-top:4px}
+.opt{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border:2px solid var(--border);border-radius:12px;padding:14px;background:#fff;font-family:inherit;font-size:17px;font-weight:700;color:var(--ink);cursor:pointer;margin-bottom:10px;line-height:1.3}
+.opt .L{width:36px;height:36px;border-radius:50%;background:var(--ink);color:var(--gold);font-weight:900;display:flex;align-items:center;justify-content:center;flex:none;font-size:17px}
+.opt.sel{border-color:var(--green);background:#eef7f1}
+.opt.sel .L{background:var(--green);color:#fff}
+.opt.own{opacity:.55;cursor:not-allowed;background:#f0eee9}
+.opt.own .L{background:var(--team);color:#fff}
+.res{border:2px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;display:flex;gap:12px;align-items:center;background:#fff}
+.res.me{border-color:var(--team);box-shadow:0 0 0 2px var(--team)}
+.res .who{font-size:12px;font-weight:800;letter-spacing:.04em}
+.res .h{font-size:16px;font-weight:700;margin-top:2px;line-height:1.3}
+.res .p{margin-left:auto;font-size:24px;font-weight:900;color:var(--red);flex:none}
+.res.disq .h{text-decoration:line-through;color:var(--red)}
+.st{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-weight:700}
+.st:last-child{border-bottom:none}
+.st b{margin-left:auto;color:var(--red);font-size:18px}
+.st.me{color:var(--team)}
+.big{font-size:44px;text-align:center;margin:6px 0}
+.center{text-align:center}
+.small{font-size:12px;color:var(--muted);margin-top:16px;text-align:center}
+.small a{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="top">
+  <div><div class="t1">LA GUERRA DE PORTADAS</div><div class="t2">PERIODISMO DEPORTIVO</div></div>
+  <div class="chip" id="chip"></div>
+</div>
+<div class="wrap" id="app"></div>
+
+<script>
+// ===== CONFIGURACIÓN =====
+const API_URL = "https://script.google.com/macros/s/AKfycbwmse6cdBpej6POqNRC7_YPxiokiHL9e05R-3zfBHGF5T69T6JDu-JwBlRJJNuG-FCH/exec";
+// =========================
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const lsGet = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch(e){ return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch(e){} };
+const qs = new URLSearchParams(location.search);
+
+let API = qs.get("api") || (API_URL.startsWith("http") ? API_URL : "") || lsGet("guerra_api", "");
+let CODE = (qs.get("c") || lsGet("guerra_eq_code", "")).toUpperCase();
+let DEV = lsGet("guerra_dev", "");
+if (!DEV){ DEV = "d" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); lsSet("guerra_dev", DEV); }
+let unido = lsGet("guerra_eq_joined", "") === CODE && !!CODE;
+let S = null, borrador = "", vista = "", ocupado = false, errMsg = "";
+
+async function api(params){
+  const r = await fetch(API, { method:"POST", body: JSON.stringify(Object.assign({ c: CODE, dev: DEV }, params)) });
+  const j = await r.json();
+  if (j.error) throw new Error(j.error);
+  return j;
+}
+
+function pintarEntrada(msg){
+  $("chip").innerHTML = "";
+  $("app").innerHTML = `<div class="card">
+    <h1>Entra con tu equipo</h1>
+    <p class="muted">Escribe el nombre de tu equipo exactamente igual que tus compañeros.</p>
+    ${API ? "" : `<label>Dirección del servidor</label><input id="inApi" placeholder="https://script.google.com/macros/s/.../exec">`}
+    <label>Código de la partida</label><input id="inCode" value="${esc(CODE)}" maxlength="6" autocapitalize="characters" placeholder="Lo ves en la pantalla">
+    <label>Nombre de tu equipo</label><input id="inTeam" value="${esc(lsGet("guerra_eq_name", ""))}" maxlength="30" placeholder="Ej: Los Plumillas">
+    <button class="btn" id="btnJoin">Entrar</button>
+    <div class="err" id="err">${esc(msg || "")}</div></div>`;
+  $("btnJoin").onclick = entrar;
+}
+async function entrar(){
+  if (!API) API = ($("inApi").value || "").trim();
+  CODE = $("inCode").value.trim().toUpperCase();
+  const name = $("inTeam").value.trim();
+  if (!API || !CODE || !name){ $("err").textContent = "Rellena el código y el nombre del equipo"; return; }
+  $("btnJoin").disabled = true; $("btnJoin").textContent = "Entrando…";
+  try {
+    await api({ a:"join", name });
+    lsSet("guerra_api", API); lsSet("guerra_eq_code", CODE); lsSet("guerra_eq_name", name); lsSet("guerra_eq_joined", CODE);
+    unido = true; vista = ""; await refrescar();
+  } catch(e){ $("err").textContent = e.message; $("btnJoin").disabled = false; $("btnJoin").textContent = "Entrar"; }
+}
+function cambiarEquipo(){ unido = false; lsSet("guerra_eq_joined", ""); S = null; pintarEntrada(); }
+
+let pidiendo = false;
+async function refrescar(){
+  if (!unido || pidiendo) return;
+  pidiendo = true;
+  try {
+    S = await api({ a:"state" });
+    if (!S.me){ unido = false; pintarEntrada("Vuelve a entrar con el nombre de tu equipo"); return; }
+    pintar();
+  } catch(e){ if (/No existe/.test(e.message)){ unido = false; pintarEntrada(e.message); } }
+  finally { pidiendo = false; }
+}
+setInterval(refrescar, 3000 + Math.floor(Math.random() * 1500));
+
+async function hacer(params){
+  if (ocupado) return;
+  ocupado = true; errMsg = "";
+  try { await api(params); } catch(e){ errMsg = e.message; }
+  ocupado = false; vista = ""; await refrescar();
+  if (errMsg){ const el = $("err"); if (el) el.textContent = errMsg; }
+}
+
+function pintar(){
+  const g = S.game, me = S.me;
+  document.documentElement.style.setProperty("--team", me.color);
+  $("chip").innerHTML = `<span>${esc(me.teamName)}</span><span class="dot"></span>`;
+
+  // No se repinta mientras escribes el titular
+  const clave = JSON.stringify([g.status, g.round, me.writer, me.someoneWriting, me.head, me.voted, S.ballot && S.ballot.map(b => b.L + b.text), S.last && S.last.round, g.status === "over" || g.status === "lobby" ? S.teams.map(t => t.pts + t.name) : 0]);
+  if (clave === vista) return;
+  vista = clave;
+
+  const pie = `<div class="small">Equipo: ${esc(me.teamName)} · <a href="#" onclick="cambiarEquipo();return false">cambiar de equipo</a></div>`;
+  let html = "";
+  if (g.status === "lobby"){
+    html = `<div class="card center"><div class="big">🗞️</div><h1>¡Dentro!</h1><p class="muted">Estáis en <b>${esc(me.teamName)}</b>. Esperad a que la profesora elija la primera noticia.</p></div>`;
+  } else if (g.status === "write"){
+    html = tarjetaNoticia();
+    if (me.head){
+      html += `<div class="card"><h2>✓ Titular enviado</h2><div class="mine">${esc(me.head)}</div><p class="muted" style="margin-top:10px">Ahora toca esperar a la votación. No le digáis a nadie cuál es el vuestro.</p></div>`;
+    } else if (me.writer){
+      html += `<div class="card"><h2>✍ Te toca escribir el titular</h2>
+        <p class="muted">Solo con lo que dice la noticia. Si prometes algo que no dice, te descalifican.</p>
+        <textarea id="txt" maxlength="160" placeholder="Vuestro titular…">${esc(borrador)}</textarea>
+        <div class="count" id="cnt">${borrador.length}/160</div>
+        <button class="btn team" id="btnSend">Enviar titular</button>
+        <button class="btn out" onclick="hacer({a:'release'})">Mejor que escriba otro compañero</button>
+        <div class="err" id="err"></div></div>`;
+    } else if (me.someoneWriting){
+      html += `<div class="card center"><div class="big">✍️</div><h2>Un compañero está escribiendo el titular</h2><p class="muted">Ayudadle con ideas, pero escribe solo él.</p></div>`;
+    } else {
+      html += `<div class="card"><h2>¿Quién escribe el titular de tu equipo?</h2>
+        <p class="muted">Solo escribe uno por equipo y cada ronda le toca a uno distinto.</p>
+        <button class="btn team" onclick="hacer({a:'claim'})">✍ Escribo yo</button><div class="err" id="err"></div></div>`;
+    }
+  } else if (g.status === "vote"){
+    html = `<div class="card"><h2>🗳 Vota el mejor titular</h2>
+      <p class="muted" style="margin-bottom:14px">No sabéis de quién es cada uno. El de tu equipo no se puede votar. Puedes cambiar tu voto hasta que se cierre la votación.</p>
+      ${S.ballot.map(b => b.mine
+        ? `<button class="opt own" disabled><span class="L">${b.L}</span><span>${esc(b.text)}<br><small style="color:var(--muted)">el de tu equipo</small></span></button>`
+        : `<button class="opt ${me.voted === b.L ? "sel" : ""}" onclick="hacer({a:'vote',L:'${b.L}'})"><span class="L">${me.voted === b.L ? "✓" : b.L}</span><span>${esc(b.text)}</span></button>`).join("")}
+      <p class="muted center" style="margin-top:6px">${me.voted ? "Has votado el <b>" + me.voted + "</b>" : "Todavía no has votado"}</p>
+      <div class="err" id="err"></div></div>`;
+    html += tarjetaNoticia(true);
+  } else if (g.status === "results"){
+    html = tarjetaResultados() + `<div class="card center"><p class="muted">Esperando la siguiente noticia…</p></div>` + tarjetaClasificacion();
+  } else if (g.status === "over"){
+    const ord = [...S.teams].sort((a, b) => b.pts - a.pts);
+    html = `<div class="card center"><div class="big">🏆</div><h1>${esc(ord[0] ? ord[0].name : "")}</h1><p class="muted">gana La Guerra de Portadas con ${ord[0] ? ord[0].pts : 0} puntos</p></div>` +
+      (S.last ? tarjetaResultados() : "") + tarjetaClasificacion();
+  }
+  $("app").innerHTML = html + pie;
+
+  const t = $("txt");
+  if (t){
+    t.oninput = () => { borrador = t.value; $("cnt").textContent = t.value.length + "/160"; };
+    $("btnSend").onclick = () => { if (!t.value.trim()) return $("err").textContent = "Escribe el titular"; hacer({ a:"send", text: t.value }).then(() => { if (!errMsg) borrador = ""; }); };
+  }
+}
+function tarjetaNoticia(plegada){
+  const s = S.game.story || {};
+  return `<div class="card"><span class="tag">${plegada ? "LA NOTICIA" : "RONDA " + S.game.round + " · " + esc(s.tag)}</span>
+    <div class="story"><div class="ti">${esc(s.title)}</div><div class="tx">${esc(s.text)}</div></div></div>`;
+}
+function nombre(id){ const t = S.teams.find(x => x.id === id); return t ? t : { name:"?", color:"#999" }; }
+function tarjetaResultados(){
+  const r = S.last ? S.last.results : [];
+  return `<div class="card"><h2>Resultados de la ronda ${S.last ? S.last.round : ""}</h2>
+    ${r.map(x => { const t = nombre(x.team); return `<div class="res ${x.team === S.me.team ? "me" : ""} ${x.disq ? "disq" : ""}">
+      <div><div class="who" style="color:${t.color}">${esc(t.name)}${x.disq ? " · DESCALIFICADO" : ""}</div><div class="h">${esc(x.text)}</div></div>
+      <div class="p">+${x.pts}</div></div>`; }).join("")}</div>`;
+}
+function tarjetaClasificacion(){
+  const ord = [...S.teams].sort((a, b) => b.pts - a.pts);
+  return `<div class="card"><h2>Clasificación</h2>${ord.map((t, i) => `<div class="st ${t.id === S.me.team ? "me" : ""}"><span>${i+1}.</span><span>${esc(t.name)}</span><b>${t.pts}</b></div>`).join("")}</div>`;
+}
+
+if (unido && API) refrescar(); else pintarEntrada();
+</script>
+</body>
+</html>
