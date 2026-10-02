@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEO y Discover · Pantalla</title>
+<style>
+:root{--red:#C8102E;--dark:#1B1B1F;--ink:#2B2B30;--paper:#fff;--tint:#FBF1F2;--gold:#E8B54A;--muted:#6B6B72;--border:#D8D8DC;--green:#1E7A45;--bg:#F5F5F7}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+.topbar{background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:12px 18px;gap:10px;flex-wrap:wrap}
+.tt{font-size:16px;font-weight:800;letter-spacing:.04em}
+.ts{font-size:11px;color:var(--gold);letter-spacing:.06em}
+.tr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.badge{background:var(--red);color:#fff;font-weight:800;font-size:13px;padding:7px 14px;border-radius:20px;letter-spacing:.03em}
+.codebadge{background:#fff;color:var(--dark);font-weight:800;font-size:15px;padding:6px 12px;border-radius:8px;letter-spacing:.12em}
+.tbtn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;padding:8px 13px;border-radius:8px;font-size:12.5px;cursor:pointer;font-family:inherit;font-weight:700}
+.tbtn:hover{background:rgba(255,255,255,.22)}
+.layout{display:grid;grid-template-columns:1fr 320px;gap:18px;padding:18px;max-width:1500px;margin:0 auto}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.panel{background:#fff;border-radius:14px;border:1px solid var(--border);overflow:hidden}
+.ph{background:var(--dark);color:#fff;padding:11px 16px;font-size:12.5px;font-weight:800;letter-spacing:.06em;display:flex;justify-content:space-between;gap:10px}
+.ph span{color:var(--gold)}
+.pb{padding:18px}
+.btn{border:none;padding:13px 20px;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.b-red{background:var(--red);color:#fff}.b-dark{background:var(--dark);color:#fff}.b-gold{background:var(--gold);color:var(--dark)}
+.b-out{background:#fff;border:2px solid var(--border);color:var(--ink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.muted{color:var(--muted)}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
+.field input,.field textarea{width:100%;border:1.5px solid var(--border);border-radius:9px;padding:11px 12px;font-size:15px;font-family:inherit}
+.field textarea{min-height:110px}
+.err{color:var(--red);font-weight:700;margin-top:10px;min-height:18px}
+/* lobby */
+.lobby{display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center}
+@media(max-width:700px){.lobby{grid-template-columns:1fr}}
+.bigcode{font-size:64px;font-weight:900;letter-spacing:.14em;color:var(--dark)}
+.link{font-size:14px;word-break:break-all;color:var(--muted);margin-top:6px}
+#qr{background:#fff;padding:6px;border-radius:10px;border:1px solid var(--border)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{display:flex;align-items:center;gap:7px;border:2px solid var(--border);border-radius:30px;padding:7px 13px;font-weight:800;font-size:14px;background:#fff}
+.chip i{width:12px;height:12px;border-radius:50%;display:block}
+.chip small{font-weight:600;color:var(--muted)}
+.chip.ok{border-color:var(--green);background:#eef7f1}
+.chip.wr{border-color:var(--gold);background:#fffaf0}
+/* noticias */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.nc{border:2px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;background:#fff;text-align:left;font-family:inherit}
+.nc:hover{border-color:var(--red)}
+.nc.used{opacity:.45}
+.nc .tg{font-size:10.5px;font-weight:800;letter-spacing:.08em;color:var(--red)}
+.nc .ti{font-size:15px;font-weight:800;margin:4px 0 6px;color:var(--ink)}
+.nc .tx{font-size:12.5px;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.story{border-left:6px solid var(--red);background:var(--tint);border-radius:0 12px 12px 0;padding:18px 22px}
+.story .tg{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--red)}
+.story .ti{font-size:24px;font-weight:900;margin:4px 0 10px}
+.story .tx{font-size:21px;line-height:1.5}
+/* papeleta */
+.ballot{display:flex;flex-direction:column;gap:12px}
+.bal{display:flex;gap:14px;align-items:center;border:2px solid var(--border);border-radius:12px;padding:14px 16px;background:#fff}
+.bal .L{width:46px;height:46px;border-radius:50%;background:var(--dark);color:var(--gold);font-size:22px;font-weight:900;display:flex;align-items:center;justify-content:center;flex:none}
+.bal .h{flex:1;font-size:22px;font-weight:800;line-height:1.3}
+.bal.disq{background:#fdeceb;border-color:var(--red)}
+.bal.disq .h{text-decoration:line-through;color:var(--red)}
+.bal.disq .L{background:var(--red);color:#fff}
+.xbtn{border:1px solid var(--border);background:#fff;border-radius:8px;padding:8px 11px;font-weight:800;cursor:pointer;font-family:inherit;font-size:12.5px;flex:none}
+.xbtn.on{background:var(--red);color:#fff;border-color:var(--red)}
+.counter{font-size:18px;font-weight:800}
+.counter b{color:var(--red);font-size:26px}
+/* resultados */
+.res{display:flex;gap:14px;align-items:center;border:2px solid var(--border);border-radius:12px;padding:12px 16px;background:#fff}
+.res.win{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold);background:#fffaf0}
+.res .who{font-size:13px;font-weight:800;letter-spacing:.04em}
+.res .h{font-size:19px;font-weight:800;line-height:1.3;margin-top:3px}
+.res .pts{margin-left:auto;text-align:right;flex:none}
+.res .pts b{font-size:30px;color:var(--red);display:block;line-height:1}
+.res .pts small{font-size:12px;color:var(--muted)}
+.res.disq .h{text-decoration:line-through;color:var(--red)}
+/* clasificación */
+.st{display:flex;align-items:center;gap:9px;background:var(--bg);border-radius:9px;padding:8px 10px;margin-bottom:7px}
+.st .rk{width:24px;height:24px;border-radius:50%;background:var(--dark);color:var(--gold);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+.st.top .rk{background:var(--gold);color:var(--dark)}
+.st .dt{width:12px;height:12px;border-radius:50%;flex:none}
+.st .nm{flex:1;font-weight:800;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st .pt{font-size:18px;font-weight:900;color:var(--red)}
+.adj{border:1px solid var(--border);background:#fff;border-radius:6px;width:22px;height:22px;cursor:pointer;font-weight:800;font-size:13px;line-height:1;padding:0}
+.notes{background:#fffaf0;border:2px dashed var(--gold);border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.55}
+.notes b{color:var(--dark)}
+.notes .mal{color:var(--red)}.notes .bien{color:var(--green)}
+.champ{background:linear-gradient(135deg,var(--gold),#f3d38a);border-radius:16px;padding:30px;text-align:center}
+.champ .tr{font-size:52px}
+.champ h3{font-size:13px;letter-spacing:.1em;margin:6px 0}
+.champ .nm{font-size:40px;font-weight:900}
+.empty{text-align:center;color:var(--muted);padding:20px;font-style:italic;font-size:13px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--dark);color:#fff;padding:12px 18px;border-radius:10px;font-weight:700;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:99;max-width:90vw;text-align:center}
+#toast.show{opacity:1}#toast.warn{background:var(--red)}
+
+/* parte 1 */
+.pats{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.pat{border:2px solid var(--border);border-radius:12px;padding:10px 14px;background:#fff;display:flex;gap:12px;align-items:flex-start}
+.pat .L{width:34px;height:34px;border-radius:50%;background:var(--dark);color:var(--gold);font-weight:900;font-size:17px;display:flex;align-items:center;justify-content:center;flex:none}
+.pat b{display:block;font-size:15px}
+.pat small{color:var(--muted);font-size:12.5px;line-height:1.35}
+.heads{display:flex;flex-direction:column;gap:9px}
+.hd{display:flex;gap:12px;align-items:flex-start;border:2px solid var(--border);border-radius:12px;padding:11px 14px;background:#fff}
+.hd .n{width:30px;height:30px;border-radius:8px;background:var(--red);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;flex:none}
+.hd .t{font-size:17px;font-weight:700;line-height:1.35;flex:1}
+.hd.hidden .t{color:var(--muted);font-style:italic;font-weight:400}
+.hd .sol{margin-top:8px;font-size:14px;line-height:1.45}
+.hd .sol .orig{display:block;color:var(--muted);font-style:italic;margin-top:3px}
+.ticks{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tk{font-size:12px;font-weight:800;padding:4px 9px;border-radius:14px;border:1.5px solid var(--border);background:#fff}
+.tk.ok{background:#eef7f1;border-color:var(--green);color:var(--green)}
+.tk.ko{background:#fdeceb;border-color:var(--red);color:var(--red)}
+.dato{background:var(--dark);color:#fff;border-radius:14px;padding:20px 22px;font-size:19px;line-height:1.5}
+.dato b{color:var(--gold)}
+/* parte 2 */
+.slot{border:2px solid var(--border);border-radius:12px;padding:12px 16px;background:#fff;margin-bottom:10px}
+.slot.hid{background:var(--bg)}
+.slot .top{display:flex;align-items:center;gap:12px}
+.slot .pos{width:34px;height:34px;border-radius:50%;background:var(--dark);color:var(--gold);font-weight:900;display:flex;align-items:center;justify-content:center;flex:none}
+.slot .txt{flex:1;font-size:20px;font-weight:800}
+.slot.hid .txt{color:var(--muted);font-style:italic;font-weight:400;font-size:16px}
+.slot .pp{background:var(--dark);color:var(--gold);border-radius:7px;padding:4px 10px;font-weight:800;font-size:14px;flex:none}
+.awards{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)}
+.aw{border:2px solid var(--border);background:#fff;border-radius:9px;padding:7px 12px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px}
+.aw i{width:10px;height:10px;border-radius:50%;display:block}
+.aw.sug{border-color:var(--gold);background:#fffaf0}
+.aw.on{background:var(--green);border-color:var(--green);color:#fff}
+.gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.gc{border:2px solid var(--border);border-radius:12px;padding:12px;background:#fff}
+.gc h4{font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.gc h4 i{width:11px;height:11px;border-radius:50%;display:block}
+.gi{background:var(--bg);border-radius:7px;padding:6px 10px;font-size:14px;margin-bottom:5px}
+.gi.hit{background:#eef7f1;color:var(--green);font-weight:800}
+.note{background:#fffaf0;border:2px dashed var(--gold);border-radius:12px;padding:12px 16px;font-size:15px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div><div class="tt">SEO Y DISCOVER</div><div class="ts">CLASE 9 · DISCOVER Y GOOGLE · PANTALLA DE LA PROFESORA</div></div>
+  <div class="tr" id="topRight"></div>
+</div>
+<div class="layout">
+  <div class="col" id="main"></div>
+  <div class="col" id="side"></div>
+</div>
+<div id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+
+<script>
+// ===== PARTE 1 · UNE EL PATRÓN =====
+const PATRONES = [
+  { L:"A", name:"La intriga estructurada", desc:"Niega dos opciones y promete una tercera: «Ni X ni Y: el Z que...»" },
+  { L:"B", name:"La declaración con nombre y oficio", desc:"Persona + rol + comillas con carga humana o polémica." },
+  { L:"C", name:"El «reveló qué...»", desc:"Anuncia que existe algo jugoso... sin decir el qué." },
+  { L:"D", name:"Los expertos coinciden", desc:"Autoridad difusa + una regla o dato muy concreto." },
+  { L:"E", name:"El «quién es / qué significa»", desc:"La pregunta que el lector no sabía que tenía." },
+  { L:"F", name:"La nueva vida de...", desc:"Personaje conocido + giro insólito en su presente." }
+];
+const TITULARES = [
+  { t:"Bautista Roldán, portero del Ciudad FC: ‘Vivo con mi abuela desde los 15 y me sigue preparando la cena de cada concentración’", ok:"B",
+    orig:"Erling Haaland, delantero: «Vivo solo desde los 16 así que tengo que cocinar... vivo para comer»" },
+  { t:"Ni fichajes ni dinero: lo que de verdad ha cambiado en el Real Vega este año", ok:"A",
+    orig:"«Ni vinagre ni bicarbonato: la mejor forma de sacar el sarro de las canillas y el inodoro»" },
+  { t:"Requena reveló qué le dijo a su entrenador antes de salir del campo", ok:"C",
+    orig:"«Kylian Mbappé reveló qué le dijo al árbitro antes del penal»" },
+  { t:"Los preparadores físicos coinciden: dormir 9 horas la noche previa vale más que el último entrenamiento", ok:"D",
+    orig:"«Los entrenadores ya coinciden: caminar 1 hora 7 días a la semana con ritmo de paseo de abuelo son 75.000 calorías al año»" },
+  { t:"Quién es el aficionado de la bufanda verde que sale en todas las fotos del Estadio Municipal", ok:"E",
+    orig:"«Quién es el misterioso 'Joker' identificado por la Policía en los encierros de Sanfermines»" },
+  { t:"La nueva vida de Jorge Almansa, el entrenador que dejó el fútbol de élite para entrenar al equipo de su pueblo", ok:"F",
+    orig:"«La nueva vida de Coto Matamoros, viviendo en un pueblo gallego con una estatua en honor al Che Guevara»" },
+  { t:"Ismael Cortés, capitán del Real Vega: ‘Mi madre limpiaba portales de noche y nunca falté a un entrenamiento’", ok:"B",
+    orig:"Es vuestra propia entrevista del ejercicio «Las dos puertas». ¿La habéis reconocido?" },
+  { t:"Ni el árbitro ni el césped: el detalle que decidió el derbi y que casi nadie vio", ok:"A",
+    orig:"Mismo molde que el titular 2 (y que el del sarro), aplicado esta vez a un hecho de partido." }
+];
+const DATO_FINAL = "En las capturas reales de Discover, el titular sobre el sarro de las canillas tenía 194.260 de visibilidad; la reflexión de Messi sobre Dios y su don, 4.420. Discover no premia la importancia, premia el patrón y el interés humano.";
+const NOTA_HONESTA = "Estos patrones no son una fórmula garantizada (enlaza con la diapositiva 8): son formas que se observan repetirse en Discover. Nadie tiene la fórmula; las redacciones miran el feed y reconocen lo que se repite.";
+
+// ===== PARTE 2 · PIENSA COMO GOOGLE =====
+const RONDAS = [
+  { tag:"RONDA 1", situation:"Mañana por la noche se juega la final de Copa: Ciudad FC – Puerto SC.",
+    panel:[{text:"a qué hora es la final de copa",pts:50},{text:"dónde ver la final ciudad puerto",pts:40},{text:"alineaciones final de copa",pts:30},{text:"cuánto cuestan las entradas de la final",pts:20},{text:"quién canta en el descanso de la final",pts:10}] },
+  { tag:"RONDA 2", situation:"El Real Vega ha fichado esta mañana a un delantero brasileño desconocido en España.",
+    panel:[{text:"quién es el nuevo fichaje del real vega",pts:50},{text:"cuánto ha costado el fichaje del real vega",pts:40},{text:"estadísticas y goles del nuevo delantero",pts:30},{text:"cuándo debuta el fichaje del real vega",pts:20},{text:"dorsal del nuevo fichaje del real vega",pts:10}] },
+  { tag:"RONDA 3", situation:"El capitán del Ciudad FC se ha lesionado en el entrenamiento a cuatro días del derbi.",
+    panel:[{text:"cuánto tiempo estará de baja el capitán del ciudad",pts:50},{text:"qué lesión tiene el capitán del ciudad fc",pts:40},{text:"llega el capitán del ciudad al derbi",pts:30},{text:"quién jugará en su lugar en el derbi",pts:20},{text:"historial de lesiones del capitán",pts:10}] },
+  { tag:"RONDA 4", situation:"Anoche el Ciudad FC ganó la liga. Es la mañana siguiente.",
+    panel:[{text:"celebración ciudad fc campeón dónde y a qué hora",pts:50},{text:"resumen y goles ciudad fc campeón",pts:40},{text:"recorrido de la rúa del ciudad fc",pts:30},{text:"cuántas ligas tiene el ciudad fc",pts:20},{text:"camiseta de campeón ciudad fc comprar",pts:10}] },
+  { tag:"RONDA 5", situation:"La prórroga.",
+    note:"Dato real (Google / teletipo EFE): esta búsqueda alcanzó su máximo histórico en 20 años en España.",
+    panel:[{text:"cuánto dura la prórroga en un mundial de fútbol",pts:50}] },
+  { tag:"RONDA 6", situation:"Al acabar el partido.",
+    note:"Dato real (Google Trends / teletipo EFE): las cinco preguntas más buscadas en España en las 24h siguientes.",
+    panel:[{text:"ferran torres de dónde es",pts:50},{text:"cuándo llega la selección española a madrid",pts:40},{text:"cuándo es la celebración de españa si gana el mundial",pts:30},{text:"quién metió el gol del mundial de españa",pts:20},{text:"en qué equipo juega ferran torres",pts:10}] },
+  { tag:"RONDA 7", situation:"Minutos después de acabar el partido, también creció...",
+    note:"Dato real (teletipo EFE): tendencias nacionales de compra tras la victoria.",
+    panel:[{text:"camiseta españa 2 estrellas",pts:50},{text:"camiseta nueva de españa",pts:40}] },
+  { tag:"RONDA 8", situation:"En Argentina, al acabar el partido, lo que se buscó fue:",
+    note:"Dato real (teletipo EFE): Argentina fue, en las 24h siguientes, el país del mundo que más buscó esto.",
+    panel:[{text:"mundial 2030",pts:50}] },
+  { tag:"RONDA 9", situation:"¿Y cuál fue la tendencia más importante a nivel mundial durante el Mundial?",
+    note:"Dato real (teletipo EFE): la tendencia número uno del mundo, por delante de cualquier resultado.",
+    panel:[{text:"la foto de messi bañando a lamine yamal de bebé",pts:50}] }
+];
+
+// ===== PARTE 3 · TITULA PARA SEO O DISCOVER =====
+const SUCESO = "El domingo se juega el Clásico que decide la Liga, Real Madrid – FC Barcelona, en la última jornada y con los dos equipos empatados a puntos.";
+const MATERIALES = [
+  { kind:"seo", label:"MATERIAL 1 · EL TELETIPO", task:"Escribid el titular SEO: el que encontraría la gente que busca esto en Google.",
+    title:"Real Madrid y Barcelona, cara a cara por una Liga que se decide en el último suspiro",
+    body:[
+      "Madrid, 21 may (EFE). Real Madrid y FC Barcelona se juegan este domingo algo más que tres puntos. Se juegan la Liga, una temporada entera de persecución y el derecho a escribir el final que sus aficiones llevan imaginando desde agosto.",
+      "Los dos equipos llegan empatados a 85 puntos a la última jornada, una igualdad que no se recordaba en la historia del Clásico. Ninguno depende de otro resultado y el que gane será campeón. Un empate dejaría el título en manos del golaveraje particular, favorable al Real Madrid por un solo gol.",
+      "En el Real Madrid la duda es futbolística. Vinícius, máximo goleador del equipo en la primera vuelta, no marca desde hace cinco jornadas, y José Mourinho insinuó en la rueda de prensa previa que podría empezar en el banquillo. «Tomaré la decisión que crea que nos hace ganar», se limitó a decir.",
+      "El Barcelona arrastra la duda de Pau Cubarsí, pieza clave en la salida de balón de Hansi Flick, que no se ha entrenado con el grupo en toda la semana por una sobrecarga muscular. Su participación es una incógnita que no se despejará hasta última hora.",
+      "Un Clásico que decide la Liga es un fenómeno casi desconocido, porque en las últimas cuatro décadas el título solo se ha resuelto tres veces en la jornada final y nunca en un enfrentamiento directo entre los dos primeros. Las entradas se agotaron en menos de una hora.",
+      "Alineaciones probables:",
+      "Real Madrid: Courtois; Alexander-Arnold, Konaté, Huijsen, Carreras; Valverde, Tchouaméni, Bellingham; Arda Güler, Mbappé y Vinícius, en duda.",
+      "FC Barcelona: Joan García; Koundé, Cubarsí, en duda, Araujo, Balde; De Jong, Pedri, Fermín; Lamine Yamal, Ferran Torres y Raphinha.",
+      "Árbitro: Gil Manzano. Estadio Santiago Bernabéu. Hora: 21.00 (19.00 GMT)."
+    ],
+    ref:"A qué hora se juega el Real Madrid – Barcelona y dónde verlo",
+    trampa:"El teletipo es épico durante cinco párrafos y esconde la hora en la última línea. Quien titula con la épica ha caído en la trampa: nadie busca «una Liga que se decide en el último suspiro», todo el mundo busca la hora." },
+  { kind:"ig", label:"MATERIAL 2 · EL INSTAGRAM", task:"Escribid el titular Discover: el que haría parar el dedo al que baja por el móvil.",
+    handle:"fedeevalverde", meta:"19:42 · 48.352 me gusta · 9.114 comentarios",
+    body:["Estoy cansado de correr por los que no corren.","El domingo se sabrá quién quiere de verdad esta camiseta.","Yo lo daré todo, como siempre.","Los demás sabrán lo que dan."],
+    caption:"Federico Valverde es el capitán del Real Madrid.",
+    ref:"Valverde, capitán del Real Madrid: «Estoy cansado de correr por los que no corren»",
+    trampa:"Nadie lo busca todavía en Google: es una declaración que acaba de explotar. ¿Se puede titular «Valverde carga contra Vinícius» o «señala al vestuario»? No, porque la historia no dice contra quién va. Sería mentir por exageración." },
+  { kind:"entrevista", label:"MATERIAL 3 · LA ENTREVISTA (MUNDO DEPORTIVO)", task:"Escribid el titular Discover: el que haría parar el dedo al que baja por el móvil.",
+    title:"Pedri: «El domingo será un partido especial»",
+    lead:"El centrocampista del Barcelona repasa con Mundo Deportivo la semana previa al Clásico que puede darle la Liga.",
+    body:[
+      "— ¿Cómo se vive una semana así en el vestuario?|Con normalidad, dentro de lo que cabe. Todos sabemos lo que hay en juego, pero cuanto menos hablemos y más entrenemos, mejor.",
+      "— ¿Le ha sorprendido la igualdad de esta temporada?|No especialmente. Los dos hemos hecho un año muy sólido y estas cosas se deciden por detalles.",
+      "— ¿Qué se siente al jugarse una Liga en el Bernabéu?|Es distinto a todo. Hay partidos que se juegan con la cabeza y este se va a jugar también con el estómago.",
+      "— ¿Cómo ha cambiado desde que llegó al primer equipo?|Hablo más. Antes me guardaba las cosas y ahora entiendo que el vestuario necesita que alguien ponga voz a lo que todos sienten.",
+      "— Usted es de Tegueste, en Tenerife. ¿Por qué el Barça?|Por mi abuelo. En casa casi todos eran del Madrid, pero él me sentaba en sus rodillas a ver al Barça y me decía que ahí se jugaba como a él le gustaba. Me hizo del Barcelona antes de que yo supiera lo que era. Si el domingo ganamos la Liga, será suya.",
+      "— ¿Vuelve mucho a Canarias?|Siempre que puedo. Allí sigo siendo el nieto de mi abuelo, y eso me mantiene con los pies en el suelo.",
+      "— ¿Qué le pide a la afición?|Que confíe. Vamos a competir hasta el final y los vamos a necesitar como nunca.",
+      "— ¿Un mensaje para el Real Madrid?|Ninguno. El domingo hablará el campo."
+    ],
+    ref:"Pedri: «Mi abuelo me hizo del Barcelona antes de que yo supiera lo que era»",
+    trampa:"El titular de Mundo Deportivo es flojo a propósito: la frase buena está enterrada en la quinta pregunta. Encontrarla y no quedarse en las primeras respuestas es el oficio. La fuente se cita en el texto, no en el titular." }
+];
+
+// Pinta un material de la Parte 3 (lo usan la pantalla y los móviles)
+function pintaMaterial(m, esc){
+  if (m.kind === "ig") return `<div class="igwrap"><div class="ig">
+      <div class="igtop"><span class="igav">${esc(m.handle.slice(0,2).toUpperCase())}</span><b>${esc(m.handle)}</b><span class="igm">${esc(m.meta.split(" · ")[0])}</span></div>
+      <div class="igtxt">${m.body.map(l => esc(l)).join("<br>")}</div>
+      <div class="igstats">${esc(m.meta.split(" · ").slice(1).join(" · "))}</div></div>
+      <p class="igcap">${esc(m.caption)}</p></div>`;
+  if (m.kind === "entrevista") return `<div class="paper"><div class="ptag">${esc(m.label.replace(/^MATERIAL \d · /,""))}</div><h3>${esc(m.title)}</h3><p class="plead">${esc(m.lead)}</p>
+      ${m.body.map(x => { const [q, a] = x.split("|"); return `<p class="pq">${esc(q)}</p><p>${esc(a)}</p>`; }).join("")}</div>`;
+  return `<div class="paper teletipo"><div class="ptag">EFE · DEPORTES · PREVIA</div><h3>${esc(m.title)}</h3>${m.body.map(p => `<p>${esc(p)}</p>`).join("")}</div>`;
+}
+const CSS_MATERIAL = `
+.paper{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 20px;line-height:1.55}
+.paper h3{font-family:Georgia,serif;font-size:21px;line-height:1.25;margin:4px 0 10px}
+.paper p{margin:0 0 9px;font-size:15px}
+.paper .ptag{font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--red)}
+.paper .plead{font-style:italic;color:var(--muted)}
+.paper .pq{font-weight:800;margin-top:12px}
+.teletipo{font-family:"Courier New",monospace}
+.teletipo h3{font-family:"Courier New",monospace;font-weight:900}
+.igwrap{display:flex;flex-direction:column;align-items:center}
+.ig{width:300px;max-width:100%;aspect-ratio:9/16;border-radius:16px;background:linear-gradient(180deg,#0d0d12 0%,#1a0f14 60%,#5b0f18 100%);color:#fff;padding:14px;display:flex;flex-direction:column}
+.igtop{display:flex;align-items:center;gap:8px;font-size:13px}
+.igav{width:28px;height:28px;border-radius:50%;background:#C8102E;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+.igm{color:#bbb;font-size:12px}
+.igtxt{margin:auto 0;text-align:center;font-weight:800;font-size:17px;line-height:1.45}
+.igstats{text-align:center;font-size:11px;color:#ccc;margin-bottom:6px}
+.igcap{font-style:italic;color:var(--muted);font-size:13px;margin-top:8px}
+`;
+
+document.head.insertAdjacentHTML('beforeend','<style>'+CSS_MATERIAL+'</style>');
+
+// ===== CONFIGURACIÓN =====
+const API_URL = "https://script.google.com/macros/s/AKfycbyJkXj7CoPtNXyQLsAypxUVWB4i4bdDtg_D583p-t_3R4xW_u0_xqO_zunqAmtYm4G1/exec";
+const PAGINA_EQUIPO = "seo_discover_equipo_v1.html";
+// =========================
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const lsGet = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch(e){ return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch(e){} };
+const lsDel = k => { try { localStorage.removeItem(k); } catch(e){} };
+
+let API = new URLSearchParams(location.search).get("api") || (API_URL.startsWith("http") ? API_URL : "") || lsGet("seod_api", "");
+let CODE = lsGet("seod_code", ""), KEY = lsGet("seod_key", "");
+let S = null, ultimaVista = "", viendoEntrada = false, verNota = false;
+
+function toast(msg, warn){ const t = $("toast"); t.textContent = msg; t.className = warn ? "warn show" : "show"; clearTimeout(t._h); t._h = setTimeout(() => t.className = "", 3800); }
+async function api(params){
+  const r = await fetch(API, { method:"POST", body: JSON.stringify(params) });
+  const j = await r.json(); if (j.error) throw new Error(j.error); return j;
+}
+let ocupado = false;
+async function accion(params, okMsg){
+  if (ocupado) return; ocupado = true;
+  try { await api(Object.assign({ c: CODE, k: KEY }, params)); if (okMsg) toast(okMsg); ultimaVista = ""; await refrescar(true); }
+  catch(e){ toast(e.message, true); }
+  finally { ocupado = false; }
+}
+const armado = {};
+function confirmar(k, msg){ if (armado[k]) { armado[k] = false; return true; } armado[k] = true; toast(msg, true); setTimeout(() => armado[k] = false, 4000); return false; }
+
+function pintarInicio(){
+  $("topRight").innerHTML = ""; $("side").innerHTML = "";
+  $("main").innerHTML = `<div class="panel"><div class="ph">NUEVA PARTIDA</div><div class="pb">
+    <p class="muted" style="margin-bottom:16px;line-height:1.5">Tres partes en un solo juego. En la <b>Parte 1 · Une el patrón</b> cada equipo une desde el móvil los 8 titulares con su patrón de Discover. En la <b>Parte 2 · Piensa como Google</b> escribe lo que buscaría la gente y la pantalla destapa el panel real. En la <b>Parte 3 · Titula para SEO o Discover</b> escribe un titular para cada material del Clásico.</p>
+    ${API ? "" : `<div class="field"><label>Dirección del servidor (termina en /exec)</label><input id="inApi"></div>`}
+    <button class="btn b-red" id="btnCrear">Crear partida</button><div class="err" id="errCrear"></div></div></div>`;
+  $("btnCrear").onclick = crear;
+}
+async function crear(){
+  if (!API) API = ($("inApi").value || "").trim();
+  if (!API) return $("errCrear").textContent = "Falta la dirección del servidor";
+  $("btnCrear").disabled = true; $("btnCrear").textContent = "Creando…";
+  try { const j = await api({ a:"new" }); CODE = j.code; KEY = j.admin; lsSet("seod_api", API); lsSet("seod_code", CODE); lsSet("seod_key", KEY); ultimaVista = ""; await refrescar(true); }
+  catch(e){ $("errCrear").textContent = e.message; $("btnCrear").disabled = false; $("btnCrear").textContent = "Crear partida"; }
+}
+function nuevaPartida(){
+  if (!confirmar("nueva", "Pulsa otra vez para empezar una partida nueva.")) return;
+  CODE = ""; KEY = ""; S = null; lsDel("seod_code"); lsDel("seod_key"); pintarInicio();
+}
+
+let pidiendo = false;
+async function refrescar(forzar){
+  if (!CODE || (pidiendo && !forzar)) return;
+  pidiendo = true;
+  try { S = await api({ a:"state", c: CODE, k: KEY }); pintar(); }
+  catch(e){ if (/No existe/.test(e.message)) { toast(e.message, true); CODE = ""; lsDel("seod_code"); pintarInicio(); } }
+  finally { pidiendo = false; }
+}
+setInterval(refrescar, 2500);
+
+function urlEquipo(){ try { const u = new URL(PAGINA_EQUIPO, location.href); u.searchParams.set("c", CODE); if (!API_URL.startsWith("http")) u.searchParams.set("api", API); return u.toString(); } catch(e){ return PAGINA_EQUIPO + "?c=" + CODE; } }
+const equipo = id => S.teams.find(t => t.id === id) || { name:"?", color:"#999" };
+
+function pintar(){
+  const g = S.game;
+  const R = g.round >= 0 ? RONDAS[g.round] : null;
+  const etiqueta = { lobby:"ESPERANDO EQUIPOS", match:"PARTE 1 · UNE EL PATRÓN", match_reveal:"PARTE 1 · CORRECCIÓN",
+    search:`PARTE 2 · ${R ? R.tag : ""} · BUSCANDO`, reveal:`PARTE 2 · ${R ? R.tag : ""} · PANEL`,
+    t_write:`PARTE 3 · MATERIAL ${g.mat ? g.mat.n + 1 : ""} · ESCRIBIENDO`, t_review:`PARTE 3 · MATERIAL ${g.mat ? g.mat.n + 1 : ""} · CORRECCIÓN`, over:"🏆 PARTIDA TERMINADA" }[g.status];
+  $("topRight").innerHTML = `<span class="codebadge">${esc(g.code)}</span><span class="badge">${etiqueta}</span>
+    <button class="tbtn" onclick="mostrarEntrada()">📱 Cómo entrar</button>
+    ${g.status !== "over" ? `<button class="tbtn" onclick="terminar()">🏁 Terminar</button>` : ""}
+    <button class="tbtn" onclick="nuevaPartida()">＋ Nueva partida</button>`;
+  pintarLateral();
+  if (viendoEntrada) return;
+  const vista = JSON.stringify([g, S.teams, S.answers, S.searches, S.titles, verNota]);
+  if (vista === ultimaVista) return;
+  ultimaVista = vista;
+  ({ lobby:pintarSala, match:pintarMatch, match_reveal:pintarMatchReveal, search:pintarSearch, reveal:pintarReveal, t_write:pintarTWrite, t_review:pintarTReview, over:pintarFinal })[g.status]();
+}
+
+function pintarLateral(){
+  const ord = [...S.teams].sort((a, b) => b.pts - a.pts);
+  $("side").innerHTML = `<div class="panel"><div class="ph">CLASIFICACIÓN <span>${S.teams.length} equipos</span></div><div class="pb">
+    ${ord.length ? ord.map((t, i) => `<div class="st ${i < 3 && t.pts > 0 ? "top" : ""}"><div class="rk">${i+1}</div><i class="dt" style="background:${t.color}"></i>
+      <div class="nm" title="${esc(t.name)}">${esc(t.name)}</div>
+      <button class="adj" onclick="ajustar('${t.id}',-5)">−</button><div class="pt">${t.pts}</div><button class="adj" onclick="ajustar('${t.id}',5)">+</button></div>`).join("")
+      : `<div class="empty">Aún no ha entrado ningún equipo</div>`}
+    <p class="muted" style="font-size:12px;margin-top:10px">${S.totalDevs} móviles conectados · los botones − y + quitan o suman 5 puntos</p></div></div>`;
+}
+function ajustar(t, d){ accion({ a:"adjust", t, d }); }
+
+function bloqueQR(){
+  return `<div class="lobby"><div id="qr"></div><div><div class="muted" style="font-weight:700">Código de la partida</div>
+    <div class="bigcode">${esc(S.game.code)}</div><div class="link">${esc(urlEquipo())}</div>
+    <p style="margin-top:14px;line-height:1.5">Cada uno entra desde su móvil y escribe <b>el nombre de su equipo</b>, igual que sus compañeros.</p></div></div>`;
+}
+function pintarQR(){
+  try { const q = qrcode(0, "L"); q.addData(urlEquipo()); q.make(); $("qr").innerHTML = q.createSvgTag({ cellSize:4, margin:2, scalable:true }); $("qr").querySelector("svg").setAttribute("style","width:240px;height:240px;display:block"); } catch(e){}
+}
+function pintarSala(){
+  $("main").innerHTML = `<div class="panel"><div class="ph">ENTRAD CON EL NOMBRE DE VUESTRO EQUIPO</div><div class="pb">${bloqueQR()}
+    <div class="chips">${S.teams.map(t => `<span class="chip"><i style="background:${t.color}"></i>${esc(t.name)} <small>${t.devs} 📱</small></span>`).join("") || `<span class="muted">Esperando equipos…</span>`}</div>
+    <div class="row" style="margin-top:20px"><button class="btn b-red" onclick="empezarParte1()" ${S.teams.length < 1 ? "disabled" : ""}>▶ Empezar Parte 1 · Une el patrón</button>
+    <button class="btn b-out" onclick="empezarRonda(0)" ${S.teams.length < 1 ? "disabled" : ""}>Saltar a la Parte 2</button>
+    <button class="btn b-out" onclick="empezarMaterial(0)" ${S.teams.length < 1 ? "disabled" : ""}>Saltar a la Parte 3</button></div></div></div>`;
+  pintarQR();
+}
+function mostrarEntrada(){
+  if (S.game.status === "lobby") { ultimaVista = ""; return pintar(); }
+  viendoEntrada = true;
+  $("main").innerHTML = `<div class="panel"><div class="ph">CÓMO ENTRAR <span>se puede entrar en cualquier momento</span></div><div class="pb">${bloqueQR()}
+    <div class="row" style="margin-top:18px"><button class="btn b-dark" onclick="viendoEntrada=false;ultimaVista='';pintar()">← Volver al juego</button></div></div></div>`;
+  pintarQR();
+}
+
+// ── PARTE 1 ──
+function empezarParte1(){
+  accion({ a:"match_start", content:{ heads: TITULARES.map(x => x.t), pats: PATRONES } });
+}
+function bloquePatrones(){
+  return `<div class="pats">${PATRONES.map(p => `<div class="pat"><div class="L">${p.L}</div><div><b>${esc(p.name)}</b><small>${esc(p.desc)}</small></div></div>`).join("")}</div>`;
+}
+function pintarMatch(){
+  const n = TITULARES.length;
+  $("main").innerHTML = `
+    <div class="panel"><div class="ph">PARTE 1 · UNE CADA TITULAR CON SU PATRÓN <span>8 titulares, 6 patrones: dos se repiten</span></div><div class="pb">
+      ${bloquePatrones()}
+      <div class="heads" style="margin-top:16px">${TITULARES.map((x, i) => `<div class="hd"><div class="n">${i+1}</div><div class="t">«${esc(x.t)}»</div></div>`).join("")}</div>
+    </div></div>
+    <div class="panel"><div class="ph">RESPUESTAS <span>${PUNTOS} puntos por unión correcta</span></div><div class="pb">
+      <div class="chips">${S.teams.map(t => `<span class="chip ${t.answered >= n ? "ok" : t.answered ? "wr" : ""}"><i style="background:${t.color}"></i>${esc(t.name)} <small>${t.answered}/${n}</small></span>`).join("")}</div>
+      <div class="row" style="margin-top:18px"><button class="btn b-red" onclick="cerrarParte1()">🏁 Cerrar y corregir</button></div>
+    </div></div>`;
+}
+const PUNTOS = 10;
+function cerrarParte1(){
+  const faltan = S.teams.filter(t => t.answered < TITULARES.length).length;
+  if (faltan && !confirmar("p1", `${faltan === 1 ? "A un equipo le faltan" : "A " + faltan + " equipos les faltan"} respuestas. Pulsa otra vez para corregir igualmente.`)) return;
+  const key = {}; TITULARES.forEach((x, i) => key[i+1] = x.ok);
+  accion({ a:"match_close", key });
+}
+function pintarMatchReveal(){
+  const g = S.game, n = TITULARES.length, rev = g.revealed;
+  const pat = L => PATRONES.find(p => p.L === L) || {};
+  const todo = rev >= n;
+  $("main").innerHTML = `
+    <div class="panel"><div class="ph">CORRECCIÓN · CADA CALCO AL LADO DE SU ORIGINAL <span>${rev}/${n} corregidos</span></div><div class="pb">
+      <div class="heads">${TITULARES.map((x, i) => {
+        const shown = i < rev;
+        const ticks = S.teams.map(t => { const a = (S.answers[t.id] || {})[i+1]; return `<span class="tk ${a === x.ok ? "ok" : "ko"}">${esc(t.name)}: ${a || "–"}</span>`; }).join("");
+        return `<div class="hd"><div class="n">${i+1}</div><div style="flex:1"><div class="t">«${esc(x.t)}»</div>
+          ${shown ? `<div class="sol"><b style="color:var(--green)">${x.ok} · ${esc(pat(x.ok).name)}</b><span class="orig">${esc(x.orig)}</span></div><div class="ticks">${ticks}</div>` : ""}</div></div>`; }).join("")}</div>
+      <div class="row" style="margin-top:16px">
+        ${todo ? "" : `<button class="btn b-dark" onclick="revelarP1(${rev+1})">👁 Corregir el siguiente</button><button class="btn b-out" onclick="revelarP1(${n})">👁 Corregir todos</button>`}
+      </div>
+      ${todo ? `<div class="dato" style="margin-top:16px"><b>EL DATO QUE CIERRA EL JUEGO.</b> ${esc(DATO_FINAL)}</div>
+        <div class="row" style="margin-top:12px"><button class="btn b-out" onclick="verNota=!verNota;ultimaVista='';pintar()">${verNota ? "Ocultar la nota" : "🔎 Nota para la corrección (solo profe)"}</button></div>
+        ${verNota ? `<div class="note" style="margin-top:10px">${esc(NOTA_HONESTA)}</div>` : ""}
+        <div class="row" style="margin-top:16px"><button class="btn b-red" onclick="empezarRonda(0)">▶ Pasar a la Parte 2 · Piensa como Google</button></div>` : ""}
+    </div></div>`;
+}
+function revelarP1(n){ accion({ a:"match_reveal", n }); }
+
+// ── PARTE 2 ──
+function empezarRonda(i){
+  const r = RONDAS[i]; verNota = false;
+  accion({ a:"search_start", round:i, tag:r.tag, text:r.situation, trap:!!r.trap, slots:r.panel.length });
+}
+function bloqueSituacion(r, conNota){
+  return `<div class="story"><div class="tg">PARTE 2 · ${esc(r.tag)}</div><div class="ti" style="font-size:26px;line-height:1.35">${esc(r.situation)}</div>
+    ${r.trap ? `<div class="muted" style="margin-top:6px;font-style:italic">Ronda sin puntos: se comenta entre todos.</div>` : ""}
+    ${conNota && r.note && !r.trap ? `<div style="margin-top:8px;font-size:13px;color:var(--red);font-weight:800">${esc(r.note)}</div>` : ""}</div>`;
+}
+function pintarSearch(){
+  const r = RONDAS[S.game.round];
+  $("main").innerHTML = `${bloqueSituacion(r, false)}
+    <div class="panel"><div class="ph">¿QUÉ BUSCA LA GENTE EN GOOGLE? <span>escribid las búsquedas en el móvil</span></div><div class="pb">
+      <div class="chips">${S.teams.map(t => `<span class="chip ${t.searches ? "ok" : ""}"><i style="background:${t.color}"></i>${esc(t.name)} <small>${t.searches} búsquedas</small></span>`).join("")}</div>
+      <div class="row" style="margin-top:18px"><button class="btn b-red" onclick="accion({a:'search_close'})">🔍 Cerrar y destapar el panel real</button></div>
+    </div></div>`;
+}
+const STOP = new Set("a al la el los las de del en y o u que es son un una unos unas por con para se su sus lo le les mi tu hoy ya va este esta esto eso hay ha han fue".split(" "));
+const SIN = [
+  ["hora","horario","cuando","empieza","comienza","juega"],
+  ["donde","ver","tv","television","canal","retransmision","emite","emision","directo","online","streaming","gratis"],
+  ["precio","cuesta","cuestan","cuanto","coste","costado","vale","valen","dinero","euros","millones","barato","caro","comprar","venta","vender"],
+  ["entrada","entradas","ticket","tickets","abono"],
+  ["alineacion","alineaciones","once","titulares","convocatoria","convocados"],
+  ["baja","lesion","lesionado","lesiona","recuperacion","tiempo","semanas","parte","medico"],
+  ["fichaje","fichado","ficha","firma","nuevo"],
+  ["celebracion","celebra","fiesta","festejo"],
+  ["rua","desfile","recorrido","autobus"],
+  ["camiseta","equipacion","elastica"],
+  ["quien","nombre"],
+  ["gol","goles","marco","metio","resumen","jugadas"],
+  ["dura","duracion","minutos"],
+  ["descanso","intermedio","show","canta","cantante","actuacion","concierto"],
+  ["llega","llegada","vuelve","aterriza"],
+  ["estadisticas","datos","numeros","trayectoria","historial","carrera"]
+];
+const CANON = {}; SIN.forEach(g => g.forEach(w => CANON[w] = g[0]));
+const raiz = w => CANON[w] || (w.length > 5 ? w.slice(0, 5) : w);
+const palabras = s => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9ñ ]+/g, " ").split(/\s+/).filter(w => w && !STOP.has(w)).map(raiz);
+// Una búsqueda acierta una casilla si comparte al menos una palabra propia de esa casilla
+// (que no se repite en las demás casillas del panel) y al menos dos palabras en total.
+function parecido(busq, casilla, panel){
+  const a = new Set(palabras(busq)), b = [...new Set(palabras(casilla))];
+  if (!b.length || !a.size) return false;
+  const otras = (panel || []).map(x => typeof x === "string" ? x : x.text).filter(x => x !== casilla).map(x => new Set(palabras(x)));
+  let propias = b.filter(w => !otras.some(o => o.has(w)));
+  if (!propias.length) propias = b;
+  const comunes = b.filter(w => a.has(w)).length;
+  return propias.some(w => a.has(w)) && comunes >= Math.min(2, b.length);
+}
+
+
+function pintarReveal(){
+  const g = S.game, r = RONDAS[g.round], abiertas = g.open, total = r.panel.length;
+  const slots = r.panel.map((p, i) => {
+    if (i >= abiertas) return `<div class="slot hid"><div class="top"><div class="pos">${r.trap ? "?" : i+1}</div><div class="txt">??????????????</div></div></div>`;
+    const dados = (g.awards[i] || []);
+    const botones = r.trap || !p.pts ? "" : `<div class="awards">${S.teams.map(t => {
+      const sug = ((S.searches || {})[t.id] || []).some(b => parecido(b, p.text, r.panel));
+      return `<button class="aw ${dados.includes(t.id) ? "on" : sug ? "sug" : ""}" onclick="dar(${i},'${t.id}')"><i style="background:${t.color}"></i>${dados.includes(t.id) ? "✓ " : ""}${esc(t.name)}</button>`; }).join("")}</div>`;
+    return `<div class="slot"><div class="top"><div class="pos">${r.trap ? "?" : i+1}</div><div class="txt">${esc(p.text)}</div>${p.pts ? `<div class="pp">${p.pts} pts</div>` : ""}</div>${botones}</div>`;
+  }).join("");
+  const abiertos = r.panel.slice(0, abiertas).map(p => p.text);
+  const tarjetas = S.teams.map(t => {
+    const lista = (S.searches || {})[t.id] || [];
+    return `<div class="gc"><h4><i style="background:${t.color}"></i>${esc(t.name)}</h4>${lista.length ? lista.map(b => `<div class="gi ${abiertos.some(x => parecido(b, x, r.panel)) ? "hit" : ""}">${esc(b)}</div>`).join("") : `<div class="muted" style="font-size:13px;font-style:italic">Sin búsquedas</div>`}</div>`;
+  }).join("");
+  const ultima = g.round >= RONDAS.length - 1;
+  $("main").innerHTML = `${bloqueSituacion(r, abiertas >= total)}
+    <div class="panel"><div class="ph">${r.trap ? "LO QUE REALMENTE SE BUSCA" : "EL PANEL REAL"} <span>${abiertas}/${total} destapadas</span></div><div class="pb">
+      ${slots}
+      ${abiertas >= total && r.trap ? `<div class="dato">💡 ${esc(r.note)}</div>` : ""}
+      <div class="row" style="margin-top:12px">${abiertas < total ? `<button class="btn b-dark" onclick="destapar(${abiertas+1})">👁 Destapar la siguiente</button><button class="btn b-out" onclick="destapar(${total})">👁 Destapar todas</button>` : ""}</div>
+      ${!r.trap ? `<p class="muted" style="font-size:12.5px;margin-top:10px">Al destapar cada casilla, los puntos se dan solos a los equipos con una búsqueda parecida (en verde). Para corregir, pulsa un equipo: si estaba en verde se le quitan los puntos y si no, se le dan. En dorado salen los que se parecen pero has quitado tú.</p>` : ""}
+    </div></div>
+    <div class="panel"><div class="ph">LO QUE HA BUSCADO CADA EQUIPO <span>en verde, lo que se parece al panel</span></div><div class="pb"><div class="gg">${tarjetas}</div></div></div>
+    <div class="row">${ultima ? `<button class="btn b-red" onclick="empezarMaterial(0)">▶ Pasar a la Parte 3 · Titula para SEO o Discover</button>` : `<button class="btn b-red" onclick="empezarRonda(${g.round+1})">▶ Siguiente: ${esc(RONDAS[g.round+1].tag)}</button>`}</div>`;
+}
+function destapar(n){
+  const r = RONDAS[S.game.round];
+  const auto = {};
+  for (let i = S.game.open; i < n; i++) {
+    if (!r.panel[i].pts) continue;
+    auto[i] = S.teams.filter(t => ((S.searches || {})[t.id] || []).some(b => parecido(b, r.panel[i].text, r.panel))).map(t => t.id);
+  }
+  accion({ a:"open", panel: r.panel.slice(0, n), auto, note: n >= r.panel.length && r.trap ? r.note : "" });
+}
+function dar(s, t){ accion({ a:"award", s, t }); }
+
+function pintarFinal(){
+  const ord = [...S.teams].sort((a, b) => b.pts - a.pts), top = ord[0];
+  const empate = ord.length > 1 && ord[1].pts === top.pts;
+  $("main").innerHTML = `<div class="champ"><div class="tr">🏆</div><h3>${empate ? "EMPATE EN CABEZA" : "GANADOR DE SEO Y DISCOVER"}</h3>
+    <div class="nm">${top ? (empate ? ord.filter(t => t.pts === top.pts).map(t => esc(t.name)).join(" y ") : esc(top.name)) : ""}</div>
+    <div style="font-weight:800;margin-top:6px">${top ? top.pts : 0} puntos</div></div>`;
+}
+function terminar(directo){
+  if (!directo && !confirmar("fin", "Pulsa «Terminar» otra vez para acabar la partida.")) return;
+  accion({ a:"end" });
+}
+
+
+// ── PARTE 3 · TITULA PARA SEO O DISCOVER ──
+const n3 = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ç/g, "c").replace(/\s+/g, " ").trim();
+const soloLetras = s => n3(s).replace(/[^a-z0-9ñ ]+/g, " ").replace(/\s+/g, " ").trim();
+// Lo que va entre comillas en el titular
+function citas(t){
+  const out = []; const re = /[«"“”'‘’]([^«»"“”'‘’]{6,})[»"“”'‘’]/g; let m;
+  while ((m = re.exec(t))) out.push(m[1]);
+  return out;
+}
+const EXAGERA = ["carga contra","carga","senala","critica","ataca","estalla","explota","rajada","zasca","dardo","bronca","pulla","arremete","dispara contra","contra sus companeros","companeros","vestuario","vinicius","mbappe","bellingham","guerra","polemica"];
+// Corrige un titular y devuelve [{txt, pts, max}] con lo que ha encontrado
+function corregir(mat, titular){
+  const t = n3(titular), L = soloLetras(titular), items = [];
+  const add = (txt, ok, pts) => items.push({ txt, pts: ok ? pts : 0, max: pts });
+  if (!L) return [{ txt:"Sin titular", pts:0, max:30 }];
+  if (mat.kind === "seo"){
+    add("Dice a qué hora (lo que busca la gente)", /\b(hora|horario|cuando (se )?juega)\b/.test(L), 15);
+    const madrid = /\bmadrid\b/.test(L), barca = /\b(barcelona|barca)\b/.test(L);
+    add("Nombra a los dos equipos", madrid && barca, 10);
+    add("Dice dónde verlo", /\b(donde (verlo|ver)|tv|television|canal|retransmision|en directo)\b/.test(L), 5);
+    return items;
+  }
+  const original = " " + soloLetras([mat.title || ""].concat(mat.body.map(x => x.split("|").pop())).join(" ")) + " ";
+  const cs = citas(titular).map(soloLetras).filter(Boolean);
+  // La cita vale si sus palabras están en el material y hay un trozo seguido de al menos 4 palabras (se permite unir dos frases)
+  const fiel = c => { const w = c.split(" "); if (w.length < 3) return false;
+    const dentro = w.filter(x => original.includes(" " + x + " ")).length / w.length;
+    let mejor = 0; for (let i = 0; i < w.length; i++) for (let j = w.length; j > i + mejor; j--) if (original.includes(" " + w.slice(i, j).join(" ") + " ")) { mejor = j - i; break; }
+    return dentro >= 0.85 && mejor >= Math.min(4, w.length); };
+  const literal = cs.some(fiel);
+  const roja = EXAGERA.find(w => L.includes(w));
+  if (mat.kind === "ig"){
+    add("Lleva el nombre (Valverde)", /\bvalverde\b/.test(L), 5);
+    add("Lleva el cargo (capitán del Real Madrid)", /\b(capitan|real madrid|madridista)\b/.test(L), 5);
+    add("Cita entre comillas, palabra por palabra", literal, 15);
+    add("Elige la frase fuerte", cs.some(c => /cansado de correr|quien quiere de verdad/.test(c)) && literal, 5);
+  } else {
+    add("Lleva el nombre (Pedri)", /\bpedri\b/.test(L), 5);
+    add("Cita entre comillas, palabra por palabra", literal, 10);
+    add("Encuentra la perla (el abuelo, enterrada en la quinta pregunta)", literal && cs.some(c => /abuelo|del barcelona|del barca|nieto/.test(c)), 15);
+  }
+  if (roja) return [{ txt:`Línea roja: exagera lo que dice el material («${roja}»)`, pts:0, max:30 }].concat(items.map(i => Object.assign({}, i, { pts:0 })));
+  return items;
+}
+const total = items => items.reduce((s, i) => s + i.pts, 0);
+
+function empezarMaterial(i){
+  const m = MATERIALES[i]; verNota = false;
+  accion({ a:"t_start", n:i, suceso: SUCESO, mat: { kind:m.kind, label:m.label, title:m.title || "", lead:m.lead || "", body:m.body, handle:m.handle || "", meta:m.meta || "", caption:m.caption || "", task:m.task } });
+}
+function cabeceraP3(m){
+  return `<div class="story"><div class="tg">PARTE 3 · TITULA PARA SEO O DISCOVER · ${esc(m.label)}</div>
+    <div class="ti" style="font-size:19px;line-height:1.4">${esc(SUCESO)}</div>
+    <div style="margin-top:8px;font-weight:800;color:var(--red)">${m.kind === "seo" ? "🔍 Titular SEO" : "📱 Titular Discover"} · ${esc(m.task)}</div></div>`;
+}
+function pintarTWrite(){
+  const i = S.game.mat.n, m = MATERIALES[i];
+  $("main").innerHTML = `${cabeceraP3(m)}${pintaMaterial(m, esc)}
+    <div class="panel"><div class="ph">TITULARES <span>cada equipo escribe uno desde el móvil</span></div><div class="pb">
+      <div class="chips">${S.teams.map(t => `<span class="chip ${t.titled ? "ok" : ""}"><i style="background:${t.color}"></i>${esc(t.name)} <small>${t.titled ? "✓ enviado" : "escribiendo"}</small></span>`).join("")}</div>
+      <div class="row" style="margin-top:18px"><button class="btn b-red" onclick="cerrarTitulares()">🏁 Cerrar y corregir</button></div></div></div>`;
+}
+function cerrarTitulares(){
+  const faltan = S.teams.filter(t => !t.titled).length;
+  if (faltan && !confirmar("p3", `${faltan === 1 ? "Falta un equipo" : "Faltan " + faltan + " equipos"} por enviar. Pulsa otra vez para corregir igualmente.`)) return;
+  const m = MATERIALES[S.game.mat.n], scores = {};
+  S.teams.forEach(t => scores[t.id] = total(corregir(m, (S.titles || {})[t.id] || "")));
+  accion({ a:"t_close", scores, ref: m.ref });
+}
+function pintarTReview(){
+  const i = S.game.mat.n, m = MATERIALES[i];
+  const filas = S.teams.map(t => {
+    const tit = (S.titles || {})[t.id] || "", items = corregir(m, tit), auto = total(items), nota = (S.game.tscore || {})[t.id] || 0;
+    return `<div class="res"><div style="min-width:0;flex:1"><div class="who" style="color:${t.color}">${esc(t.name)}</div>
+      <div class="h">${tit ? esc(tit) : "<i class='muted'>Sin titular</i>"}</div>
+      <div class="ticks">${items.map(x => `<span class="tk ${x.pts ? "ok" : "ko"}">${x.pts ? "✓" : "✕"} ${esc(x.txt)}${x.max && x.pts ? " +" + x.pts : ""}</span>`).join("")}</div>
+      ${nota !== auto ? `<div class="muted" style="font-size:12px;margin-top:4px">Corregido a mano (la máquina daba ${auto})</div>` : ""}</div>
+      <div class="pts" style="display:flex;align-items:center;gap:6px"><button class="adj" onclick="corregirNota('${t.id}',-5)">−</button><b>${nota}</b><button class="adj" onclick="corregirNota('${t.id}',5)">+</button><small style="display:block">/30</small></div></div>`;
+  }).join("");
+  const siguiente = i < MATERIALES.length - 1;
+  $("main").innerHTML = `${cabeceraP3(m)}
+    <div class="panel"><div class="ph">CORRECCIÓN <span>la máquina corrige, tú decides con − y +</span></div><div class="pb"><div class="ballot">${filas}</div></div></div>
+    <div class="dato"><b>TITULAR DE REFERENCIA.</b> ${esc(m.ref)}</div>
+    <div class="row"><button class="btn b-out" onclick="verNota=!verNota;ultimaVista='';pintar()">${verNota ? "Ocultar la trampa" : "🔎 La trampa de este material"}</button></div>
+    ${verNota ? `<div class="note">${esc(m.trampa)}</div>` : ""}
+    <div class="row">${siguiente ? `<button class="btn b-red" onclick="empezarMaterial(${i+1})">▶ Siguiente: ${esc(MATERIALES[i+1].label)}</button>` : `<button class="btn b-gold" onclick="terminar(true)">🏁 Terminar el juego</button>`}</div>`;
+}
+function corregirNota(t, d){ accion({ a:"t_adjust", t, d }); }
+
+if (CODE && API) refrescar(true); else pintarInicio();
+
+</script>
+</body>
+</html>
