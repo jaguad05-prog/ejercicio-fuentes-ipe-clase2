@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Transcriptor de ruedas de prensa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F5F8; --ink:#16233F; --muted:#66708A; --line:#D9DEE7;
+  --air:#D62839; --quote:#FFE45C; --card:#FFFFFF; --interim:#8A93A8;
+  --fs:20px;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1726; --ink:#E8ECF4; --muted:#93A0BA; --line:#26324A;
+    --card:#152036; --interim:#6F7C97; --quote:#7A6A10;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1726; --ink:#E8ECF4; --muted:#93A0BA; --line:#26324A;
+  --card:#152036; --interim:#6F7C97; --quote:#7A6A10;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);
+  border-bottom:1px solid var(--line);padding:14px 16px 12px}
+.top{display:flex;align-items:center;gap:14px;max-width:820px;margin:0 auto}
+#rec{flex:none;width:68px;height:68px;border-radius:50%;border:3px solid var(--air);
+  background:transparent;cursor:pointer;display:grid;place-items:center;padding:0}
+#rec span{width:40px;height:40px;border-radius:50%;background:var(--air);transition:all .2s}
+#rec.on span{width:26px;height:26px;border-radius:5px}
+#rec.on{animation:pulse 1.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(214,40,57,.45)}70%{box-shadow:0 0 0 14px rgba(214,40,57,0)}100%{box-shadow:0 0 0 0 rgba(214,40,57,0)}}
+@media (prefers-reduced-motion:reduce){#rec.on{animation:none}}
+.status h1{margin:0;font-size:1.15rem;font-weight:800;letter-spacing:-.01em}
+.status p{margin:2px 0 0;color:var(--muted);font-size:.9rem}
+#clock{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums;font-size:1.1rem}
+.tools{display:flex;flex-wrap:wrap;gap:8px;max-width:820px;margin:12px auto 0}
+.tools button{font:inherit;font-size:.88rem;font-weight:600;color:var(--ink);background:var(--card);
+  border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+.tools button:focus-visible,#rec:focus-visible,.p:focus-visible{outline:3px solid #4C7DFF;outline-offset:2px}
+main{max-width:820px;margin:0 auto;padding:18px 16px 120px}
+.empty{color:var(--muted);line-height:1.5;font-size:1rem}
+.p{display:grid;grid-template-columns:52px 1fr;gap:10px;padding:10px 8px;border-radius:8px;cursor:pointer;
+  font-family:"Source Serif 4",Georgia,"Times New Roman",serif;font-size:var(--fs);line-height:1.55}
+.p time{font-family:"Archivo",system-ui,sans-serif;font-size:.8rem;color:var(--muted);padding-top:.35em;font-variant-numeric:tabular-nums}
+.p.q{background:var(--quote)}
+#interim{color:var(--interim);font-style:italic}
+.err{background:var(--air);color:#fff;padding:12px 14px;border-radius:8px;margin-bottom:14px;line-height:1.45}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:.92rem;opacity:0;transition:opacity .2s;pointer-events:none}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <button id="rec" aria-label="Empezar a transcribir"><span></span></button>
+    <div class="status">
+      <h1 id="title">Listo para transcribir</h1>
+      <p id="sub">Pulsa el botón rojo cuando empiece la rueda de prensa</p>
+    </div>
+    <div id="clock">00:00</div>
+  </div>
+  <div class="tools">
+    <button id="copyAll">Copiar todo</button>
+    <button id="copyQ">Copiar citas marcadas</button>
+    <button id="smaller" aria-label="Letra más pequeña">A−</button>
+    <button id="bigger" aria-label="Letra más grande">A+</button>
+    <button id="clear">Borrar</button>
+  </div>
+</header>
+<main id="out">
+  <div id="msg"></div>
+  <p class="empty" id="empty">El texto aparecerá aquí mientras hablan. Toca cualquier párrafo para marcarlo como cita y copiarlo después junto al resto de citas.</p>
+  <div id="list"></div>
+  <p class="p" id="interimRow" hidden><time></time><span id="interim"></span></p>
+</main>
+<div id="toast" role="status"></div>
+<script>
+(function(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const $ = id => document.getElementById(id);
+  const rec=$('rec'), list=$('list'), interim=$('interim'), interimRow=$('interimRow');
+  let items=[], listening=false, recog=null, startAt=null, elapsedBefore=0, tick=null, wake=null;
+
+  function load(){
+    try{ const d=JSON.parse(localStorage.getItem('trp-v1')||'null');
+      if(d){ items=d.items||[]; elapsedBefore=d.elapsed||0; if(d.fs) document.documentElement.style.setProperty('--fs',d.fs+'px'); } }catch(e){}
+  }
+  function save(){
+    try{ localStorage.setItem('trp-v1',JSON.stringify({items,elapsed:elapsed(),fs:fs()})); }catch(e){}
+  }
+  function fs(){ return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--fs'))||20; }
+  function elapsed(){ return elapsedBefore + (startAt? (Date.now()-startAt)/1000 : 0); }
+  function fmt(s){ s=Math.floor(s); const m=Math.floor(s/60), r=s%60; return String(m).padStart(2,'0')+':'+String(r).padStart(2,'0'); }
+
+  function render(){
+    list.innerHTML='';
+    items.forEach((it,i)=>{
+      const p=document.createElement('p'); p.className='p'+(it.q?' q':''); p.tabIndex=0;
+      p.innerHTML='<time></time><span></span>';
+      p.firstChild.textContent=it.t; p.lastChild.textContent=it.text;
+      p.onclick=()=>{ it.q=!it.q; p.classList.toggle('q'); save(); };
+      p.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); p.click(); } };
+      list.appendChild(p);
+    });
+    $('empty').hidden = items.length>0 || listening;
+  }
+  function addFinal(text){
+    text=text.trim(); if(!text) return;
+    text=text.charAt(0).toUpperCase()+text.slice(1);
+    if(!/[.?!…]$/.test(text)) text+='.';
+    items.push({t:fmt(elapsed()),text,q:false});
+    save(); render();
+    window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+  }
+  function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),1800); }
+  function error(t){ $('msg').innerHTML='<div class="err"></div>'; $('msg').firstChild.textContent=t; }
+  function setUI(){
+    rec.classList.toggle('on',listening);
+    rec.setAttribute('aria-label',listening?'Parar la transcripción':'Empezar a transcribir');
+    $('title').textContent=listening?'Transcribiendo':'En pausa';
+    $('sub').textContent=listening?'Pulsa el botón para parar':(items.length?'Pulsa el botón rojo para seguir':'Pulsa el botón rojo cuando empiece la rueda de prensa');
+    if(!listening && !items.length) $('title').textContent='Listo para transcribir';
+  }
+
+  function start(){
+    if(!SR){ error('Este navegador no permite transcribir. Abre la página en Chrome o en Edge, en el ordenador o en un móvil Android.'); return; }
+    $('msg').innerHTML='';
+    recog=new SR(); recog.lang='es-ES'; recog.continuous=true; recog.interimResults=true; recog.maxAlternatives=1;
+    recog.onresult=e=>{
+      let tmp='';
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        const r=e.results[i];
+        if(r.isFinal) addFinal(r[0].transcript); else tmp+=r[0].transcript;
+      }
+      interim.textContent=tmp; interimRow.hidden=!tmp;
+      interimRow.firstChild.textContent=tmp?fmt(elapsed()):'';
+    };
+    recog.onerror=e=>{
+      if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+        listening=false; stopClock(); setUI();
+        error('No hay acceso al micrófono. Permite el micrófono en el navegador (icono junto a la dirección) y vuelve a pulsar el botón.');
+      } else if(e.error==='audio-capture'){
+        listening=false; stopClock(); setUI();
+        error('No se encuentra ningún micrófono. Conecta uno y vuelve a pulsar el botón.');
+      } else if(e.error==='network'){
+        error('Se ha cortado la conexión. La transcripción necesita internet y se reanudará sola cuando vuelva.');
+      }
+    };
+    recog.onend=()=>{ if(listening){ try{ recog.start(); }catch(e){ setTimeout(()=>{ if(listening) try{recog.start();}catch(_){} },300); } } };
+    try{ recog.start(); }catch(e){}
+    listening=true; startAt=Date.now();
+    tick=setInterval(()=>{$('clock').textContent=fmt(elapsed());},500);
+    if('wakeLock' in navigator){ navigator.wakeLock.request('screen').then(w=>wake=w).catch(()=>{}); }
+    setUI(); render();
+  }
+  function stopClock(){ if(startAt){ elapsedBefore+= (Date.now()-startAt)/1000; startAt=null; } clearInterval(tick); }
+  function stop(){
+    listening=false; try{ recog&&recog.stop(); }catch(e){}
+    if(interim.textContent) addFinal(interim.textContent);
+    interim.textContent=''; interimRow.hidden=true;
+    stopClock(); save(); if(wake){ wake.release().catch(()=>{}); wake=null; }
+    setUI(); render();
+  }
+  rec.onclick=()=> listening?stop():start();
+
+  function copy(text,ok){
+    if(!text){ toast('No hay nada que copiar'); return; }
+    const fallback=()=>{ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); toast(ok); }catch(e){ toast('No se ha podido copiar'); } ta.remove(); };
+    if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>toast(ok)).catch(fallback); else fallback();
+  }
+  $('copyAll').onclick=()=>copy(items.map(i=>'['+i.t+'] '+i.text).join('\n\n'),'Transcripción copiada');
+  $('copyQ').onclick=()=>{
+    const q=items.filter(i=>i.q);
+    if(!q.length){ toast('Toca un párrafo para marcarlo como cita'); return; }
+    copy(q.map(i=>'«'+i.text.replace(/\.$/,'')+'»').join('\n\n'),'Citas copiadas');
+  };
+  $('bigger').onclick=()=>{ document.documentElement.style.setProperty('--fs',Math.min(fs()+2,36)+'px'); save(); };
+  $('smaller').onclick=()=>{ document.documentElement.style.setProperty('--fs',Math.max(fs()-2,14)+'px'); save(); };
+  $('clear').onclick=()=>{
+    if(!items.length) return;
+    if(confirm('¿Borrar toda la transcripción? Copia antes lo que quieras guardar.')){
+      if(listening) stop(); items=[]; elapsedBefore=0; $('clock').textContent='00:00'; save(); render(); setUI();
+    }
+  };
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible' && listening && 'wakeLock' in navigator){ navigator.wakeLock.request('screen').then(w=>wake=w).catch(()=>{}); }
+  });
+
+  load(); $('clock').textContent=fmt(elapsedBefore); render(); setUI();
+  if(!SR) error('Este navegador no permite transcribir. Abre la página en Chrome o en Edge, en el ordenador o en un móvil Android.');
+})();
+</script>
+</body>
+</html>
