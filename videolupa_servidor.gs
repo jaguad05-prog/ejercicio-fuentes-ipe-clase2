@@ -32,6 +32,7 @@ function juego(code){
 }
 // Cada equipo guarda su respuesta en su propio hueco: así los envíos simultáneos no se esperan unos a otros
 function claveResp(code, idx, tid){ return "a_" + code + "_" + idx + "_" + tid; }
+function claveMot(code, idx, tid){ return "m_" + code + "_" + idx + "_" + tid; } // por qué se dan los puntos
 function respuestas(code, idx, g){
   var claves = g.teams.map(function(t){ return claveResp(code, idx, t.id); });
   var crudo = claves.length ? cache().getAll(claves) : {}, out = {};
@@ -113,7 +114,8 @@ function manejar(p){
     if (tid){
       var t = g.teams.filter(function(x){ return x.id === tid; })[0];
       var mia = g.idx >= 0 ? cache().get(claveResp(code, g.idx, t.id)) : null;
-      me = { team: t.id, teamName: t.name, color: t.color, sent: mia ? JSON.parse(mia) : null };
+      var mot = g.idx >= 0 && g.status !== "answer" ? cache().get(claveMot(code, g.idx, t.id)) : null;
+      me = { team: t.id, teamName: t.name, color: t.color, sent: mia ? JSON.parse(mia) : null, mot: mot ? JSON.parse(mot) : null };
     }
     return { game: { status: g.status, idx: g.idx, remaining: restante(g), dur: g.dur,
                      pista: pistaVisible(g) && g.q ? g.q.pista : null, q: preguntaPublica(g),
@@ -156,7 +158,8 @@ function manejar(p){
       g.dur = Math.max(30, Math.min(1800, Number(p.dur) || 300));
       g.status = "answer"; g.startedAt = ahora(); g.hint = false;
       if (g.used.indexOf(g.idx) < 0) g.used.push(g.idx);
-      var viejas = g.teams.map(function(t){ return claveResp(code, g.idx, t.id); }); // al relanzar una pregunta se empiezan de cero sus respuestas
+      var viejas = g.teams.map(function(t){ return claveResp(code, g.idx, t.id); }) // al relanzar una pregunta se empiezan de cero sus respuestas
+                    .concat(g.teams.map(function(t){ return claveMot(code, g.idx, t.id); }));
       if (viejas.length) cache().removeAll(viejas);
     } else if (a === "hint"){
       g.hint = true;
@@ -170,6 +173,11 @@ function manejar(p){
       var pts = p.pts || {}, limpio = {};
       g.teams.forEach(function(t){ if (pts[t.id] != null && !isNaN(Number(pts[t.id]))) limpio[t.id] = Math.round(Number(pts[t.id])); });
       g.points[g.idx] = limpio;
+      if (p.mot){ // cada equipo recibe en su móvil el porqué de sus puntos
+        var poner = {};
+        g.teams.forEach(function(t){ if (p.mot[t.id]) poner[claveMot(code, g.idx, t.id)] = JSON.stringify(p.mot[t.id]); });
+        if (Object.keys(poner).length) cache().putAll(poner, TTL);
+      }
     } else if (a === "adjust"){
       if (!g.points.adj) g.points.adj = {}; // ajustes a mano, aparte de los puntos de cada pregunta
       g.points.adj[p.t] = (g.points.adj[p.t] || 0) + (Number(p.d) || 0);
