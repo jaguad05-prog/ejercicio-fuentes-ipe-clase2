@@ -73,6 +73,16 @@ function nuevoCodigo(){
   return c;
 }
 function esAdmin(g, k){ if (!k || k !== g.admin) throw new Error("Solo la pantalla de la profesora puede hacer esto."); }
+function estadoProfe(code, g2){
+  var ans2 = g2.idx >= 0 ? respuestas(code, g2.idx, g2) : {};
+  var cuenta = {};
+  for (var d in g2.devs){ cuenta[g2.devs[d]] = (cuenta[g2.devs[d]] || 0) + 1; }
+  return { game: { code: g2.code, status: g2.status, idx: g2.idx, remaining: restante(g2), dur: g2.dur,
+                   hint: pistaVisible(g2), used: g2.used },
+           teams: g2.teams.map(function(t){ return { id: t.id, name: t.name, color: t.color, pts: total(g2, t.id),
+                                                    devs: cuenta[t.id] || 0, sent: !!ans2[t.id] }; }),
+           answers: ans2, points: g2.points[g2.idx] || {}, totalDevs: Object.keys(g2.devs).length };
+}
 function preguntaPublica(g){
   if (!g.q) return null;
   return { idx: g.idx, n: g.q.n, total: g.q.total, bloque: g.q.bloque, q: g.q.q, guides: g.q.guides };
@@ -138,14 +148,7 @@ function manejar(p){
   // ----- a partir de aquí, solo la pantalla de la profesora -----
   if (a === "astate"){
     var g2 = juego(code); esAdmin(g2, p.k);
-    var ans2 = g2.idx >= 0 ? respuestas(code, g2.idx, g2) : {};
-    var cuenta = {};
-    for (var d in g2.devs){ cuenta[g2.devs[d]] = (cuenta[g2.devs[d]] || 0) + 1; }
-    return { game: { code: g2.code, status: g2.status, idx: g2.idx, remaining: restante(g2), dur: g2.dur,
-                     hint: pistaVisible(g2), used: g2.used },
-             teams: g2.teams.map(function(t){ return { id: t.id, name: t.name, color: t.color, pts: total(g2, t.id),
-                                                      devs: cuenta[t.id] || 0, sent: !!ans2[t.id] }; }),
-             answers: ans2, points: g2.points[g2.idx] || {}, totalDevs: Object.keys(g2.devs).length };
+    return estadoProfe(code, g2);
   }
 
   return conCandado(function(){
@@ -187,6 +190,7 @@ function manejar(p){
       throw new Error("Acción desconocida");
     }
     guardar("g_" + code, g);
-    return { ok: true };
+    var r = estadoProfe(code, g); r.ok = true; // el proyector recibe el estado nuevo en la misma respuesta
+    return r;
   });
 }
