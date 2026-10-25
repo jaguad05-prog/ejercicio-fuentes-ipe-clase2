@@ -6,7 +6,7 @@
 // ============================================================
 
 var TTL = 21600; // 6 horas
-var COLORES = ["#C8102E","#1E5AA8","#1E7A45","#8A4FBF","#E07A00","#0E8C8C","#B0306A","#5B6B00","#7A4A1E","#2F2F8F","#C0392B","#00796B"];
+var COLORES = ["#C8102E","#1E5AA8","#1E7A45","#8A4FBF","#E07A00","#0E8C8C","#B0306A","#5B6B00","#7A4A1E","#2F2F8F","#D4A017","#00796B","#E5533D","#4A90C2","#6B8E23","#B565A7","#A0522D","#3B3B3B","#F06292","#26A69A"];
 
 function doGet(){ return ContentService.createTextOutput("El vídeo bajo la lupa · servidor activo"); }
 
@@ -91,7 +91,7 @@ function manejar(p){
       if (!p.dev) throw new Error("Falta el identificador del móvil");
       var t = g.teams.filter(function(x){ return norm(x.name) === norm(name); })[0];
       if (!t){
-        if (g.teams.length >= 12) throw new Error("Ya hay 12 equipos en la partida");
+        if (g.teams.length >= 20) throw new Error("Ya hay 20 equipos en la partida");
         t = { id: "t" + (g.teams.length + 1), name: name, color: COLORES[g.teams.length % COLORES.length] };
         g.teams.push(t);
       }
