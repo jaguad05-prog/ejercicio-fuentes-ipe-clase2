@@ -30,11 +30,18 @@ function juego(code){
   if (!g) throw new Error("No existe esa partida. Revisa el código.");
   return g;
 }
-function respuestas(code, idx){ return leer("a_" + code + "_" + idx) || {}; }
+// Cada equipo guarda su respuesta en su propio hueco: así los envíos simultáneos no se esperan unos a otros
+function claveResp(code, idx, tid){ return "a_" + code + "_" + idx + "_" + tid; }
+function respuestas(code, idx, g){
+  var claves = g.teams.map(function(t){ return claveResp(code, idx, t.id); });
+  var crudo = claves.length ? cache().getAll(claves) : {}, out = {};
+  g.teams.forEach(function(t){ var v = crudo[claveResp(code, idx, t.id)]; if (v) out[t.id] = JSON.parse(v); });
+  return out;
+}
 
 function conCandado(fn){
   var lock = LockService.getScriptLock();
-  lock.waitLock(10000);
+  lock.waitLock(28000);
   try { return fn(); } finally { lock.releaseLock(); }
 }
 
@@ -105,8 +112,8 @@ function manejar(p){
     var g = juego(code), tid = g.devs[p.dev], me = null;
     if (tid){
       var t = g.teams.filter(function(x){ return x.id === tid; })[0];
-      var ans = g.idx >= 0 ? respuestas(code, g.idx) : {};
-      me = { team: t.id, teamName: t.name, color: t.color, sent: ans[t.id] || null };
+      var mia = g.idx >= 0 ? cache().get(claveResp(code, g.idx, t.id)) : null;
+      me = { team: t.id, teamName: t.name, color: t.color, sent: mia ? JSON.parse(mia) : null };
     }
     return { game: { status: g.status, idx: g.idx, remaining: restante(g), dur: g.dur,
                      pista: pistaVisible(g) && g.q ? g.q.pista : null, q: preguntaPublica(g),
@@ -114,25 +121,22 @@ function manejar(p){
              me: me, teams: tablaEquipos(g) };
   }
 
-  if (a === "send"){
-    return conCandado(function(){
-      var g = juego(code), tid = g.devs[p.dev];
-      if (!tid) throw new Error("Vuelve a entrar con el nombre de tu equipo");
-      if (g.status !== "answer" || Number(p.idx) !== g.idx) throw new Error("Esta pregunta ya está cerrada");
-      if (restante(g) <= 0 && (ahora() - g.startedAt) / 1000 > g.dur + 15) throw new Error("Se acabó el tiempo");
-      var ans = respuestas(code, g.idx);
-      if (ans[tid]) throw new Error("Tu equipo ya ha enviado la respuesta");
-      var lista = (p.answers || []).slice(0, 8).map(function(s){ return String(s || "").slice(0, 700); });
-      ans[tid] = lista;
-      guardar("a_" + code + "_" + g.idx, ans);
-      return { ok: true };
-    });
+  if (a === "send"){ // sin candado: cada equipo escribe solo en su hueco
+    var gs = juego(code), tid2 = gs.devs[p.dev];
+    if (!tid2) throw new Error("Vuelve a entrar con el nombre de tu equipo");
+    if (gs.status !== "answer" || Number(p.idx) !== gs.idx) throw new Error("Esta pregunta ya está cerrada");
+    if (restante(gs) <= 0 && (ahora() - gs.startedAt) / 1000 > gs.dur + 15) throw new Error("Se acabó el tiempo");
+    var k2 = claveResp(code, gs.idx, tid2);
+    if (cache().get(k2)) throw new Error("Tu equipo ya ha enviado la respuesta");
+    var lista = (p.answers || []).slice(0, 8).map(function(s){ return String(s || "").slice(0, 700); });
+    cache().put(k2, JSON.stringify(lista), TTL);
+    return { ok: true };
   }
 
   // ----- a partir de aquí, solo la pantalla de la profesora -----
   if (a === "astate"){
     var g2 = juego(code); esAdmin(g2, p.k);
-    var ans2 = g2.idx >= 0 ? respuestas(code, g2.idx) : {};
+    var ans2 = g2.idx >= 0 ? respuestas(code, g2.idx, g2) : {};
     var cuenta = {};
     for (var d in g2.devs){ cuenta[g2.devs[d]] = (cuenta[g2.devs[d]] || 0) + 1; }
     return { game: { code: g2.code, status: g2.status, idx: g2.idx, remaining: restante(g2), dur: g2.dur,
@@ -152,7 +156,8 @@ function manejar(p){
       g.dur = Math.max(30, Math.min(1800, Number(p.dur) || 300));
       g.status = "answer"; g.startedAt = ahora(); g.hint = false;
       if (g.used.indexOf(g.idx) < 0) g.used.push(g.idx);
-      guardar("a_" + code + "_" + g.idx, {}); // al relanzar una pregunta se empiezan de cero sus respuestas
+      var viejas = g.teams.map(function(t){ return claveResp(code, g.idx, t.id); }); // al relanzar una pregunta se empiezan de cero sus respuestas
+      if (viejas.length) cache().removeAll(viejas);
     } else if (a === "hint"){
       g.hint = true;
     } else if (a === "more"){

@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El vídeo bajo la lupa · Pantalla</title>
+<style>
+:root{--red:#C8102E;--ink:#1B1B1F;--paper:#fff;--bg:#F3F1EC;--muted:#6B6B72;--border:#D8D8DC;--green:#1E7A45;--gold:#E8B54A;--soft:#FBF6E8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+.top{background:var(--ink);color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.claque{width:34px;height:34px;border-radius:6px;background:#fff;position:relative;overflow:hidden;flex:none}
+.claque::before{content:"";position:absolute;inset:0 0 auto;height:11px;background:repeating-linear-gradient(115deg,var(--ink) 0 7px,#fff 7px 14px)}
+.t1{font-size:17px;font-weight:900;letter-spacing:.04em}
+.t2{font-size:11px;color:var(--gold);letter-spacing:.08em}
+#topRight{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.codebadge{background:var(--gold);color:var(--ink);font-weight:900;font-size:18px;letter-spacing:.12em;padding:6px 12px;border-radius:8px}
+.badge{font-size:12px;font-weight:800;letter-spacing:.06em;border:1px solid #555;padding:6px 10px;border-radius:20px}
+.tbtn{background:transparent;color:#fff;border:1px solid #555;border-radius:8px;padding:7px 11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.tbtn:hover{border-color:#fff}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;max-width:1400px;margin:0 auto;padding:18px 20px 60px}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+.panel{background:var(--paper);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px}
+.ph{background:var(--ink);color:#fff;font-size:12px;font-weight:800;letter-spacing:.1em;padding:10px 16px;display:flex;justify-content:space-between;gap:10px}
+.ph span{color:var(--gold);font-weight:700}
+.pb{padding:20px}
+.muted{color:var(--muted)}
+.btn{border:none;border-radius:11px;padding:14px 22px;font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;color:#fff}
+.btn:disabled{opacity:.4;cursor:default}
+.b-red{background:var(--red)} .b-dark{background:var(--ink)} .b-gold{background:var(--gold);color:var(--ink)} .b-green{background:var(--green)}
+.b-out{background:#fff;color:var(--ink);border:2px solid var(--border)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.field{margin-bottom:14px} .field label{display:block;font-weight:700;font-size:13px;margin-bottom:6px}
+input,textarea{width:100%;border:2px solid var(--border);border-radius:10px;padding:12px;font-size:16px;font-family:inherit;color:var(--ink);background:#fff}
+textarea{resize:vertical;line-height:1.4}
+input:focus,textarea:focus{outline:none;border-color:var(--red)}
+.err{color:var(--red);font-weight:700;font-size:14px;margin-top:10px;min-height:18px}
+/* sala */
+.lobby{display:flex;gap:26px;align-items:center;flex-wrap:wrap}
+#qr{background:#fff;border:1px solid var(--border);border-radius:12px;padding:8px}
+.bigcode{font-size:64px;font-weight:900;letter-spacing:.14em;color:var(--red);line-height:1.1}
+.link{font-size:13px;color:var(--muted);word-break:break-all;margin-top:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:20px;padding:7px 12px;font-weight:700;font-size:14px;background:#fff}
+.chip i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.chip small{color:var(--muted);font-weight:600}
+.chip.ok{border-color:var(--green);background:#eef7f1}
+/* pregunta */
+.qhead{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.qn{font-size:13px;font-weight:900;letter-spacing:.1em;color:var(--red)}
+.qb{font-size:13px;color:var(--muted);margin-top:2px}
+.clock{margin-left:auto;font-size:76px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1}
+.clock.warn{color:var(--red)}
+.bar{height:10px;background:var(--border);border-radius:10px;overflow:hidden;margin:14px 0 18px}
+.bar i{display:block;height:100%;background:var(--red);transition:width .3s linear}
+.qtext{font-size:38px;font-weight:900;line-height:1.15;margin-bottom:18px}
+.guides{list-style:none;display:grid;gap:10px;counter-reset:g}
+.guides li{counter-increment:g;display:flex;gap:12px;align-items:flex-start;font-size:21px;font-weight:700;line-height:1.3;background:var(--bg);border-radius:10px;padding:12px 14px}
+.guides li::before{content:counter(g);background:var(--ink);color:var(--gold);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;font-size:16px}
+.pista{margin-top:16px;border:2px dashed var(--gold);background:var(--soft);border-radius:12px;padding:14px 16px;font-size:20px;line-height:1.35}
+.pista b{color:#9A6B00;letter-spacing:.06em;font-size:14px;display:block;margin-bottom:4px}
+.pista.off{border-style:solid;border-color:var(--border);background:#fff;color:var(--muted);font-size:15px}
+.timeup{font-size:20px;font-weight:900;color:var(--red)}
+/* corrección */
+.ans{border:1px solid var(--border);border-left:8px solid var(--c);border-radius:12px;padding:14px 16px;margin-bottom:12px;background:#fff}
+.ans h3{font-size:18px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.ans h3 .p{margin-left:auto;font-size:26px;color:var(--red)}
+.ans .l{font-size:16px;line-height:1.45;margin-bottom:5px}
+.ans .l b{color:var(--muted);font-weight:700}
+.ans.none{opacity:.55}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:16px}
+.step{background:var(--bg);border-radius:10px;padding:12px;font-size:14px;line-height:1.4}
+.step b{display:block;color:var(--red);font-size:12px;letter-spacing:.08em;margin-bottom:3px}
+.preview{font-size:14px;margin-top:10px;line-height:1.5}
+details.chuleta{margin-top:16px;border:1px solid var(--border);border-left:6px solid var(--green);border-radius:12px;padding:12px 16px;background:#f3faf5}
+details.chuleta summary{font-weight:800;cursor:pointer;color:var(--green)}
+details.chuleta ul{margin:10px 0 0 18px;line-height:1.5}
+/* elección */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.nc{text-align:left;border:2px solid var(--border);border-radius:12px;background:#fff;padding:12px;cursor:pointer;font-family:inherit;color:var(--ink)}
+.nc:hover{border-color:var(--red)}
+.nc .tg{font-size:11px;font-weight:900;letter-spacing:.08em;color:var(--red);margin-bottom:4px}
+.nc .ti{font-size:15px;font-weight:700;line-height:1.3}
+.nc.used{opacity:.45}
+.nc.next{border-color:var(--red);box-shadow:0 0 0 2px var(--red)}
+/* lateral */
+.st{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)}
+.st:last-child{border-bottom:none}
+.st .rk{width:22px;font-weight:900;color:var(--muted)}
+.st.lead .rk{color:var(--red)}
+.st .dt{width:12px;height:12px;border-radius:50%;flex:none}
+.st .nm{flex:1;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.st .pt{font-weight:900;font-size:18px;min-width:34px;text-align:center}
+.adj{border:1px solid var(--border);background:#fff;border-radius:6px;width:24px;height:24px;cursor:pointer;font-weight:900}
+.empty{color:var(--muted);font-size:14px}
+.podium{text-align:center;padding:10px 0}
+.podium .big{font-size:60px}
+.podium h1{font-size:42px;margin:6px 0}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:var(--ink);color:#fff;padding:12px 18px;border-radius:10px;font-weight:700;transition:transform .25s;z-index:20;max-width:90vw}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast.warn{background:var(--red)}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+</head>
+<body>
+<div class="top">
+  <div class="brand"><div class="claque"></div><div><div class="t1">EL VÍDEO BAJO LA LUPA</div><div class="t2">IPE 2026 · BLOQUE DE GÉNERO</div></div></div>
+  <div id="topRight"></div>
+</div>
+<div class="layout"><div id="main"></div><div id="side"></div></div>
+<div id="toast"></div>
+
+<script>
+// ===== LAS 17 PREGUNTAS (la chuleta solo se ve aquí, nunca en los móviles) =====
+const PREGUNTAS = [
+  { bloque:"El formato y la puesta en escena", q:"¿Qué recursos visuales usa el autor y qué efecto busca cada uno?",
+    pista:"Fijaos en qué hay en la mitad de arriba, qué hay en la de abajo y qué lleva en la mano mientras habla.",
+    guides:["Arriba del todo, ¿qué se ve mientras él habla?","Abajo, ¿cómo aparece él? (¿de cerca, de lejos?)","¿Qué hace con el micrófono y por qué?","¿Qué sensación o efecto busca con todo eso?"],
+    chuleta:["Croma arriba: ocupa la mitad superior, se ve la prueba mientras se oye el comentario.","Plano medio-corto abajo: cara grande en una pantalla pequeña.","Micrófono de solapa en la mano, pegado a la boca: resuelve el ruido del tren en marcha.","Efecto de espontaneidad: el micro y el tren dicen «esto no es un plató»."] },
+  { bloque:"El formato y la puesta en escena", q:"¿Dónde coloca su imagen respecto al contenido y por qué esa posición?",
+    pista:"Pensad en cómo se ve en un móvil y en qué parte de la foto no quiere tapar.",
+    guides:["¿Se pone arriba o abajo? ¿Y el contenido?","¿Por qué ahí y no en otro sitio?"],
+    chuleta:["Él abajo, el contenido arriba.","El ojo va primero a la imagen; abajo lo tapan el pulgar y los rótulos de la plataforma; y así no tapa las caras de la foto, que es lo que el espectador ha venido a ver."] },
+  { bloque:"El formato y la puesta en escena", q:"¿Cómo usa la cara y la mirada? ¿Cuándo cambia el gesto?",
+    pista:"Mirad el segundo 6 y el segundo 24.",
+    guides:["¿Hacia dónde mira mientras habla?","¿En qué momentos cambia el gesto y cómo?"],
+    chuleta:["Mirada fija a cámara de principio a fin: simula una conversación uno a uno.","Hacia 0:06, ceja levantada y media sonrisa al bromear con la foto; desde 0:24, ojos muy abiertos y cejas altas, de admiración."] },
+  { bloque:"El formato y la puesta en escena", q:"¿Cómo cierra visualmente y qué aporta a la credibilidad?",
+    pista:"¿Qué desaparece al final y qué aparece detrás?",
+    guides:["¿Qué pasa al final con el croma?","¿Qué le aporta eso a la credibilidad?"],
+    chuleta:["Hacia 0:45 desaparece el croma y aparece el vagón real del tren.","El detrás de cámaras certifica que estaba donde dice estar: lo convierte en algo grabado por una persona concreta en un sitio concreto."] },
+  { bloque:"El discurso: del gancho al cierre", q:"¿Cuál es el gancho y cómo capta la atención en los primeros segundos?",
+    pista:"Fijaos en qué dice ANTES de decir su nombre.",
+    guides:["¿Con qué empieza el vídeo?","¿En qué segundo dice su nombre y cómo lo hace?"],
+    chuleta:["Arranca en el segundo 0 con el hecho y los dos nombres, y atribuye la fuente: «os lo ha mostrado Bad Gyal, os lo muestro todo».","No se presenta hasta el segundo 5, y lo hace pidiendo seguidores: «soy Javier, seguidme para más salseo». Primero engancha, luego dice quién es."] },
+  { bloque:"El discurso: del gancho al cierre", q:"¿En qué momento pasa del hecho a la opinión o la broma? ¿Se nota el paso?",
+    pista:"Escuchad a quién le habla en el segundo 7.",
+    guides:["¿Con qué frase pasa del hecho a la broma?","¿Se nota el paso? ¿En qué se nota?"],
+    chuleta:["En 0:07, hablándole a ella: «Bad Gyal, por favor, primer aviso… ¡pon un foco!».","Se nota a propósito: cambian a la vez el tono, el gesto y la imagen de fondo. El «nos» mete al espectador en su mismo bando."] },
+  { bloque:"El discurso: del gancho al cierre", q:"¿Qué bloques hay y en qué orden?",
+    pista:"La información nueva se agota mucho antes del final.",
+    guides:["Nombra los bloques en el orden en que aparecen.","¿En qué segundo se acaba la información nueva?"],
+    chuleta:["Gancho (0:00) → presentación (0:05) → broma (0:07) → look de él (0:13) → valoración de ella (0:24) → look de ella (0:35) → cierre (0:44).","La información nueva se agota en el segundo 13: los treinta siguientes son comentario. Si funden los bloques de ella, vale."] },
+  { bloque:"El discurso: del gancho al cierre", q:"¿Cómo cierra? ¿Planeado o improvisado?",
+    pista:"¿Podía haberlo cortado? ¿Qué frase repite al final?",
+    guides:["¿Qué pasa al final del vídeo?","¿Es casualidad o está elegido? ¿Por qué?"],
+    chuleta:["Se queda atrapado en el tren y lo deja montado. Parece un accidente, pero está elegido: podía haberlo cortado.","Cierra con la misma coletilla de la presentación, «seguidme para más salseo»: el vídeo es un bucle que convierte una pieza suelta en un canal reconocible."] },
+  { bloque:"La voz, el tono y el ritmo", q:"¿Qué palabras marca con más énfasis?",
+    pista:"Fijaos en que todas son valoraciones, ningún dato.",
+    guides:["Escribid las palabras que recalca con más fuerza y qué tienen en común."],
+    chuleta:["«Exclusiva», «fatal», «reina», «barbaridad», «impresionante», «espectacular».","Todas son valoraciones, ni un solo dato recibe énfasis. También vale «primer aviso», que funciona como marca de la casa."] },
+  { bloque:"La voz, el tono y el ritmo", q:"¿Cuándo sube o baja el tono? ¿Coincide con el dato o con la valoración?",
+    pista:"Comparad cómo suena cuando da un dato y cómo suena cuando opina.",
+    guides:["¿Cuándo sube el tono?","¿Cuándo va más plano?"],
+    chuleta:["La valoración sube a agudo.","La información va en tono medio y bastante plano. El tono señala dónde está la opinión aunque nunca diga «en mi opinión»."] },
+  { bloque:"La voz, el tono y el ritmo", q:"¿Usa la risa, el susurro o las pausas? ¿Con qué función?",
+    pista:"¿Qué le pasa a la crítica de la foto cuando se ríe?",
+    guides:["¿Qué hace con la risa o con la voz baja?","¿Para qué le sirve?"],
+    chuleta:["Se ríe entre líneas al criticar la foto; la voz más suave y ahogada es el registro del cotilleo compartido.","La risa convierte la crítica en broma y evita que suene a ataque contra la protagonista."] },
+  { bloque:"La voz, el tono y el ritmo", q:"¿El ritmo es homogéneo? ¿Hay silencios?",
+    pista:"Intentad encontrar un solo silencio en los 50 segundos.",
+    guides:["¿El ritmo es igual todo el rato o cambia?","¿Hay silencios? ¿Qué efecto tiene eso?"],
+    chuleta:["Continuo, sin una sola pausa apreciable en 50 segundos, al revés que la radio clásica.","El coste: no deja respirar ni jerarquiza. En un tema serio resultaría inadecuado."] },
+  { bloque:"Las fuentes y la verificación", q:"¿Cuál es la fuente? ¿Se cita, se enseña o se da por hecha?",
+    pista:"Escuchad el segundo 2 y mirad lo que aparece en pantalla.",
+    guides:["¿De dónde saca la información?","¿La nombra, la enseña o la da por sabida? ¿Cuándo?"],
+    chuleta:["Una publicación de Instagram (una story) de la propia Bad Gyal.","La cita de viva voz en el segundo 2 («os lo ha mostrado Bad Gyal») y enseña la story con la etiqueta y el sello de «33 min»."] },
+  { bloque:"Las fuentes y la verificación", q:"¿Contrasta con alguna otra fuente?",
+    pista:"¿Cuántas fuentes distintas hay en todo el vídeo?",
+    guides:["¿Cuántas fuentes usa?","¿Contrasta el dato o solo reacciona a lo que ve?"],
+    chuleta:["Una sola: los 50 segundos se sostienen sobre una única publicación, autopublicada por una de las personas de las que habla.","No contrasta: falla en no tener nada con qué comparar."] },
+  { bloque:"Las fuentes y la verificación", q:"¿Distingue el hecho verificable de la interpretación?",
+    pista:"Escuchad bien el segundo 24.",
+    guides:["¿Qué pasa en el segundo 24 con lo que afirma?","¿Puede probar lo que dice? ¿Lo afirma igual?"],
+    chuleta:["En 0:24: «fue la única, o sea, yo creo que la única, una de las pocas, si no…». Se rectifica tres veces en cinco segundos.","No puede comprobarlo y lo sabe, y aun así lo afirma («no había más famosos que hiciesen esto»)."] },
+  { bloque:"La interacción con la audiencia", q:"¿Qué recursos usa para que parezca que habla con un amigo?",
+    pista:"Fijaos en cómo le habla a ella y en una palabra que os mete a vosotros.",
+    guides:["¿Cómo le habla a la protagonista?","¿Qué palabra mete al espectador en su mismo bando?","¿Qué otros detalles le dan cercanía?"],
+    chuleta:["Le habla en segunda persona a Bad Gyal como si lo escuchara («Bad Gyal, por favor…», «¡menudo show montas!»).","El «nos» inclusivo: «nos estás dando una exclusiva».","El artículo delante del nombre, el tono coloquial y el imprevisto del tren dentro del vídeo."] },
+  { bloque:"La interacción con la audiencia", q:"¿Hace alguna llamada a la acción? ¿Dónde y por qué ahí?",
+    pista:"Hay más de una, y ninguna interrumpe la información.",
+    guides:["¿Cuántas llamadas a la acción hace y cuáles son?","¿Dónde las coloca y por qué ahí?"],
+    chuleta:["Tres: «seguidme para más salseo» (0:05), «os leo por DM» (0:44) y la repetición literal de la primera (0:49).","Enmarcan el contenido sin interrumpirlo: una pegada al gancho, cuando ya ha enganchado, y las otras dos cuando ya no queda nada que mirar."] }
+];
+
+// ===== CONFIGURACIÓN =====
+const API_URL = "https://script.google.com/macros/s/AKfycbxt2_VvCcqLx8KWNvV2wSqLnrdjZSfs0YP0yOwlvF5wTwQO0MqgXxypLdfKvFz4o2KS/exec";   // dirección /exec del servidor de Apps Script
+const PAGINA_EQUIPO = "videolupa_equipo_v2.html";
+// =========================
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const lsGet = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch(e){ return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch(e){} };
+const lsDel = k => { try { localStorage.removeItem(k); } catch(e){} };
+
+let API = new URLSearchParams(location.search).get("api") || (API_URL.startsWith("http") ? API_URL : "") || lsGet("vl_api", "");
+let CODE = lsGet("vl_code", ""), KEY = lsGet("vl_key", "");
+let S = null, ultimaVista = "", viendoEntrada = false, eligiendo = false, minutos = 5, finTiempo = 0, pegado = "";
+
+function toast(msg, warn){
+  const t = $("toast"); t.textContent = msg; t.className = warn ? "warn show" : "show";
+  clearTimeout(t._h); t._h = setTimeout(() => t.className = "", 3800);
+}
+async function api(params){
+  // Si el servidor está ocupado (muchos móviles a la vez) se reintenta solo
+  let ultimo;
+  for (let i = 0; i < 5; i++){
+    try {
+      const r = await fetch(API, { method:"POST", body: JSON.stringify(params) });
+      const j = await r.json();
+      if (j.error && /bloqueo|lock|ocupad|Service invoked too many|Límite|timed out/i.test(j.error)) throw new Error("ocupado");
+      if (j.error) { const e = new Error(j.error); e.final = true; throw e; }
+      return j;
+    } catch(e){
+      if (e.final) throw e;
+      ultimo = e; await new Promise(res => setTimeout(res, 600 + Math.random() * 1400 * (i + 1)));
+    }
+  }
+  throw new Error("No hay conexión con el servidor. Vuelve a intentarlo.");
+}
+async function accion(params, okMsg){
+  try { await api(Object.assign({ c: CODE, k: KEY }, params)); if (okMsg) toast(okMsg); ultimaVista = ""; await refrescar(); }
+  catch(e){ toast(e.message, true); }
+}
+const armado = {};
+function confirmar(k, msg){
+  if (armado[k]) { armado[k] = false; return true; }
+  armado[k] = true; toast(msg, true); setTimeout(() => armado[k] = false, 4000); return false;
+}
+
+// ── crear partida ──
+function pintarInicio(){
+  $("topRight").innerHTML = ""; $("side").innerHTML = "";
+  $("main").innerHTML = `
+    <div class="panel"><div class="ph">NUEVO CONCURSO</div><div class="pb">
+      <p class="muted" style="margin-bottom:16px;line-height:1.5">Los equipos entran desde el móvil con el QR. En cada pregunta tienen 5 minutos y una casilla por cada cosa de la que deben hablar; a mitad de tiempo sale la pista. Al cerrar, copias las respuestas, se las pegas a Claude y pegas aquí los puntos que te dé.</p>
+      ${API ? "" : `<div class="field"><label>Dirección del servidor (termina en /exec)</label><input id="inApi" placeholder="https://script.google.com/macros/s/.../exec"></div>`}
+      <button class="btn b-red" id="btnCrear">Crear concurso</button>
+      <div class="err" id="errCrear"></div>
+    </div></div>`;
+  $("btnCrear").onclick = crear;
+}
+async function crear(){
+  if (!API) API = ($("inApi").value || "").trim();
+  if (!API){ $("errCrear").textContent = "Falta la dirección del servidor"; return; }
+  $("btnCrear").disabled = true; $("btnCrear").textContent = "Creando…";
+  try {
+    const j = await api({ a:"new" });
+    CODE = j.code; KEY = j.admin;
+    lsSet("vl_api", API); lsSet("vl_code", CODE); lsSet("vl_key", KEY);
+    ultimaVista = ""; await refrescar();
+  } catch(e){
+    $("errCrear").textContent = e.message;
+    $("btnCrear").disabled = false; $("btnCrear").textContent = "Crear concurso";
+  }
+}
+function nuevaPartida(){
+  if (!confirmar("nueva", "Pulsa otra vez para empezar un concurso nuevo (el actual se borra solo en unas horas).")) return;
+  CODE = ""; KEY = ""; S = null; lsDel("vl_code"); lsDel("vl_key"); pintarInicio();
+}
+
+// ── estado ──
+let pidiendo = false;
+async function refrescar(){
+  if (!CODE || pidiendo) return;
+  pidiendo = true;
+  try {
+    S = await api({ a:"astate", c: CODE, k: KEY });
+    if (S.game.status === "answer") finTiempo = Date.now() + S.game.remaining * 1000;
+    pintar();
+  } catch(e){
+    if (/No existe|Solo la pantalla/.test(e.message)) { toast(e.message, true); CODE = ""; lsDel("vl_code"); pintarInicio(); }
+  } finally { pidiendo = false; }
+}
+setInterval(refrescar, 2500);
+setInterval(reloj, 250);
+
+function urlEquipo(){
+  const u = new URL(PAGINA_EQUIPO, location.href);
+  u.searchParams.set("c", CODE);
+  if (!API_URL.startsWith("http")) u.searchParams.set("api", API);
+  return u.toString();
+}
+function equipo(id){ return (S.teams.find(t => t.id === id)) || { name:"?", color:"#999" }; }
+function preguntaActual(){ return S.game.idx >= 0 ? PREGUNTAS[S.game.idx] : null; }
+function siguienteLibre(){
+  for (let i = Math.max(0, S.game.idx + 1); i < PREGUNTAS.length; i++) if (!S.game.used.includes(i)) return i;
+  for (let i = 0; i < PREGUNTAS.length; i++) if (!S.game.used.includes(i)) return i;
+  return -1;
+}
+
+function pintar(){
+  const g = S.game, n = g.idx + 1;
+  const etiqueta = { lobby: g.idx < 0 ? "ESPERANDO EQUIPOS" : "ENTRE PREGUNTAS", answer:`PREGUNTA ${n}/${PREGUNTAS.length} · RESPONDIENDO`,
+                     review:`PREGUNTA ${n}/${PREGUNTAS.length} · CORRECCIÓN`, over:"🏆 CONCURSO TERMINADO" }[g.status];
+  $("topRight").innerHTML = `<span class="codebadge">${esc(g.code)}</span><span class="badge">${etiqueta}</span>
+    <button class="tbtn" onclick="mostrarEntrada()">📱 Cómo entrar</button>
+    ${g.status !== "over" ? `<button class="tbtn" onclick="terminar()">🏁 Terminar</button>` : ""}
+    <button class="tbtn" onclick="nuevaPartida()">＋ Nuevo concurso</button>`;
+  pintarLateral();
+  if (viendoEntrada) return;
+
+  const vista = JSON.stringify([g.status, g.idx, g.hint, g.dur, eligiendo, S.teams.map(t => [t.name, t.devs, t.sent]), S.answers, S.points, g.used]);
+  if (vista === ultimaVista) return;
+  if (document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return; // no se borra lo que estás pegando
+  ultimaVista = vista;
+
+  if (g.status === "over") return pintarFinal();
+  if (g.status === "answer") return pintarPregunta();
+  if (g.status === "review") return pintarCorreccion();
+  if (g.idx < 0 && !eligiendo) return pintarSala();
+  return pintarEleccion();
+}
+
+function pintarLateral(){
+  const ord = [...S.teams].sort((a, b) => b.pts - a.pts);
+  $("side").innerHTML = `<div class="panel"><div class="ph">CLASIFICACIÓN <span>${S.teams.length} equipos</span></div><div class="pb">
+    ${ord.length ? ord.map((t, i) => `<div class="st ${i < 3 && t.pts > 0 ? "lead" : ""}">
+      <div class="rk">${i+1}</div><i class="dt" style="background:${t.color}"></i>
+      <div class="nm" title="${esc(t.name)}">${esc(t.name)}</div>
+      <button class="adj" title="Quitar 5 puntos" onclick="ajustar('${t.id}',-5)">−</button>
+      <div class="pt">${t.pts}</div>
+      <button class="adj" title="Sumar 5 puntos" onclick="ajustar('${t.id}',5)">+</button></div>`).join("")
+      : `<div class="empty">Aún no ha entrado ningún equipo</div>`}
+    <p class="muted" style="font-size:12px;margin-top:10px">${S.totalDevs} móviles conectados · − y + quitan o suman 5</p>
+  </div></div>`;
+}
+function ajustar(t, d){ accion({ a:"adjust", t, d }); }
+
+function qrEn(id){
+  try { const q = qrcode(0, "L"); q.addData(urlEquipo()); q.make(); $(id).innerHTML = q.createSvgTag({ cellSize:4, margin:2, scalable:true }); $(id).querySelector("svg").setAttribute("style","width:240px;height:240px;display:block"); }
+  catch(e){ $(id).textContent = ""; }
+}
+function bloqueEntrada(){
+  return `<div class="lobby"><div id="qr"></div><div>
+    <div class="muted" style="font-weight:700">Código del concurso</div>
+    <div class="bigcode">${esc(S.game.code)}</div>
+    <div class="link">${esc(urlEquipo())}</div>
+    <p style="margin-top:14px;line-height:1.5;max-width:420px">Escanead el QR y escribid <b>el nombre de vuestro equipo</b>, igual que vuestros compañeros. Basta con que envíe la respuesta un móvil por equipo.</p>
+  </div></div>`;
+}
+function pintarSala(){
+  $("main").innerHTML = `<div class="panel"><div class="ph">ENTRAD CON VUESTRO EQUIPO</div><div class="pb">
+    ${bloqueEntrada()}
+    <div class="chips">${S.teams.map(t => `<span class="chip"><i style="background:${t.color}"></i>${esc(t.name)} <small>${t.devs} 📱</small></span>`).join("") || `<span class="muted">Esperando equipos…</span>`}</div>
+    <div class="row" style="margin-top:20px">
+      <button class="btn b-red" onclick="lanzar(0)" ${S.teams.length < 1 ? "disabled" : ""}>▶ Lanzar la pregunta 1</button>
+      <button class="btn b-out" onclick="eligiendo=true;ultimaVista='';pintar()">Elegir otra pregunta</button>
+      ${selectorMinutos()}
+    </div></div></div>`;
+  qrEn("qr");
+}
+function mostrarEntrada(){
+  eligiendo = false; ultimaVista = "";
+  if (S.game.status === "lobby" && S.game.idx < 0) return pintar();
+  viendoEntrada = true;
+  $("main").innerHTML = `<div class="panel"><div class="ph">CÓMO ENTRAR <span>se puede entrar en cualquier momento</span></div><div class="pb">
+    ${bloqueEntrada()}
+    <div class="row" style="margin-top:18px"><button class="btn b-dark" onclick="viendoEntrada=false;ultimaVista='';pintar()">← Volver</button></div></div></div>`;
+  qrEn("qr");
+}
+function selectorMinutos(){
+  return `<label class="muted" style="display:flex;align-items:center;gap:8px;font-weight:700">Tiempo
+    <select id="selMin" onchange="minutos=Number(this.value)" style="font-size:16px;padding:8px;border-radius:8px;border:2px solid var(--border)">
+      ${[2,3,4,5,6,8,10].map(m => `<option value="${m}" ${m === minutos ? "selected" : ""}>${m} min</option>`).join("")}
+    </select></label>`;
+}
+
+function pintarEleccion(){
+  const sig = siguienteLibre();
+  $("main").innerHTML = `<div class="panel"><div class="ph">${sig >= 0 ? "SIGUIENTE PREGUNTA" : "YA HABÉIS HECHO TODAS"} <span>las ya hechas salen más claras</span></div><div class="pb">
+    ${sig >= 0 ? `<div class="row" style="margin-bottom:18px">
+        <button class="btn b-red" onclick="lanzar(${sig})">▶ Lanzar la pregunta ${sig + 1}</button>
+        ${selectorMinutos()}
+      </div>` : `<div class="row" style="margin-bottom:18px"><button class="btn b-dark" onclick="terminar(true)">🏁 Ver la clasificación final</button></div>`}
+    <div class="grid">${PREGUNTAS.map((x, i) => `<button class="nc ${S.game.used.includes(i) ? "used" : ""} ${i === sig ? "next" : ""}" onclick="lanzar(${i})">
+      <div class="tg">${i + 1} · ${esc(x.bloque)}</div><div class="ti">${esc(x.q)}</div></button>`).join("")}</div>
+  </div></div>`;
+}
+function lanzar(i){
+  const x = PREGUNTAS[i];
+  eligiendo = false; pegado = "";
+  accion({ a:"start", idx:i, dur: minutos * 60, q:{ n:i + 1, total:PREGUNTAS.length, bloque:x.bloque, q:x.q, pista:x.pista, guides:x.guides } });
+}
+
+function pintarPregunta(){
+  const g = S.game, x = preguntaActual();
+  const enviados = S.teams.filter(t => t.sent).length;
+  $("main").innerHTML = `<div class="panel"><div class="ph">PREGUNTA ${g.idx + 1} DE ${PREGUNTAS.length} <span>${enviados} de ${S.teams.length} equipos han enviado</span></div><div class="pb">
+    <div class="qhead"><div><div class="qn">PREGUNTA ${g.idx + 1}</div><div class="qb">${esc(x.bloque)}</div></div>
+      <div class="clock" id="clock">0:00</div></div>
+    <div class="bar"><i id="barra"></i></div>
+    <div class="qtext">${esc(x.q)}</div>
+    <ol class="guides">${x.guides.map(t => `<li>${esc(t)}</li>`).join("")}</ol>
+    ${g.hint ? `<div class="pista"><b>💡 PISTA</b>${esc(x.pista)}</div>` : `<div class="pista off" id="pistaOff">La pista sale sola a mitad de tiempo.</div>`}
+    <div class="chips">${S.teams.map(t => `<span class="chip ${t.sent ? "ok" : ""}"><i style="background:${t.color}"></i>${esc(t.name)} ${t.sent ? "✓" : "<small>escribiendo…</small>"}</span>`).join("")}</div>
+    <div class="row" style="margin-top:20px">
+      ${g.hint ? "" : `<button class="btn b-gold" onclick="accion({a:'hint'},'Pista enviada a los móviles')">💡 Dar la pista ahora</button>`}
+      <button class="btn b-out" onclick="quitarMinuto()">−1 minuto</button>
+      <button class="btn b-out" onclick="accion({a:'more',s:60},'Un minuto más')">+1 minuto</button>
+      <button class="btn b-red" id="btnCerrar" onclick="cerrar()">⏹ Cerrar y corregir</button>
+      <span class="timeup" id="timeup"></span>
+    </div></div></div>`;
+  reloj();
+}
+function reloj(){
+  if (!S || S.game.status !== "answer") return;
+  const el = $("clock"); if (!el) return;
+  const r = Math.max(0, Math.round((finTiempo - Date.now()) / 1000));
+  el.textContent = Math.floor(r / 60) + ":" + String(r % 60).padStart(2, "0");
+  el.classList.toggle("warn", r <= 60);
+  const b = $("barra"); if (b) b.style.width = (r / S.game.dur * 100) + "%";
+  const tu = $("timeup"); if (tu) tu.textContent = r === 0 ? "¡Tiempo! Cierra para corregir" : "";
+  if (!S.game.hint && r <= S.game.dur / 2 && $("pistaOff")) { ultimaVista = ""; refrescar(); }
+}
+function quitarMinuto(){
+  const r = Math.max(0, Math.round((finTiempo - Date.now()) / 1000));
+  if (r <= 60) return toast("Queda menos de un minuto: si quieres acabar ya, pulsa «Cerrar y corregir».", true);
+  accion({ a:"more", s:-60 }, "Un minuto menos");
+}
+function cerrar(){
+  const quedan = S.teams.filter(t => !t.sent).length;
+  const r = Math.max(0, Math.round((finTiempo - Date.now()) / 1000));
+  if (r > 0 && quedan > 0 && !confirmar("cerrar", `Aún quedan ${quedan} equipo(s) por enviar. Pulsa otra vez para cerrar igualmente.`)) return;
+  accion({ a:"close" });
+}
+
+// ── corrección ──
+function textoParaClaude(){
+  const g = S.game, x = preguntaActual(), max = x.guides.length * 10;
+  let t = `CONCURSO «El vídeo bajo la lupa» · Pregunta ${g.idx + 1} de ${PREGUNTAS.length}\n`;
+  t += `Pregunta: ${x.q}\n`;
+  t += `Puntúa cada equipo mirando el vídeo, hasta 10 puntos por casilla (máximo ${max}). Devuélveme una línea por equipo con «Nombre: puntos».\n\n`;
+  const conRespuesta = S.teams.filter(tm => S.answers[tm.id]);
+  if (!conRespuesta.length) t += "(Ningún equipo ha enviado respuesta)\n";
+  conRespuesta.forEach(tm => {
+    t += `— ${tm.name} —\n`;
+    x.guides.forEach((gq, i) => { t += `${i + 1}. ${gq}\n   ${(S.answers[tm.id][i] || "").trim() || "(en blanco)"}\n`; });
+    t += "\n";
+  });
+  return t;
+}
+function copiar(){
+  const txt = textoParaClaude(), btn = $("btnCopiar");
+  const hecho = () => { btn.textContent = "✓ Copiado, pégalo en el chat con Claude"; setTimeout(() => btn.textContent = "📋 Copiar respuestas para Claude", 2500); };
+  const plan_b = () => { const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); } catch(e){} document.body.removeChild(ta); hecho(); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(hecho, plan_b); else plan_b();
+}
+function leerPuntos(txt){
+  let resto = " " + txt + " ";
+  const out = {};
+  const ord = [...S.teams].sort((a, b) => b.name.length - a.name.length);
+  ord.forEach(t => {
+    const nombre = t.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
+    const re = new RegExp(nombre + "[^\\d\\n]{0,25}?(-?\\d+)", "i");
+    const m = resto.match(re);
+    if (m){ out[t.id] = parseInt(m[1], 10); resto = resto.replace(m[0], " "); }
+  });
+  return out;
+}
+async function aplicarPuntos(){
+  const txt = $("inPts").value; pegado = txt;
+  const pts = leerPuntos(txt), n = Object.keys(pts).length;
+  if (!n){ $("prev").innerHTML = `<span style="color:var(--red);font-weight:700">No encuentro ningún equipo en lo que has pegado. Tiene que salir el nombre de cada equipo seguido de sus puntos.</span>`; return; }
+  try {
+    await api({ a:"score", c: CODE, k: KEY, pts });
+    const faltan = S.teams.filter(t => S.answers[t.id] && pts[t.id] == null).map(t => t.name);
+    toast(`✓ Puntos aplicados a ${n} equipo(s)`);
+    $("inPts").blur(); ultimaVista = ""; await refrescar();
+    if (faltan.length) toast("Ojo, no encontré los puntos de: " + faltan.join(", "), true);
+  } catch(e){ toast(e.message, true); }
+}
+function pintarCorreccion(){
+  const g = S.game, x = preguntaActual();
+  const max = x.guides.length * 10;
+  const cards = S.teams.map(t => {
+    const a = S.answers[t.id], p = S.points[t.id];
+    if (!a) return `<div class="ans none" style="--c:${t.color}"><h3>${esc(t.name)}<span class="p">${p != null ? p : ""}</span></h3><div class="l muted">No envió respuesta.</div></div>`;
+    return `<div class="ans" style="--c:${t.color}"><h3>${esc(t.name)}<span class="p">${p != null ? p + `<small style="font-size:14px;color:var(--muted)"> /${max}</small>` : "–"}</span></h3>
+      ${x.guides.map((gq, i) => `<div class="l"><b>${i + 1}. ${esc(gq)}</b><br>${esc((a[i] || "").trim() || "(en blanco)")}</div>`).join("")}</div>`;
+  }).join("");
+  const sig = siguienteLibre();
+  $("main").innerHTML = `<div class="panel"><div class="ph">CORRECCIÓN · PREGUNTA ${g.idx + 1} <span>${esc(x.q)}</span></div><div class="pb">
+    <div class="steps">
+      <div class="step"><b>1 · COPIA</b>Pulsa el botón y se copian todas las respuestas.</div>
+      <div class="step"><b>2 · PÉGALAS A CLAUDE</b>En tu chat con Claude. Te devolverá una línea de puntos por equipo.</div>
+      <div class="step"><b>3 · PEGA LOS PUNTOS</b>Pega aquí lo que te devuelva y pulsa «Aplicar puntos».</div>
+    </div>
+    <div class="row" style="margin-bottom:14px"><button class="btn b-gold" id="btnCopiar" onclick="copiar()">📋 Copiar respuestas para Claude</button></div>
+    <div class="field"><label>Puntos que te ha dado Claude</label>
+      <textarea id="inPts" rows="3" placeholder="Los Plumillas: 35&#10;Equipo Croma: 20">${esc(pegado)}</textarea></div>
+    <div class="row"><button class="btn b-red" onclick="aplicarPuntos()">✓ Aplicar puntos</button></div>
+    <div class="preview" id="prev"></div>
+    <div style="margin-top:20px">${cards}</div>
+    <details class="chuleta"><summary>Mi chuleta · solucionario (solo para ti, no sale en los móviles)</summary>
+      <ul>${x.chuleta.map(c => `<li>${esc(c)}</li>`).join("")}</ul></details>
+    <div class="row" style="margin-top:20px">
+      ${sig >= 0 ? `<button class="btn b-dark" onclick="pegado='';accion({a:'wait'})">Siguiente pregunta ›</button>` : `<button class="btn b-dark" onclick="terminar(true)">🏁 Ver la clasificación final</button>`}
+    </div>
+  </div></div>`;
+}
+
+function terminar(directo){
+  if (!directo && !confirmar("fin", "Pulsa otra vez para terminar el concurso y ver la clasificación final.")) return;
+  accion({ a:"end" });
+}
+function pintarFinal(){
+  const ord = [...S.teams].sort((a, b) => b.pts - a.pts);
+  $("main").innerHTML = `<div class="panel"><div class="ph">CLASIFICACIÓN FINAL</div><div class="pb podium">
+    <div class="big">🏆</div><h1>${esc(ord[0] ? ord[0].name : "")}</h1>
+    <p class="muted">gana «El vídeo bajo la lupa» con ${ord[0] ? ord[0].pts : 0} puntos</p>
+    ${ord.slice(1, 3).map((t, i) => `<p style="font-size:20px;margin-top:10px">${i === 0 ? "🥈" : "🥉"} <b>${esc(t.name)}</b> · ${t.pts}</p>`).join("")}
+  </div></div>`;
+}
+
+if (CODE && API) refrescar(); else pintarInicio();
+</script>
+</body>
+</html>
