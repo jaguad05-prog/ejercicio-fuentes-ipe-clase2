@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bajo la lupa (sin IA) · Pantalla</title>
+<style>
+:root{--red:#C8102E;--ink:#1B1B1F;--paper:#fff;--bg:#F3F1EC;--muted:#6B6B72;--border:#D8D8DC;--green:#1E7A45;--gold:#E8B54A;--soft:#FBF6E8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+.top{background:var(--ink);color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.claque{width:34px;height:34px;border-radius:6px;background:#fff;position:relative;overflow:hidden;flex:none}
+.claque::before{content:"";position:absolute;inset:0 0 auto;height:11px;background:repeating-linear-gradient(115deg,var(--ink) 0 7px,#fff 7px 14px)}
+.t1{font-size:17px;font-weight:900;letter-spacing:.04em}
+.t2{font-size:11px;color:var(--gold);letter-spacing:.08em}
+#topRight{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.codebadge{background:var(--gold);color:var(--ink);font-weight:900;font-size:18px;letter-spacing:.12em;padding:6px 12px;border-radius:8px}
+.badge{font-size:12px;font-weight:800;letter-spacing:.06em;border:1px solid #555;padding:6px 10px;border-radius:20px}
+.tbtn{background:transparent;color:#fff;border:1px solid #555;border-radius:8px;padding:7px 11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.tbtn:hover{border-color:#fff}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;max-width:1400px;margin:0 auto;padding:18px 20px 60px}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+.panel{background:var(--paper);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px}
+.ph{background:var(--ink);color:#fff;font-size:12px;font-weight:800;letter-spacing:.1em;padding:10px 16px;display:flex;justify-content:space-between;gap:10px}
+.ph span{color:var(--gold);font-weight:700}
+.pb{padding:20px}
+.muted{color:var(--muted)}
+.btn{border:none;border-radius:11px;padding:14px 22px;font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;color:#fff}
+.btn:disabled{opacity:.4;cursor:default}
+.b-red{background:var(--red)} .b-dark{background:var(--ink)} .b-gold{background:var(--gold);color:var(--ink)} .b-green{background:var(--green)}
+.b-out{background:#fff;color:var(--ink);border:2px solid var(--border)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.field{margin-bottom:14px} .field label{display:block;font-weight:700;font-size:13px;margin-bottom:6px}
+input,textarea{width:100%;border:2px solid var(--border);border-radius:10px;padding:12px;font-size:16px;font-family:inherit;color:var(--ink);background:#fff}
+textarea{resize:vertical;line-height:1.4}
+input:focus,textarea:focus{outline:none;border-color:var(--red)}
+.err{color:var(--red);font-weight:700;font-size:14px;margin-top:10px;min-height:18px}
+/* sala */
+.lobby{display:flex;gap:26px;align-items:center;flex-wrap:wrap}
+#qr{background:#fff;border:1px solid var(--border);border-radius:12px;padding:8px}
+.bigcode{font-size:64px;font-weight:900;letter-spacing:.14em;color:var(--red);line-height:1.1}
+.link{font-size:13px;color:var(--muted);word-break:break-all;margin-top:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:20px;padding:7px 12px;font-weight:700;font-size:14px;background:#fff}
+.chip i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.chip small{color:var(--muted);font-weight:600}
+.chip.ok{border-color:var(--green);background:#eef7f1}
+/* pregunta */
+.qhead{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.qn{font-size:13px;font-weight:900;letter-spacing:.1em;color:var(--red)}
+.qb{font-size:13px;color:var(--muted);margin-top:2px}
+.clock{margin-left:auto;font-size:76px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1}
+.clock.warn{color:var(--red)}
+.bar{height:10px;background:var(--border);border-radius:10px;overflow:hidden;margin:14px 0 18px}
+.bar i{display:block;height:100%;background:var(--red);transition:width .3s linear}
+.qtext{font-size:38px;font-weight:900;line-height:1.15;margin-bottom:18px}
+.guides{list-style:none;display:grid;gap:10px;counter-reset:g}
+.guides li{counter-increment:g;display:flex;gap:12px;align-items:flex-start;font-size:21px;font-weight:700;line-height:1.3;background:var(--bg);border-radius:10px;padding:12px 14px}
+.guides li::before{content:counter(g);background:var(--ink);color:var(--gold);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;font-size:16px}
+.pista{margin-top:16px;border:2px dashed var(--gold);background:var(--soft);border-radius:12px;padding:14px 16px;font-size:20px;line-height:1.35}
+.pista b{color:#9A6B00;letter-spacing:.06em;font-size:14px;display:block;margin-bottom:4px}
+.pista.off{border-style:solid;border-color:var(--border);background:#fff;color:var(--muted);font-size:15px}
+.timeup{font-size:20px;font-weight:900;color:var(--red)}
+/* corrección */
+.ans{border:1px solid var(--border);border-left:8px solid var(--c);border-radius:12px;padding:14px 16px;margin-bottom:12px;background:#fff}
+.ans h3{font-size:18px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.ans h3 .p{margin-left:auto;font-size:26px;color:var(--red)}
+.ans .l{font-size:16px;line-height:1.45;margin-bottom:5px}
+.ans .l b{color:var(--muted);font-weight:700}
+.qpts{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:8px}
+.qpts li{display:grid;grid-template-columns:34px minmax(0,220px) 1fr 86px;align-items:center;gap:12px;font-size:19px;font-weight:800}
+.qpts .rk{color:var(--muted);text-align:center}
+.qpts .nm{display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qpts .nm i{width:14px;height:14px;border-radius:50%;flex:none}
+.qpts .bar{height:16px;background:var(--bg);border-radius:10px;overflow:hidden}
+.qpts .bar b{display:block;height:100%;border-radius:10px}
+.qpts .pt{text-align:right;font-variant-numeric:tabular-nums}
+.qpts .pt small{font-size:13px;color:var(--muted);font-weight:700}
+.qpts li.none{opacity:.5;font-weight:700}
+.qpts.dos{grid-template-columns:1fr 1fr;column-gap:30px;row-gap:6px}
+.qpts.dos li{grid-template-columns:26px minmax(0,150px) 1fr 72px;font-size:16px;gap:9px}
+.qpts.dos .bar{height:12px}
+@media (max-width:900px){.qpts.dos{grid-template-columns:1fr}}
+details.verresp{margin-top:18px;border:1px solid var(--border);border-radius:12px;padding:12px 16px;background:#fff}
+details.verresp summary{font-weight:800;cursor:pointer}
+details.verresp[open] summary{margin-bottom:12px}
+.ajuste{display:grid;grid-template-columns:auto auto auto minmax(0,1fr);gap:6px;align-items:start;margin:4px 0 10px}
+.ajuste .pc{font-weight:900;font-size:18px;min-width:26px;text-align:center;padding-top:2px}
+.ajuste textarea.mot{width:100%;border:1px solid var(--border);font:15px/1.4 Arial,sans-serif;resize:vertical;margin:0}
+.mot{font-size:15px;line-height:1.4;margin:5px 0 4px;padding:7px 11px;border-radius:8px;background:#FBF3DC;color:#6B4A00}
+.mot.full{background:#E6F4EC;color:#1E5B39}
+.mot.zero{background:#FBE6E8;color:#9B1B2E}
+.mot b{font-weight:900;margin-right:4px;color:inherit}
+.ans.none{opacity:.55}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:16px}
+.step{background:var(--bg);border-radius:10px;padding:12px;font-size:14px;line-height:1.4}
+.step b{display:block;color:var(--red);font-size:12px;letter-spacing:.08em;margin-bottom:3px}
+.preview{font-size:14px;margin-top:10px;line-height:1.5}
+details.chuleta{margin-top:16px;border:1px solid var(--border);border-left:6px solid var(--green);border-radius:12px;padding:12px 16px;background:#f3faf5}
+details.chuleta summary{font-weight:800;cursor:pointer;color:var(--green)}
+details.chuleta ul{margin:10px 0 0 18px;line-height:1.5}
+/* elección */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.nc{text-align:left;border:2px solid var(--border);border-radius:12px;background:#fff;padding:12px;cursor:pointer;font-family:inherit;color:var(--ink)}
+.nc:hover{border-color:var(--red)}
+.nc .tg{font-size:11px;font-weight:900;letter-spacing:.08em;color:var(--red);margin-bottom:4px}
+.nc .ti{font-size:15px;font-weight:700;line-height:1.3}
+.nc.used{opacity:.45}
+.nc.next{border-color:var(--red);box-shadow:0 0 0 2px var(--red)}
+/* lateral */
+.st{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)}
+.st:last-child{border-bottom:none}
+.st .rk{width:22px;font-weight:900;color:var(--muted)}
+.st.lead .rk{color:var(--red)}
+.st .dt{width:12px;height:12px;border-radius:50%;flex:none}
+.st .nm{flex:1;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.st .pt{font-weight:900;font-size:18px;min-width:34px;text-align:center}
+.adj{border:1px solid var(--border);background:#fff;border-radius:6px;width:24px;height:24px;cursor:pointer;font-weight:900}
+.empty{color:var(--muted);font-size:14px}
+.podium{text-align:center;padding:10px 0}
+.podium .big{font-size:60px}
+.podium h1{font-size:42px;margin:6px 0}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:var(--ink);color:#fff;padding:12px 18px;border-radius:10px;font-weight:700;transition:transform .25s;z-index:20;max-width:90vw}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast.warn{background:var(--red)}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+</head>
+<body>
+<div class="top">
+  <div class="brand"><div class="claque"></div><div><div class="t1">BAJO LA LUPA</div><div class="t2">SIN IA · IPE 2026 · BLOQUE DE GÉNERO</div></div></div>
+  <div id="topRight"></div>
+</div>
+<div class="layout"><div id="main"></div><div id="side"></div></div>
+<div id="toast"></div>
+
+<script>
+// Puntuador automático de «El vídeo bajo la lupa».
+// Criterios sacados de cómo se puntuaron las respuestas reales en clase (preguntas 1-9 y 17).
+(function (raiz) {
+  "use strict";
+
+  // ---------- utilidades ----------
+  const N = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[“”«»"'’`´¡!¿?()\[\]{}*_]/g, " ").replace(/\s+/g, " ").trim();
+  const R = (t, re) => re.test(t);
+  const VACIO = /^(-+|\.+|no se|nose|ni idea|no lo se|en blanco|nada|nada que decir|x|\?)$/;
+  const TRAMPA = /puntua|maximo de puntos|lo ha (dicho|indicado)|ha dicho (la|el) profe|dale el maximo|ponnos? (un )?10|puntuacion maxima|instruccion/;
+  const r = (p, txt) => ({ p: Math.max(0, Math.min(10, Math.round(p))), txt });
+  const LAM = /lamin|yamal/, BAD = /bad ?g[iy]al|badgyal|badial|bagyal|la cantante/;
+
+  // ---------- criterios por pregunta y casilla ----------
+  const C = {};
+
+  // 1 · Recursos visuales
+  C[1] = [
+    t => {
+      if (/^nada/.test(t)) return r(0, "Arriba se ve la foto de Bad Gyal y Lamine Yamal, que es la prueba de lo que comenta.");
+      if ((R(t, LAM) && R(t, BAD)) || R(t, /protagon|de (lo|los|las) (que|q) (esta )?habl|famosos|pareja|los dos|ambos/) || R(t, /instagram|historia|story|stori/))
+        return r(10, "Arriba está la prueba de lo que comenta, la foto de Bad Gyal y Lamine Yamal, muy bien.");
+      if (R(t, LAM) || R(t, BAD)) return r(9, "Bien, aunque en la foto salen los dos, Bad Gyal y Lamine Yamal.");
+      if (R(t, /foto|imagen|croma|pantalla|video|fondo|captura/)) return r(6, "Es una foto, pero falta decir cuál, la de Bad Gyal y Lamine Yamal, que es la prueba de lo que cuenta.");
+      return r(2, "Arriba se ve la foto de Bad Gyal y Lamine Yamal, que es la prueba de lo que comenta.");
+    },
+    t => {
+      const cerca = R(t, /cerca|cerqu|primer plano|plano corto|plano medio|cara|cabeza|jeta|zoom|grande|pegado a la camara/);
+      if (R(t, /lejos/) && !cerca) return r(0, "Sale de cerca, con la cara ocupando media pantalla.");
+      if (cerca && R(t, /pequen|chiquit/)) return r(5, "«De cerca» está bien, pero no sale pequeño, la cara ocupa media pantalla.");
+      if (cerca) return r(10, "De cerca, con la cara grande, muy bien.");
+      return r(0, "La casilla pregunta cómo sale, y sale de cerca, con la cara ocupando media pantalla.");
+    },
+    t => {
+      const mano = R(t, /mano|sujet|sostien|lleva|agarr/), boca = R(t, /boca|acerc|peg|cerca|pone/);
+      const accion = mano || boca, mueve = R(t, /muev|ensen/);
+      const bien = R(t, /oig|oir|oye|escuch|sonido|ruido|ambiente|se le entienda|audio|voz se|jaleo|barullo/) || R(t, /(porque|para|por) .{0,40}(tren|renfe|\bave\b|gente)/);
+      const estetica = R(t, /informal|espontan|natural|cercan/);
+      const mal = R(t, /enfasis|atencion|dinam|resalt|llamar/);
+      if ((accion || mueve) && bien) return r(10, "Lo lleva en la mano pegado a la boca para que se le oiga con el ruido del tren, completo.");
+      if (accion && estetica) return r(7, "Lo lleva pegado a la boca y eso da informalidad, bien, pero falta el motivo práctico, que se le oiga con el ruido del tren.");
+      if (bien) return r(7, "El porqué es correcto, para que se le oiga, pero falta qué hace, que lo lleva en la mano pegado a la boca.");
+      if (accion && mal) return r(5, "Lo lleva pegado a la boca, bien, pero lo hace para que se le oiga con el ruido del tren.");
+      if (accion) return r(mano && boca ? 7 : 6, "Bien descrito, pero falta el porqué, que se le oiga con el ruido del tren.");
+      if (mueve) return r(3, "Lo importante es que lo lleva en la mano pegado a la boca para que se le oiga en el tren.");
+      return r(2, "Lo lleva en la mano pegado a la boca para que se le oiga con el ruido del tren.");
+    },
+    t => {
+      if (R(t, /espontan|natural|plato|\breal\b|directo|de verdad|amig|informal|rigid|cotidian|improvis|casero|autentic/))
+        return r(10, "Es la idea, espontaneidad, que aquello no parezca un plató, muy bien.");
+      if (R(t, /cercan|acercamiento|proxim/)) return r(8, "La cercanía va en la línea buena, y la palabra exacta es espontaneidad, que parezca que no es un plató.");
+      return r(3, "Es muy general. Lo que busca es espontaneidad, que parezca grabado en directo y no en un plató.");
+    }
+  ];
+
+  // 2 · Posición de su imagen
+  C[2] = [
+    t => {
+      const abajo = R(t, /abajo|debajo|inferior/), cont = R(t, /arriba|fondo|detras|toda la pantalla|ocupa|superpu|superior|encima/);
+      if (!abajo && R(t, /arriba/)) return r(2, "Él aparece abajo, con el contenido arriba y de fondo.");
+      if (abajo && cont && R(t, /pequen/)) return r(9, "Abajo y el contenido ocupando la pantalla, bien, aunque él sale grande y no en pequeño.");
+      if (abajo && cont) return r(10, "Él abajo y el contenido arriba, de fondo, muy bien.");
+      if (abajo) return r(7, "Abajo, bien, pero falta decir dónde va el contenido, arriba y de fondo.");
+      return r(2, "Él se pone abajo y el contenido va arriba, de fondo.");
+    },
+    t => {
+      if (R(t, /no se le vea|esconder|ocultar|que no le vean/))
+        return r(3, "Su cara se ve grande. Se pone abajo para que mande la imagen y no tapar las caras, y porque abajo es la zona que tapan el pulgar y los rótulos.");
+      const vis = R(t, /se vea|ver bien|vea bien|pueda ver|tap|opac|estorb/);
+      const aten = R(t, /atencion|protagon|importan|centr|fije|fij|mirada|valor|resalt|relevan|manda/);
+      const mov = R(t, /pulgar|rotul|botones|subtitul|interfaz|likes|comentarios de la app/);
+      let p = vis && aten ? 9 : aten ? 8 : vis ? 7 : 2;
+      if (mov) p += 2;
+      if (p >= 10) return r(10, "Muy bien, la imagen manda y abajo es la zona que tapan el pulgar y los rótulos del móvil.");
+      if (p <= 2) return r(2, "Lo hace para que mande la imagen y no tapar las caras, y porque abajo es la zona que tapan el pulgar y los rótulos.");
+      return r(p, (aten ? "Que mande la imagen es la razón principal." : "Para que se vea la imagen, bien.") + " Falta que abajo es la zona que tapan el pulgar y los rótulos del móvil.");
+    }
+  ];
+
+  // 3 · Cara y mirada
+  C[3] = [
+    t => {
+      if (!R(t, /camara|frente|espectador|nosotros|nos mira|publico|objetivo|movil|audiencia/))
+        return r(2, "Mira fijo a cámara todo el rato, como en una conversación con quien mira.");
+      const prop = R(t, /habla con|convers|videollamada|como si|parezca|nos (esta )?vi|espectador|nosotros|a los que|quien (lo )?ve|audiencia/);
+      const mal = R(t, /los mira a ellos|a ellos|senal/);
+      const p = 8 + (prop ? 2 : 0) - (mal ? 1 : 0);
+      let txt = prop ? "A cámara, como en una conversación con quien mira, muy bien." : "A cámara, bien. Falta el porqué, que es simular una conversación con quien mira.";
+      if (mal) txt += " Mira fijo a cámara todo el rato, sin girarse hacia la imagen.";
+      return r(p, txt);
+    },
+    t => {
+      const broma = R(t, /foco|luz|calidad|brillo|broma|humor|ironi|sonri|ceja|\brie\b|risa/);
+      const admi = R(t, /admir|emocion|fans|ventanilla|cantando|vestido/) || R(t, BAD);
+      const tren = R(t, /tren|\bave\b|renfe|final|estacion/);
+      const seg = R(t, /\b(6|0:06|24|0:24)\b/);
+      let p = (broma ? 5 : 0) + (admi ? 4 : 0) + (tren ? 2 : 0) + (seg ? 1 : 0);
+      if (p <= 2) p = 3;
+      let txt;
+      if (broma && admi) txt = "Los dos cambios, la media sonrisa al bromear con la foto (0:06) y la cara de admiración por ella (0:24), muy bien.";
+      else if (broma) txt = "La broma de la foto (0:06), con media sonrisa, está bien. Falta el segundo cambio, la admiración por ella con los fans (0:24), con ojos muy abiertos.";
+      else if (admi) txt = "Bien visto el cambio al hablar de ella, con cara de admiración (0:24). Falta el primero, la media sonrisa al bromear con la foto (0:06).";
+      else txt = (tren ? "El final en el tren es cierto, pero los cambios clave van antes. " : "Es demasiado general. ") + "Son la broma de la foto (0:06), con media sonrisa, y la admiración por ella con los fans (0:24), con ojos muy abiertos.";
+      return r(p, txt);
+    }
+  ];
+
+  // 4 · Cierre visual
+  C[4] = [
+    t => {
+      const quita = R(t, /desaparec|quita|elimin|se va|fuera|apaga|sin croma|ya no hay|ya no sale|deja de|cambia|sin la foto|pantalla completa|sale (el )?solo/);
+      const sitio = R(t, /tren|vagon|\bave\b|renfe|estacion/), donde = R(t, /donde (esta|se encuentra)|donde graba|donde lo/);
+      if (quita && sitio) return r(10, "Quita el croma y se ve el vagón real del tren, perfecto.");
+      if (quita && donde) return r(9, "Desaparece y sale donde está, bien. Falta decir que es el vagón de un tren.");
+      if (sitio) return r(9, "En el tren, bien. Del todo sería decir que desaparece el croma.");
+      if (quita) return r(6, "Desaparece, bien, pero falta qué aparece en su lugar, el vagón real del tren.");
+      return r(2, "Desaparece el croma y aparece el vagón real del tren.");
+    },
+    t => {
+      if (R(t, /certific|evidenc|prueba|demuestr|verific|ver donde|vea donde|se puede ver|de verdad|no se invent|realmente/))
+        return r(9, "Es justo la clave, certifica que estaba allí y que se grabó de verdad.");
+      if (R(t, /inmedia|directo|al momento|natural|se entera|en su viaje|grabarlo en|mientras/))
+        return r(8, "La inmediatez va muy bien. Del todo sería decir que certifica que estaba donde dice.");
+      if (R(t, /human|cercan|cotidian|normal|incluye|al tanto|persona/))
+        return r(R(t, /ultima hora/) ? 8 : 7, "Va en la línea. La clave es que certifica que estaba donde dice, una persona concreta grabando en un sitio concreto.");
+      if (R(t, /ultima hora/)) return r(7, "Última hora va en la línea. La clave es que certifica que estaba donde dice, que se grabó de verdad.");
+      return r(3, "La clave es que certifica que estaba donde dice, que aquello se grabó de verdad en ese sitio.");
+    }
+  ];
+
+  // 5 · El gancho
+  C[5] = [
+    t => {
+      const hecho = R(t, /lamin|yamal|cumple|look|outfit|ropa|fiesta|noticia|exclusiva|foto|polo|hook|gancho/);
+      const ambos = R(t, LAM) && R(t, BAD);
+      const fuente = R(t, /(bad ?g[iy]al|badgyal)[^.]{0,30}(subi|mostr|public|ensen|colg)|ha subido|ha publicado|os lo ha|historia|instagram|story/);
+      let p = hecho ? 7 : 2;
+      if (ambos) p = 8;
+      if (ambos && R(t, /foto/)) p = 9;
+      if (fuente) p = 10;
+      const pres = R(t, /se presenta|quien es|soy javi|javi hoyos/) && p > 3;
+      if (pres) p -= 3;
+      if (pres) return r(p, "El orden va al revés. Primero suelta el hecho, el look de Lamine que ha mostrado Bad Gyal, y solo después dice quién es.");
+      if (p >= 10) return r(10, "El hecho y la fuente en la misma frase, «os lo ha mostrado Bad Gyal», perfecto.");
+      if (!hecho) return r(p, "Arranca en el segundo 0 con el hecho y los dos nombres, «os lo ha mostrado Bad Gyal».");
+      return r(p, "Bien. Falta que en esa misma frase cita la fuente, «os lo ha mostrado Bad Gyal».");
+    },
+    t => {
+      const cinco = R(t, /\b(5|cinco)\b|0:05/), tras = R(t, /despues|tras|luego/);
+      const sigue = R(t, /seguid|sigan|siga|salseo|seguir|seguime/), marca = R(t, /marca|coletilla/);
+      const final = R(t, /final/), dos = R(t, /\b(2|dos)\b/) && !cinco;
+      let p = cinco && tras ? 8 : cinco ? 7 : tras ? 6 : 2;
+      if (sigue) p += 3; else if (marca) p += 2;
+      if (final && !cinco) p = tras ? 4 : 3;
+      if (dos) p = 1;
+      let txt;
+      if (dos) txt = "En el segundo 2 nombra a Bad Gyal. Su nombre lo dice en el segundo 5, pidiendo que le sigan.";
+      else if (final && !cinco) txt = "Al final solo repite la coletilla. Se presenta en el segundo 5, justo después de la noticia.";
+      else if (p >= 10) txt = "Segundo 5, después de la noticia y pidiendo que le sigan, perfecto.";
+      else if (!cinco && sigue) txt = "Después de la noticia y con «seguidme para más salseo», muy bien. Falta el segundo, el 5.";
+      else if (!cinco) txt = "Después del titular, bien. Falta el segundo, el 5, y la frase, «seguidme para más salseo».";
+      else txt = "Segundo 5, muy bien. Falta cómo lo hace, como un paréntesis y pidiendo que le sigan, «seguidme para más salseo».";
+      return r(p, txt);
+    }
+  ];
+
+  // 6 · Paso a la broma
+  C[6] = [
+    t => {
+      const foco = R(t, /foco|luz|ilumin|se ve fatal|primer aviso|por ?favor/), siete = R(t, /\b(7|0:07)\b/);
+      if (R(t, /presenta|soy javi|seguid|salseo/) && !foco)
+        return r(1, "Esa es la presentación. La broma llega justo después, en el segundo 7, «Bad Gyal, por favor… ¡pon un foco!».");
+      if (R(t, /por ?favor|primer aviso/)) return r(10, "La frase exacta, «Bad Gyal, por favor, primer aviso…», perfecto.");
+      if (foco) return r(9 + (siete ? 1 : 0), "La broma del foco, muy bien. Es en el segundo 7 y le habla a ella, «Bad Gyal, por favor… ¡pon un foco!».");
+      if (R(t, /brillo|calidad|mejor/)) return r(8, "Bien. La frase es «¡pon un foco!», en el segundo 7, hablándole a Bad Gyal.");
+      if (R(t, /collage|cambia la imagen|cambia de imagen/)) return r(4, "La imagen cambia justo ahí, bien visto, pero la pregunta pide la frase, «Bad Gyal, por favor… ¡pon un foco!».");
+      return r(3, "Llega antes, en el segundo 7, con la broma del foco, «Bad Gyal, por favor… ¡pon un foco!».");
+    },
+    t => {
+      const tono = R(t, /tono|voz|entonac|ironi/), gesto = R(t, /gest|cara|expres|risa|\brie\b|sonri/), img = R(t, /imagen|fondo|foto|primer plano|collage|lado/);
+      const debil = R(t, /acerca|muev|camara/);
+      const n = [tono, gesto, img].filter(Boolean).length;
+      let p = n === 3 ? 10 : n === 2 ? 8 : n === 1 ? 6 : debil ? 3 : 2;
+      if (n === 1 && tono && debil) p = 7;
+      if (gesto && R(t, /gest/) && R(t, /risa|\brie\b/) && n < 3) p += 1;
+      const falta = [];
+      if (!tono) falta.push("el cambio de tono");
+      if (!gesto) falta.push("el gesto, con media sonrisa");
+      if (!img) falta.push("el cambio de imagen de fondo");
+      if (n === 3) return r(p, "Tono, gesto e imagen de fondo, los tres cambios a la vez, perfecto.");
+      if (n === 0) return r(p, "Cambian a la vez el tono, el gesto y la imagen de fondo, y se nota a propósito.");
+      return r(p, "Bien visto. " + (falta.length === 1 ? "Falta " : "Faltan ") + falta.join(" y ") + ".");
+    }
+  ];
+
+  // 7 · Bloques
+  C[7] = [
+    t => {
+      const g = [
+        ["gancho", /titular|gancho|adelanto|exclusiva|historia|cumplea|foto de (los dos|bad|lamin)|hook|empieza/],
+        ["presentación", /presenta|javi|su nombre/],
+        ["broma", /broma|foco|collage/],
+        ["look de él", /look|outfit|ropa|polo|lux/],
+        ["valoración de ella", /fans|unica|ventanilla|coche|maja|se paro/],
+        ["look de ella", /vestido|cantando|concierto|show|look de bad|bad gyal look|bad ?gyal en vestido/],
+        ["cierre", /tren|renfe|despid|despedid|cierre|final|estacion/]
+      ];
+      const hay = g.filter(x => R(t, x[1])), n = hay.length;
+      const tabla = [0, 2, 3, 4, 6, 7, 9, 10];
+      const falta = g.filter(x => !R(t, x[1])).map(x => x[0]);
+      if (n === 7) return r(10, "Los siete bloques en orden, gancho, presentación, broma, look de él, valoración de ella, look de ella y cierre, perfecto.");
+      return r(tabla[n], (n >= 5 ? "Casi todos, muy bien. " : "") + (falta.length === 1 ? "Falta " : "Faltan ") + falta.join(", ") + ".");
+    },
+    t => {
+      const mm = t.match(/\b(\d):(\d\d)\b/), m = t.match(/\b(\d{1,2})\b/);
+      const s = mm ? Number(mm[1]) * 60 + Number(mm[2]) : m ? Number(m[1]) : null;
+      if (s != null){
+        let p = s >= 12 && s <= 14 ? 10 : (s >= 10 && s <= 16) ? 8 : s <= 21 ? 4 : s <= 30 ? 2 : 1;
+        if (s < 10) p = 3;
+        return r(p, p >= 10 ? "Segundo 13, al acabar el look de él, perfecto. El resto es comentario." : "Se acaba en el segundo 13, tras el look de él, y a partir de ahí todo es comentario.");
+      }
+      if (R(t, /(exclusiva|titular|noticia)/) && R(t, /detalle|comentario|opini|conocid/))
+        return r(7, "Bien visto que después de la exclusiva solo hay detalles y comentario. Falta el segundo, el 13.");
+      if (R(t, /mitad/)) return r(3, "Antes de la mitad. Se acaba en el segundo 13 y a partir de ahí todo es comentario.");
+      if (R(t, /fans/)) return r(3, "Lo de los fans ya es valoración. La información nueva se acaba antes, en el segundo 13.");
+      return r(2, "Se acaba en el segundo 13, tras el look de él, y a partir de ahí todo es comentario.");
+    }
+  ];
+
+  // 8 · Cierre planeado o improvisado
+  C[8] = [
+    t => {
+      const tren = R(t, /tren|renfe|\bave\b|vagon|estacion/), atrapa = R(t, /atrapad|encerrad|salir|bajar|parad|para el tren|ha llegado|ultimo/);
+      const croma = R(t, /croma|quita|apaga|imagen/), cole = R(t, /seguid|salseo|sigamos|siga|seguime/);
+      let p = tren ? 5 : 2;
+      if (tren && atrapa) p = 8;
+      if (croma) p += 1;
+      if (tren && R(t, /natural/) && !atrapa) p += 1;
+      if (cole) p = 10;
+      if (p >= 10) return r(10, "El tren y la coletilla del final, «seguidme para más salseo», perfecto.");
+      return r(p, "Bien. " + (atrapa ? "" : "Faltan que se queda atrapado al parar el tren y ") + (atrapa ? "Falta que cierra con la misma coletilla del principio, «seguidme para más salseo»." : "que repite «seguidme para más salseo»."));
+    },
+    t => {
+      const elegido = R(t, /elegid|estrategia|decide|a proposito|planead|intencion|pensado/) && !R(t, /no (esta|es) (elegid|planead)/);
+      if (elegido){
+        let p = 8;
+        if (R(t, /natural|verific|cercan|proximidad|credib|invent/)) p = 9;
+        if (R(t, /cortar|corta|coletilla|bucle|canal/)) p = 10;
+        return r(p, "Elegido, muy bien razonado. Además repite la coletilla del principio, y así el vídeo es un bucle que hace reconocible su canal.");
+      }
+      const base = "Lo del tren pudo pasar de verdad, pero dejarlo en el vídeo lo decidió él, porque podía haberlo cortado.";
+      if (R(t, /quiere/)) return r(5, "Vuestro porqué es de algo elegido. " + base);
+      if (R(t, /planea/)) return r(4, "Quedarse atrapado pudo no estar planeado, bien pensado. " + base);
+      if (t.split(" ").length <= 2) return r(1, "Falta el porqué. " + base);
+      return r(3, base);
+    }
+  ];
+
+  // 9 · Palabras con énfasis
+  C[9] = [
+    t => {
+      const clave = [["fatal", /fatal/], ["barbaridad", /barbaridad/], ["impresionante", /impresionante/], ["espectacular", /espectacular/],
+                     ["exclusiva", /exclusiva/], ["reina", /reina/], ["primer aviso", /primer aviso/]];
+      const otras = [/unica/, /corto/, /maja/, /menudo show/, /increible/, /brutal/];
+      const enc = clave.filter(x => R(t, x[1])).map(x => x[0]);
+      const nOtras = otras.filter(re => R(t, re)).length;
+      let p = enc.length * 1.5 + nOtras;
+      if (R(t, /valoraci|opinion|subjetiv|valorativ|calificativ/)) p += 3; else if (R(t, /adjetiv/)) p += 2;
+      if (p === 0) p = 1;
+      p = Math.min(10, Math.round(p));
+      const faltan = clave.map(x => x[0]).filter(x => !enc.includes(x)).slice(0, 4);
+      const comun = R(t, /valoraci|opinion|subjetiv|valorativ/) ? "" : " Falta decir qué tienen en común, que todas son valoraciones y ningún dato recibe énfasis.";
+      if (!enc.length && !nOtras) return r(p, "Lo que marca son valoraciones, como «fatal», «barbaridad», «impresionante» y «espectacular». Los nombres y los datos no los recalca.");
+      return r(p, "Bien" + (enc.length ? ", «" + enc.join("», «") + "»" : "") + "." + (faltan.length ? " Faltan «" + faltan.join("», «") + "»." : "") + comun);
+    }
+  ];
+
+  // 17 · Llamadas a la acción
+  C[17] = [
+    t => {
+      const sigue = R(t, /seguid|sigan|salseo|seguir|seguime/), dm = R(t, /\bdm\b|mensaje|escrib|os leo|privado/), fin = R(t, /final|repite|otra vez/);
+      let p = sigue ? 5 : 1;
+      if (sigue && dm) p += 3;
+      if (sigue && fin) p += 2;
+      if (p >= 10) return r(10, "Las tres, «seguidme para más salseo», «os leo por DM» y otra vez «seguidme», perfecto.");
+      if (!sigue) return r(p, "Una llamada a la acción pide algo al espectador, y hay tres, «seguidme para más salseo» (0:05), «os leo por DM» (0:44) y otra vez «seguidme» (0:49).");
+      return r(p, "«Seguidme para más salseo», muy bien. " + (dm ? "" : "Falta «os leo por DM». ") + (fin ? "" : "Falta que repite «seguidme» al final. ") + "Son tres en total.");
+    },
+    t => {
+      const ini = R(t, /principio|inicio|comienzo|empez|al presentarse|gancho|\b5\b/), fin = R(t, /final|acab|cierre|termin/);
+      const porque = R(t, /engan|enmarc|sin cortar|no interrump|terminado|ya no queda/);
+      const mal = R(t, /cambi(a|o|ar) de (imagen|foto|tema|tercio)|medio|croma|\b13\b/);
+      let p = ini && fin ? 6 : (ini || fin) ? 3 : 1;
+      if (ini && fin && porque) p = 9;
+      if (mal) p = Math.max(0, p - 3);
+      if (p >= 9) return r(p, "Al principio y al final, y bien razonado. Así enmarcan la información sin cortarla.");
+      if (ini && fin) return r(p, "Al principio y al final, muy bien visto. Así enmarcan la información sin cortarla.");
+      return r(p, "Van al principio, pegada al gancho, y al final, cuando ya no queda nada que mirar. Así enmarcan la información sin cortarla.");
+    }
+  ];
+
+  // ---------- lectura del texto copiado del proyector ----------
+  function leer(texto, GUIAS){
+    const lineas = String(texto || "").replace(/\r/g, "").split("\n");
+    let n = null, pregunta = "";
+    for (const l of lineas){
+      const m = l.match(/Pregunta\s+(\d+)\s+de\s+\d+/i); if (m && n == null) n = Number(m[1]);
+      const q = l.match(/^Pregunta:\s*(.*)$/); if (q) pregunta = q[1].trim();
+    }
+    const guias = (GUIAS && GUIAS[n]) ? GUIAS[n].guides.map(N) : [];
+    const equipos = []; let eq = null, cas = -1;
+    for (const l of lineas){
+      const h = l.match(/^\s*[—–-]{1,2}\s*(.+?)\s*[—–-]{1,2}\s*$/);
+      if (h){ eq = { nombre: h[1].trim(), resp: [] }; equipos.push(eq); cas = -1; continue; }
+      if (!eq) continue;
+      const g = l.match(/^(\d+)\.\s+(.*)$/);
+      if (g){
+        const i = Number(g[1]) - 1, guia = N(g[2]);
+        const esGuia = guias.length ? (guias[i] && (guia === guias[i] || guias[i].startsWith(guia.slice(0, 25)))) : /\?\s*$/.test(g[2]);
+        if (esGuia){ cas = i; eq.resp[cas] = ""; continue; }
+      }
+      if (cas >= 0) eq.resp[cas] = (eq.resp[cas] ? eq.resp[cas] + "\n" : "") + l.trim();
+    }
+    equipos.forEach(e => { e.resp = e.resp.map(x => (x || "").trim()); });
+    return { n, pregunta, equipos };
+  }
+
+  function puntuar(texto, GUIAS){
+    const d = leer(texto, GUIAS);
+    const crit = C[d.n];
+    if (!crit) return Object.assign(d, { error: d.n ? "Para la pregunta " + d.n + " todavía no hay criterios." : "No encuentro el número de la pregunta en lo que has pegado." });
+    d.equipos.forEach(e => {
+      e.casillas = crit.map((fn, i) => {
+        const bruto = (e.resp[i] || "").replace(/^\(en blanco\)$/i, ""), t = N(bruto);
+        if (!t || VACIO.test(t)) return { p: 0, txt: "Sin respuesta." };
+        if (TRAMPA.test(t)) return { p: 0, txt: "Buen intento 😄. Los puntos se dan mirando el vídeo, no por lo que pida la respuesta." };
+        return fn(t);
+      });
+      e.total = e.casillas.reduce((a, c) => a + c.p, 0);
+    });
+    d.max = crit.length * 10;
+    return d;
+  }
+
+  // Puntúa directamente las casillas de un equipo (para el proyector)
+  function puntuarRespuestas(n, respuestas){
+    const crit = C[n]; if (!crit) return null;
+    return crit.map((fn, i) => {
+      const t = N(respuestas[i] || "");
+      if (!t || VACIO.test(t)) return { p: 0, txt: "Sin respuesta." };
+      if (TRAMPA.test(t)) return { p: 0, txt: "Buen intento 😄. Los puntos se dan mirando el vídeo, no por lo que pida la respuesta." };
+      return fn(t);
+    });
+  }
+
+  function textoProyector(d){
+    return d.equipos.map(e => e.nombre + ": " + e.total + "\n" + e.casillas.map((c, i) => (i + 1) + ". " + c.p + " · " + c.txt).join("\n")).join("\n\n");
+  }
+
+  const API = { puntuar, leer, textoProyector, puntuarRespuestas, normalizar: N, criterios: C };
+  if (typeof module !== "undefined" && module.exports) module.exports = API; else raiz.Puntuador = API;
+})(this);
+
+</script>
+<script>
+// ===== LAS PREGUNTAS =====
+const TODAS = [
+  { bloque:"El formato y la puesta en escena", q:"¿Qué recursos visuales usa el autor y qué efecto busca cada uno?",
+    pista:"Fijaos en qué hay en la mitad de arriba, qué hay en la de abajo y qué lleva en la mano mientras habla.",
+    guides:["Arriba del todo, ¿qué se ve mientras él habla?","Abajo, ¿cómo aparece él? (¿de cerca, de lejos?)","¿Qué hace con el micrófono y por qué?","¿Qué sensación o efecto busca con todo eso?"],
+    chuleta:["Croma arriba: ocupa la mitad superior, se ve la prueba mientras se oye el comentario.","Plano medio-corto abajo: cara grande en una pantalla pequeña.","Micrófono de solapa en la mano, pegado a la boca: resuelve el ruido del tren en marcha.","Efecto de espontaneidad: el micro y el tren dicen «esto no es un plató»."] },
+  { bloque:"El formato y la puesta en escena", q:"¿Dónde coloca su imagen respecto al contenido y por qué esa posición?",
+    pista:"Pensad en cómo se ve en un móvil y en qué parte de la foto no quiere tapar.",
+    guides:["¿Se pone arriba o abajo? ¿Y el contenido?","¿Por qué ahí y no en otro sitio?"],
+    chuleta:["Él abajo, el contenido arriba.","El ojo va primero a la imagen; abajo lo tapan el pulgar y los rótulos de la plataforma; y así no tapa las caras de la foto, que es lo que el espectador ha venido a ver."] },
+  { bloque:"El formato y la puesta en escena", q:"¿Cómo usa la cara y la mirada? ¿Cuándo cambia el gesto?",
+    pista:"Mirad el segundo 6 y el segundo 24.",
+    guides:["¿Hacia dónde mira mientras habla?","¿En qué momentos cambia el gesto y cómo?"],
+    chuleta:["Mirada fija a cámara de principio a fin: simula una conversación uno a uno.","Hacia 0:06, ceja levantada y media sonrisa al bromear con la foto; desde 0:24, ojos muy abiertos y cejas altas, de admiración."] },
+  { bloque:"El formato y la puesta en escena", q:"¿Cómo cierra visualmente y qué aporta a la credibilidad?",
+    pista:"¿Qué desaparece al final y qué aparece detrás?",
+    guides:["¿Qué pasa al final con el croma?","¿Qué le aporta eso a la credibilidad?"],
+    chuleta:["Hacia 0:45 desaparece el croma y aparece el vagón real del tren.","El detrás de cámaras certifica que estaba donde dice estar: lo convierte en algo grabado por una persona concreta en un sitio concreto."] },
+  { bloque:"El discurso: del gancho al cierre", q:"¿Cuál es el gancho y cómo capta la atención en los primeros segundos?",
+    pista:"Fijaos en qué dice ANTES de decir su nombre.",
+    guides:["¿Con qué empieza el vídeo?","¿En qué segundo dice su nombre y cómo lo hace?"],
+    chuleta:["Arranca en el segundo 0 con el hecho y los dos nombres, y atribuye la fuente: «os lo ha mostrado Bad Gyal, os lo muestro todo».","No se presenta hasta el segundo 5, y lo hace pidiendo seguidores: «soy Javier, seguidme para más salseo». Primero engancha, luego dice quién es."] },
+  { bloque:"El discurso: del gancho al cierre", q:"¿En qué momento pasa del hecho a la opinión o la broma? ¿Se nota el paso?",
+    pista:"Escuchad a quién le habla en el segundo 7.",
+    guides:["¿Con qué frase pasa del hecho a la broma?","¿Se nota el paso? ¿En qué se nota?"],
+    chuleta:["En 0:07, hablándole a ella: «Bad Gyal, por favor, primer aviso… ¡pon un foco!».","Se nota a propósito: cambian a la vez el tono, el gesto y la imagen de fondo. El «nos» mete al espectador en su mismo bando."] },
+  { bloque:"El discurso: del gancho al cierre", q:"¿Qué bloques hay y en qué orden?",
+    pista:"La información nueva se agota mucho antes del final.",
+    guides:["Nombra los bloques en el orden en que aparecen.","¿En qué segundo se acaba la información nueva?"],
+    chuleta:["Gancho (0:00) → presentación (0:05) → broma (0:07) → look de él (0:13) → valoración de ella (0:24) → look de ella (0:35) → cierre (0:44).","La información nueva se agota en el segundo 13: los treinta siguientes son comentario. Si funden los bloques de ella, vale."] },
+  { bloque:"El discurso: del gancho al cierre", q:"¿Cómo cierra? ¿Planeado o improvisado?",
+    pista:"¿Podía haberlo cortado? ¿Qué frase repite al final?",
+    guides:["¿Qué pasa al final del vídeo?","¿Es casualidad o está elegido? ¿Por qué?"],
+    chuleta:["Se queda atrapado en el tren y lo deja montado. Parece un accidente, pero está elegido: podía haberlo cortado.","Cierra con la misma coletilla de la presentación, «seguidme para más salseo»: el vídeo es un bucle que convierte una pieza suelta en un canal reconocible."] },
+  { bloque:"La voz, el tono y el ritmo", q:"¿Qué palabras marca con más énfasis?",
+    pista:"Fijaos en que todas son valoraciones, ningún dato.",
+    guides:["Escribid las palabras que recalca con más fuerza y qué tienen en común."],
+    chuleta:["«Exclusiva», «fatal», «reina», «barbaridad», «impresionante», «espectacular».","Todas son valoraciones, ni un solo dato recibe énfasis. También vale «primer aviso», que funciona como marca de la casa."] },
+  { bloque:"La voz, el tono y el ritmo", q:"¿Cuándo sube o baja el tono? ¿Coincide con el dato o con la valoración?",
+    pista:"Comparad cómo suena cuando da un dato y cómo suena cuando opina.",
+    guides:["¿Cuándo sube el tono?","¿Cuándo va más plano?"],
+    chuleta:["La valoración sube a agudo.","La información va en tono medio y bastante plano. El tono señala dónde está la opinión aunque nunca diga «en mi opinión»."] },
+  { bloque:"La voz, el tono y el ritmo", q:"¿Usa la risa, el susurro o las pausas? ¿Con qué función?",
+    pista:"¿Qué le pasa a la crítica de la foto cuando se ríe?",
+    guides:["¿Qué hace con la risa o con la voz baja?","¿Para qué le sirve?"],
+    chuleta:["Se ríe entre líneas al criticar la foto; la voz más suave y ahogada es el registro del cotilleo compartido.","La risa convierte la crítica en broma y evita que suene a ataque contra la protagonista."] },
+  { bloque:"La voz, el tono y el ritmo", q:"¿El ritmo es homogéneo? ¿Hay silencios?",
+    pista:"Intentad encontrar un solo silencio en los 50 segundos.",
+    guides:["¿El ritmo es igual todo el rato o cambia?","¿Hay silencios? ¿Qué efecto tiene eso?"],
+    chuleta:["Continuo, sin una sola pausa apreciable en 50 segundos, al revés que la radio clásica.","El coste: no deja respirar ni jerarquiza. En un tema serio resultaría inadecuado."] },
+  { bloque:"Las fuentes y la verificación", q:"¿Cuál es la fuente? ¿Se cita, se enseña o se da por hecha?",
+    pista:"Escuchad el segundo 2 y mirad lo que aparece en pantalla.",
+    guides:["¿De dónde saca la información?","¿La nombra, la enseña o la da por sabida? ¿Cuándo?"],
+    chuleta:["Una publicación de Instagram (una story) de la propia Bad Gyal.","La cita de viva voz en el segundo 2 («os lo ha mostrado Bad Gyal») y enseña la story con la etiqueta y el sello de «33 min»."] },
+  { bloque:"Las fuentes y la verificación", q:"¿Contrasta con alguna otra fuente?",
+    pista:"¿Cuántas fuentes distintas hay en todo el vídeo?",
+    guides:["¿Cuántas fuentes usa?","¿Contrasta el dato o solo reacciona a lo que ve?"],
+    chuleta:["Una sola: los 50 segundos se sostienen sobre una única publicación, autopublicada por una de las personas de las que habla.","No contrasta: falla en no tener nada con qué comparar."] },
+  { bloque:"Las fuentes y la verificación", q:"¿Distingue el hecho verificable de la interpretación?",
+    pista:"Escuchad bien el segundo 24.",
+    guides:["¿Qué pasa en el segundo 24 con lo que afirma?","¿Puede probar lo que dice? ¿Lo afirma igual?"],
+    chuleta:["En 0:24: «fue la única, o sea, yo creo que la única, una de las pocas, si no…». Se rectifica tres veces en cinco segundos.","No puede comprobarlo y lo sabe, y aun así lo afirma («no había más famosos que hiciesen esto»)."] },
+  { bloque:"La interacción con la audiencia", q:"¿Qué recursos usa para que parezca que habla con un amigo?",
+    pista:"Fijaos en cómo le habla a ella y en una palabra que os mete a vosotros.",
+    guides:["¿Cómo le habla a la protagonista?","¿Qué palabra mete al espectador en su mismo bando?","¿Qué otros detalles le dan cercanía?"],
+    chuleta:["Le habla en segunda persona a Bad Gyal como si lo escuchara («Bad Gyal, por favor…», «¡menudo show montas!»).","El «nos» inclusivo: «nos estás dando una exclusiva».","El artículo delante del nombre, el tono coloquial y el imprevisto del tren dentro del vídeo."] },
+  { bloque:"La interacción con la audiencia", q:"¿Hace alguna llamada a la acción? ¿Dónde y por qué ahí?",
+    pista:"Hay más de una, y ninguna interrumpe la información.",
+    guides:["¿Cuántas llamadas a la acción hace y cuáles son?","¿Dónde las coloca y por qué ahí?"],
+    chuleta:["Tres: «seguidme para más salseo» (0:05), «os leo por DM» (0:44) y la repetición literal de la primera (0:49).","Enmarcan el contenido sin interrumpirlo: una pegada al gancho, cuando ya ha enganchado, y las otras dos cuando ya no queda nada que mirar."] }
+];
+const PREGUNTAS = [1,2,3,4,5,6,7,8,9,17].map(n => Object.assign({ orig: n }, TODAS[n - 1]));
+
+// ===== CONFIGURACIÓN =====
+const API_URL = "https://script.google.com/macros/s/AKfycbxt2_VvCcqLx8KWNvV2wSqLnrdjZSfs0YP0yOwlvF5wTwQO0MqgXxypLdfKvFz4o2KS/exec";   // dirección /exec del servidor de Apps Script
+const PAGINA_EQUIPO = "videolupa_sinia_equipo_v1.html";
+// =========================
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const lsGet = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch(e){ return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch(e){} };
+const lsDel = k => { try { localStorage.removeItem(k); } catch(e){} };
+
+let API = new URLSearchParams(location.search).get("api") || (API_URL.startsWith("http") ? API_URL : "") || lsGet("vls_api", "");
+let CODE = lsGet("vls_code", ""), KEY = lsGet("vls_key", "");
+let S = null, ultimaVista = "", viendoEntrada = false, eligiendo = false, minutos = 5, finTiempo = 0, pegado = "";
+
+function toast(msg, warn){
+  const t = $("toast"); t.textContent = msg; t.className = warn ? "warn show" : "show";
+  clearTimeout(t._h); t._h = setTimeout(() => t.className = "", 3800);
+}
+async function api(params){
+  // Si el servidor está ocupado (muchos móviles a la vez) se reintenta solo
+  let ultimo;
+  for (let i = 0; i < 5; i++){
+    try {
+      const r = await fetch(API, { method:"POST", body: JSON.stringify(params) });
+      const j = await r.json();
+      if (j.error && /bloqueo|lock|ocupad|Service invoked too many|Límite|timed out/i.test(j.error)) throw new Error("ocupado");
+      if (j.error) { const e = new Error(j.error); e.final = true; throw e; }
+      return j;
+    } catch(e){
+      if (e.final) throw e;
+      ultimo = e; await new Promise(res => setTimeout(res, 600 + Math.random() * 1400 * (i + 1)));
+    }
+  }
+  throw new Error("No hay conexión con el servidor. Vuelve a intentarlo.");
+}
+async function accion(params, okMsg){
+  version++; // cualquier respuesta que estuviera en camino ya es vieja
+  toast("Un momento…"); document.body.style.cursor = "progress";
+  try {
+    const j = await api(Object.assign({ c: CODE, k: KEY }, params));
+    if (okMsg) toast(okMsg);
+    ultimaVista = "";
+    if (j.game){ version++; ponerEstado(j); } else await refrescar();
+  }
+  catch(e){ toast(e.message, true); }
+  finally { document.body.style.cursor = ""; if (!okMsg && $("toast").textContent === "Un momento…") $("toast").className = ""; }
+}
+function ponerEstado(j){
+  S = j;
+  if (S.game.status === "answer") finTiempo = Date.now() + S.game.remaining * 1000;
+  pintar();
+}
+const armado = {};
+function confirmar(k, msg){
+  if (armado[k]) { armado[k] = false; return true; }
+  armado[k] = true; toast(msg, true); setTimeout(() => armado[k] = false, 4000); return false;
+}
+
+// ── crear partida ──
+function pintarInicio(){
+  $("topRight").innerHTML = ""; $("side").innerHTML = "";
+  $("main").innerHTML = `
+    <div class="panel"><div class="ph">NUEVO CONCURSO</div><div class="pb">
+      <p class="muted" style="margin-bottom:16px;line-height:1.5">Los equipos entran desde el móvil con el QR. En cada pregunta tienen 5 minutos y una casilla por cada cosa de la que deben hablar; a mitad de tiempo sale la pista. Al cerrar, el proyector propone los puntos de cada equipo con su porqué, los revisas si quieres y pulsas «Dar los puntos».</p>
+      ${API ? "" : `<div class="field"><label>Dirección del servidor (termina en /exec)</label><input id="inApi" placeholder="https://script.google.com/macros/s/.../exec"></div>`}
+      <button class="btn b-red" id="btnCrear">Crear concurso</button>
+      <div class="err" id="errCrear"></div>
+    </div></div>`;
+  $("btnCrear").onclick = crear;
+}
+async function crear(){
+  if (!API) API = ($("inApi").value || "").trim();
+  if (!API){ $("errCrear").textContent = "Falta la dirección del servidor"; return; }
+  $("btnCrear").disabled = true; $("btnCrear").textContent = "Creando…";
+  try {
+    const j = await api({ a:"new" });
+    CODE = j.code; KEY = j.admin;
+    lsSet("vls_api", API); lsSet("vls_code", CODE); lsSet("vls_key", KEY);
+    ultimaVista = ""; await refrescar();
+  } catch(e){
+    $("errCrear").textContent = e.message;
+    $("btnCrear").disabled = false; $("btnCrear").textContent = "Crear concurso";
+  }
+}
+function nuevaPartida(){
+  if (!confirmar("nueva", "Pulsa otra vez para empezar un concurso nuevo (el actual se borra solo en unas horas).")) return;
+  CODE = ""; KEY = ""; S = null; lsDel("vls_code"); lsDel("vls_key"); pintarInicio();
+}
+
+// ── estado ──
+let pidiendo = false, otraVez = false, version = 0;
+async function refrescar(){
+  if (!CODE) return;
+  if (pidiendo){ otraVez = true; return; } // se repite en cuanto acabe la que está en camino
+  pidiendo = true;
+  const v = version;
+  try {
+    const j = await api({ a:"astate", c: CODE, k: KEY });
+    if (v === version) ponerEstado(j); // si entretanto se pulsó un botón, esta respuesta es vieja
+  } catch(e){
+    if (/No existe|Solo la pantalla/.test(e.message)) { toast(e.message, true); CODE = ""; lsDel("vls_code"); pintarInicio(); }
+  } finally { pidiendo = false; if (otraVez){ otraVez = false; refrescar(); } }
+}
+setInterval(refrescar, 2500);
+setInterval(reloj, 250);
+
+function urlEquipo(){
+  const u = new URL(PAGINA_EQUIPO, location.href);
+  u.searchParams.set("c", CODE);
+  if (!API_URL.startsWith("http")) u.searchParams.set("api", API);
+  return u.toString();
+}
+function equipo(id){ return (S.teams.find(t => t.id === id)) || { name:"?", color:"#999" }; }
+function preguntaActual(){ return S.game.idx >= 0 ? PREGUNTAS[S.game.idx] : null; }
+function siguienteLibre(){
+  for (let i = Math.max(0, S.game.idx + 1); i < PREGUNTAS.length; i++) if (!S.game.used.includes(i)) return i;
+  for (let i = 0; i < PREGUNTAS.length; i++) if (!S.game.used.includes(i)) return i;
+  return -1;
+}
+
+function pintar(){
+  const g = S.game, n = g.idx + 1;
+  const etiqueta = { lobby: g.idx < 0 ? "ESPERANDO EQUIPOS" : "ENTRE PREGUNTAS", answer:`PREGUNTA ${n}/${PREGUNTAS.length} · RESPONDIENDO`,
+                     review:`PREGUNTA ${n}/${PREGUNTAS.length} · CORRECCIÓN`, over:"🏆 CONCURSO TERMINADO" }[g.status];
+  $("topRight").innerHTML = `<span class="codebadge">${esc(g.code)}</span><span class="badge">${etiqueta}</span>
+    <button class="tbtn" onclick="mostrarEntrada()">📱 Cómo entrar</button>
+    ${g.status !== "over" ? `<button class="tbtn" onclick="terminar()">🏁 Terminar</button>` : ""}
+    <button class="tbtn" onclick="nuevaPartida()">＋ Nuevo concurso</button>`;
+  pintarLateral();
+  if (viendoEntrada) return;
+
+  const vista = JSON.stringify([g.status, g.idx, g.hint, g.dur, eligiendo, S.teams.map(t => [t.name, t.devs, t.sent]), S.answers, S.points, g.used]);
+  if (vista === ultimaVista) return;
+  if (document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return; // no se borra lo que estás pegando
+  ultimaVista = vista;
+
+  if (g.status === "over") return pintarFinal();
+  if (g.status === "answer") return pintarPregunta();
+  if (g.status === "review") return pintarCorreccion();
+  if (g.idx < 0 && !eligiendo) return pintarSala();
+  return pintarEleccion();
+}
+
+function pintarLateral(){
+  const ord = [...S.teams].sort((a, b) => b.pts - a.pts);
+  $("side").innerHTML = `<div class="panel"><div class="ph">CLASIFICACIÓN <span>${S.teams.length} equipos</span></div><div class="pb">
+    ${ord.length ? ord.map((t, i) => `<div class="st ${i < 3 && t.pts > 0 ? "lead" : ""}">
+      <div class="rk">${i+1}</div><i class="dt" style="background:${t.color}"></i>
+      <div class="nm" title="${esc(t.name)}">${esc(t.name)}</div>
+      <button class="adj" title="Quitar 5 puntos" onclick="ajustar('${t.id}',-5)">−</button>
+      <div class="pt">${t.pts}</div>
+      <button class="adj" title="Sumar 5 puntos" onclick="ajustar('${t.id}',5)">+</button></div>`).join("")
+      : `<div class="empty">Aún no ha entrado ningún equipo</div>`}
+    <p class="muted" style="font-size:12px;margin-top:10px">${S.totalDevs} móviles conectados · − y + quitan o suman 5</p>
+  </div></div>`;
+}
+function ajustar(t, d){ accion({ a:"adjust", t, d }); }
+
+function qrEn(id){
+  try { const q = qrcode(0, "L"); q.addData(urlEquipo()); q.make(); $(id).innerHTML = q.createSvgTag({ cellSize:4, margin:2, scalable:true }); $(id).querySelector("svg").setAttribute("style","width:240px;height:240px;display:block"); }
+  catch(e){ $(id).textContent = ""; }
+}
+function bloqueEntrada(){
+  return `<div class="lobby"><div id="qr"></div><div>
+    <div class="muted" style="font-weight:700">Código del concurso</div>
+    <div class="bigcode">${esc(S.game.code)}</div>
+    <div class="link">${esc(urlEquipo())}</div>
+    <p style="margin-top:14px;line-height:1.5;max-width:420px">Escanead el QR y escribid <b>el nombre de vuestro equipo</b>, igual que vuestros compañeros. Basta con que envíe la respuesta un móvil por equipo.</p>
+  </div></div>`;
+}
+function pintarSala(){
+  $("main").innerHTML = `<div class="panel"><div class="ph">ENTRAD CON VUESTRO EQUIPO</div><div class="pb">
+    ${bloqueEntrada()}
+    <div class="chips">${S.teams.map(t => `<span class="chip"><i style="background:${t.color}"></i>${esc(t.name)} <small>${t.devs} 📱</small></span>`).join("") || `<span class="muted">Esperando equipos…</span>`}</div>
+    <div class="row" style="margin-top:20px">
+      <button class="btn b-red" onclick="lanzar(0)" ${S.teams.length < 1 ? "disabled" : ""}>▶ Lanzar la pregunta 1</button>
+      <button class="btn b-out" onclick="eligiendo=true;ultimaVista='';pintar()">Elegir otra pregunta</button>
+      ${selectorMinutos()}
+    </div></div></div>`;
+  qrEn("qr");
+}
+function mostrarEntrada(){
+  eligiendo = false; ultimaVista = "";
+  if (S.game.status === "lobby" && S.game.idx < 0) return pintar();
+  viendoEntrada = true;
+  $("main").innerHTML = `<div class="panel"><div class="ph">CÓMO ENTRAR <span>se puede entrar en cualquier momento</span></div><div class="pb">
+    ${bloqueEntrada()}
+    <div class="row" style="margin-top:18px"><button class="btn b-dark" onclick="viendoEntrada=false;ultimaVista='';pintar()">← Volver</button></div></div></div>`;
+  qrEn("qr");
+}
+function selectorMinutos(){
+  return `<label class="muted" style="display:flex;align-items:center;gap:8px;font-weight:700">Tiempo
+    <select id="selMin" onchange="minutos=Number(this.value)" style="font-size:16px;padding:8px;border-radius:8px;border:2px solid var(--border)">
+      ${[2,3,4,5,6,8,10].map(m => `<option value="${m}" ${m === minutos ? "selected" : ""}>${m} min</option>`).join("")}
+    </select></label>`;
+}
+
+function pintarEleccion(){
+  const sig = siguienteLibre();
+  $("main").innerHTML = `<div class="panel"><div class="ph">${sig >= 0 ? "SIGUIENTE PREGUNTA" : "YA HABÉIS HECHO TODAS"} <span>las ya hechas salen más claras</span></div><div class="pb">
+    ${sig >= 0 ? `<div class="row" style="margin-bottom:18px">
+        <button class="btn b-red" onclick="lanzar(${sig})">▶ Lanzar la pregunta ${sig + 1}</button>
+        ${selectorMinutos()}
+      </div>` : `<div class="row" style="margin-bottom:18px"><button class="btn b-dark" onclick="terminar(true)">🏁 Ver la clasificación final</button></div>`}
+    <div class="grid">${PREGUNTAS.map((x, i) => `<button class="nc ${S.game.used.includes(i) ? "used" : ""} ${i === sig ? "next" : ""}" onclick="lanzar(${i})">
+      <div class="tg">${i + 1} · ${esc(x.bloque)}</div><div class="ti">${esc(x.q)}</div></button>`).join("")}</div>
+  </div></div>`;
+}
+function lanzar(i){
+  const x = PREGUNTAS[i];
+  eligiendo = false; pegado = "";
+  accion({ a:"start", idx:i, dur: minutos * 60, q:{ n:i + 1, total:PREGUNTAS.length, bloque:x.bloque, q:x.q, pista:x.pista, guides:x.guides } });
+}
+
+function pintarPregunta(){
+  const g = S.game, x = preguntaActual();
+  const enviados = S.teams.filter(t => t.sent).length;
+  $("main").innerHTML = `<div class="panel"><div class="ph">PREGUNTA ${g.idx + 1} DE ${PREGUNTAS.length} <span>${enviados} de ${S.teams.length} equipos han enviado</span></div><div class="pb">
+    <div class="qhead"><div><div class="qn">PREGUNTA ${g.idx + 1}</div><div class="qb">${esc(x.bloque)}</div></div>
+      <div class="clock" id="clock">0:00</div></div>
+    <div class="bar"><i id="barra"></i></div>
+    <div class="qtext">${esc(x.q)}</div>
+    <ol class="guides">${x.guides.map(t => `<li>${esc(t)}</li>`).join("")}</ol>
+    ${g.hint ? `<div class="pista"><b>💡 PISTA</b>${esc(x.pista)}</div>` : `<div class="pista off" id="pistaOff">La pista sale sola a mitad de tiempo.</div>`}
+    <div class="chips">${S.teams.map(t => `<span class="chip ${t.sent ? "ok" : ""}"><i style="background:${t.color}"></i>${esc(t.name)} ${t.sent ? "✓" : "<small>escribiendo…</small>"}</span>`).join("")}</div>
+    <div class="row" style="margin-top:20px">
+      ${g.hint ? "" : `<button class="btn b-gold" onclick="accion({a:'hint'},'Pista enviada a los móviles')">💡 Dar la pista ahora</button>`}
+      <button class="btn b-out" onclick="quitarMinuto()">−1 minuto</button>
+      <button class="btn b-out" onclick="accion({a:'more',s:60},'Un minuto más')">+1 minuto</button>
+      <button class="btn b-red" id="btnCerrar" onclick="cerrar()">⏹ Cerrar y corregir</button>
+      <span class="timeup" id="timeup"></span>
+    </div></div></div>`;
+  reloj();
+}
+function reloj(){
+  if (!S || S.game.status !== "answer") return;
+  const el = $("clock"); if (!el) return;
+  const r = Math.max(0, Math.round((finTiempo - Date.now()) / 1000));
+  el.textContent = Math.floor(r / 60) + ":" + String(r % 60).padStart(2, "0");
+  el.classList.toggle("warn", r <= 60);
+  const b = $("barra"); if (b) b.style.width = (r / S.game.dur * 100) + "%";
+  const tu = $("timeup"); if (tu) tu.textContent = r === 0 ? "¡Tiempo! Cierra para corregir" : "";
+  if (!S.game.hint && r <= S.game.dur / 2 && $("pistaOff")) { ultimaVista = ""; refrescar(); }
+}
+function quitarMinuto(){
+  const r = Math.max(0, Math.round((finTiempo - Date.now()) / 1000));
+  if (r <= 60) return toast("Queda menos de un minuto: si quieres acabar ya, pulsa «Cerrar y corregir».", true);
+  accion({ a:"more", s:-60 }, "Un minuto menos");
+}
+function cerrar(){
+  const quedan = S.teams.filter(t => !t.sent).length;
+  const r = Math.max(0, Math.round((finTiempo - Date.now()) / 1000));
+  if (r > 0 && quedan > 0 && !confirmar("cerrar", `Aún quedan ${quedan} equipo(s) por enviar. Pulsa otra vez para cerrar igualmente.`)) return;
+  accion({ a:"close" });
+}
+
+// ── corrección ──
+// ── corrección automática (sin IA) ──
+let PROP = {}, abiertoRevisar = false;
+function claveProp(idx){ return "vls_prop_" + CODE + "_" + idx; }
+function propuesta(idx){
+  if (!PROP[idx]){ try { PROP[idx] = JSON.parse(localStorage.getItem(claveProp(idx)) || "null"); } catch(e){} }
+  if (!PROP[idx]) PROP[idx] = {};
+  const x = PREGUNTAS[idx], pr = PROP[idx];
+  S.teams.forEach(t => { if (S.answers[t.id] && !pr[t.id]) pr[t.id] = Puntuador.puntuarRespuestas(x.orig, S.answers[t.id]); });
+  return pr;
+}
+function guardarProp(idx){ try { localStorage.setItem(claveProp(idx), JSON.stringify(PROP[idx])); } catch(e){} }
+const sumaP = cas => cas.reduce((a, c) => a + c.p, 0);
+async function darPuntos(){
+  const idx = S.game.idx, pr = propuesta(idx), pts = {}, mot = {};
+  Object.keys(pr).forEach(tid => { pts[tid] = sumaP(pr[tid]); mot[tid] = {}; pr[tid].forEach((c, i) => { mot[tid][i + 1] = { p: c.p, txt: c.txt }; }); });
+  if (!Object.keys(pts).length) return toast("Ningún equipo ha respondido a esta pregunta.", true);
+  version++; toast("Un momento…"); document.body.style.cursor = "progress";
+  try {
+    const j = await api({ a:"score", c: CODE, k: KEY, pts, mot });
+    toast("✓ Puntos dados a " + Object.keys(pts).length + " equipo(s). Cada uno ve en su móvil el porqué.");
+    ultimaVista = ""; if (j.game){ version++; ponerEstado(j); } else await refrescar();
+  } catch(e){ toast(e.message, true); }
+  finally { document.body.style.cursor = ""; }
+}
+function ajustarCasilla(tid, i, d){
+  const pr = propuesta(S.game.idx), c = pr[tid][i];
+  c.p = Math.max(0, Math.min(10, c.p + d)); guardarProp(S.game.idx); ultimaVista = ""; pintar();
+}
+function cambiarMotivo(tid, i, v){ const pr = propuesta(S.game.idx); pr[tid][i].txt = v.replace(/\s*\n\s*/g, " "); guardarProp(S.game.idx); }
+function pintarCorreccion(){
+  const g = S.game, x = preguntaActual(), max = x.guides.length * 10, pr = propuesta(g.idx);
+  guardarProp(g.idx);
+  const dados = Object.keys(S.points).length > 0;
+  const pendiente = Object.keys(pr).some(tid => S.points[tid] !== sumaP(pr[tid]));
+  const prop = t => pr[t.id] ? sumaP(pr[t.id]) : null;
+  const orden = [...S.teams].sort((a, b) => (prop(b) ?? -1) - (prop(a) ?? -1));
+  const tabla = orden.map((t, i) => {
+    const p = prop(t), envio = !!S.answers[t.id];
+    const ancho = p != null ? Math.max(0, Math.min(100, p / max * 100)) : 0;
+    return `<li class="${envio ? "" : "none"}"><span class="rk">${p != null ? i + 1 : ""}</span>
+      <span class="nm"><i style="background:${t.color}"></i>${esc(t.name)}</span>
+      <span class="bar"><b style="width:${ancho}%;background:${t.color}"></b></span>
+      <span class="pt">${p != null ? p + `<small> /${max}</small>` : `<small>no envió</small>`}</span></li>`;
+  }).join("");
+  const cards = S.teams.filter(t => pr[t.id]).map(t => `<div class="ans" style="--c:${t.color}">
+      <h3>${esc(t.name)}<span class="p">${sumaP(pr[t.id])}<small style="font-size:14px;color:var(--muted)"> /${max}</small></span></h3>
+      ${x.guides.map((gq, i) => { const c = pr[t.id][i], cls = c.p >= 10 ? "full" : c.p <= 0 ? "zero" : "";
+        return `<div class="l"><b>${i + 1}. ${esc(gq)}</b><br>${esc((S.answers[t.id][i] || "").trim() || "(en blanco)")}</div>
+        <div class="ajuste"><button class="adj" onclick="ajustarCasilla('${t.id}',${i},-1)" aria-label="Quitar un punto">−</button>
+          <span class="pc">${c.p}</span><button class="adj" onclick="ajustarCasilla('${t.id}',${i},1)" aria-label="Sumar un punto">+</button>
+          <textarea class="mot ${cls}" rows="2" oninput="cambiarMotivo('${t.id}',${i},this.value)" aria-label="Por qué">${esc(c.txt)}</textarea></div>`; }).join("")}
+    </div>`).join("");
+  const sig = siguienteLibre();
+  let boton;
+  if (!Object.keys(pr).length) boton = `<span class="muted">Ningún equipo respondió a esta pregunta.</span>`;
+  else if (dados && !pendiente) boton = `<button class="btn b-out" onclick="darPuntos()">✓ Puntos dados</button>`;
+  else boton = `<button class="btn b-red" onclick="darPuntos()">✓ ${dados ? "Volver a dar los puntos (has cambiado algo)" : "Dar los puntos"}</button>`;
+  $("main").innerHTML = `<div class="panel"><div class="ph">CORRECCIÓN · PREGUNTA ${g.idx + 1} <span>${esc(x.q)}</span></div><div class="pb">
+    <p class="muted" style="margin-bottom:12px">${dados ? "Puntos dados. Cada equipo ve en su móvil su nota y el porqué de cada casilla." : "Esta es la puntuación que propone el proyector. Si quieres cambiar algo, ábrelo en «Revisar y ajustar». Luego pulsa «Dar los puntos»."}</p>
+    <div class="row" style="margin-bottom:6px">${boton}</div>
+    <h3 style="margin:22px 0 4px;font-size:15px;letter-spacing:.08em;color:var(--red)">PUNTOS DE ESTA PREGUNTA${dados ? "" : " · PROPUESTA"}</h3>
+    <ol class="qpts ${S.teams.length > 10 ? "dos" : ""}">${tabla}</ol>
+    <details class="verresp" ${abiertoRevisar ? "open" : ""} ontoggle="abiertoRevisar=this.open"><summary>Revisar y ajustar (${Object.keys(pr).length} equipos)</summary>${cards}</details>
+    <div class="row" style="margin-top:20px">
+      ${sig >= 0 ? `<button class="btn b-dark" onclick="abiertoRevisar=false;accion({a:'wait'})">Siguiente pregunta ›</button>` : `<button class="btn b-dark" onclick="terminar(true)">🏁 Ver la clasificación final</button>`}
+    </div>
+  </div></div>`;
+}
+
+function terminar(directo){
+  if (!directo && !confirmar("fin", "Pulsa otra vez para terminar el concurso y ver la clasificación final.")) return;
+  accion({ a:"end" });
+}
+function pintarFinal(){
+  const ord = [...S.teams].sort((a, b) => b.pts - a.pts);
+  $("main").innerHTML = `<div class="panel"><div class="ph">CLASIFICACIÓN FINAL</div><div class="pb podium">
+    <div class="big">🏆</div><h1>${esc(ord[0] ? ord[0].name : "")}</h1>
+    <p class="muted">gana «Bajo la lupa» con ${ord[0] ? ord[0].pts : 0} puntos</p>
+    ${ord.slice(1, 3).map((t, i) => `<p style="font-size:20px;margin-top:10px">${i === 0 ? "🥈" : "🥉"} <b>${esc(t.name)}</b> · ${t.pts}</p>`).join("")}
+  </div></div>`;
+}
+
+if (CODE && API) refrescar(); else pintarInicio();
+</script>
+</body>
+</html>
