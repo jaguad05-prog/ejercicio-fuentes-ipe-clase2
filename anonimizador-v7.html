@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Anonimizador de ejercicios</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&family=Young+Serif&display=swap">
+<style>
+/* Mesa de corrección: cabecera sobria, tres pestañas, códigos marcados con rotulador */
+:root{color-scheme:light;
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#1c2533; --muted:#5d6878; --line:#d9dee6;
+  --accent:#1f4fa8; --accent-ink:#ffffff; --mark:#ffe36b; --mark-ink:#2a2200;
+  --ok:#1d7a4a; --warn:#a4561b;
+  --f-display:"Young Serif",Georgia,serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12161d; --panel:#1a2029; --ink:#e6eaf0; --muted:#9aa5b4; --line:#2c3440;
+  --accent:#7aa4f2; --accent-ink:#0c1320; --mark:#d9bf3c; --mark-ink:#1a1500;
+  --ok:#5fc48f; --warn:#e3a066; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161d; --panel:#1a2029; --ink:#e6eaf0; --muted:#9aa5b4; --line:#2c3440;
+  --accent:#7aa4f2; --accent-ink:#0c1320; --mark:#d9bf3c; --mark-ink:#1a1500;
+  --ok:#5fc48f; --warn:#e3a066; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:900px;margin:0 auto;padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(26px,5vw,34px);margin:0;text-wrap:balance}
+.lead{color:var(--muted);margin:4px 0 0;max-width:65ch}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.tab{font:inherit;font-weight:500;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:10px 12px;cursor:pointer}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab .n{font-family:var(--f-mono);font-size:12px;margin-right:6px;color:var(--accent)}
+section{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+label,.lbl{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+textarea,input[type=text]{font:inherit;width:100%;box-sizing:border-box;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px}
+textarea{min-height:150px;resize:vertical}
+textarea:focus,input:focus,button:focus-visible,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button.b{font:inherit;font-weight:500;border-radius:6px;padding:8px 14px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+button.g{background:transparent;color:var(--accent)}
+button.d{background:transparent;color:var(--warn);border-color:var(--warn)}
+.code{font-family:var(--f-mono);background:var(--mark);color:var(--mark-ink);padding:1px 5px;border-radius:3px;font-size:.92em;white-space:nowrap}
+table{border-collapse:collapse;width:100%}
+td,th{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tw{overflow-x:auto}
+.empty{color:var(--muted);padding:12px;border:1px dashed var(--line);border-radius:6px}
+.out{white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:12px;max-height:340px;overflow:auto}
+.meta{font-size:13px;color:var(--muted)}
+.ok{color:var(--ok)} .warn{color:var(--warn)}
+.toast{font-size:13px;color:var(--ok);min-height:1.2em}
+.files{display:flex;flex-direction:column;gap:12px}
+select{font:inherit;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px}
+.note{font-size:13px;color:var(--muted);max-width:65ch}
+[hidden]{display:none!important}
+.doc{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:12px 14px;max-height:520px;overflow:auto;word-break:break-word}
+.pegar{min-height:150px}
+.pegar:empty::before{content:attr(data-ph);color:var(--muted)}
+.doc table{border-collapse:collapse;width:100%;margin:8px 0}
+.doc td,.doc th{border:1px solid var(--line);padding:6px 8px;vertical-align:top;text-align:left;font-size:14px}
+.doc th{background:var(--panel);font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink)}
+.doc h1,.doc h2,.doc h3,.doc h4{font-family:var(--f-body);margin:12px 0 6px}
+.doc p{margin:6px 0}
+</style>
+</head>
+<body style="margin:0">
+
+<div class="wrap">
+  <header>
+    <h1>Anonimizador de ejercicios</h1>
+    <p class="lead">Cambia los nombres de tus alumnos por un código antes de pasarle los ejercicios a Claude, y luego devuelve cada corrección a su dueño. La lista se guarda solo en este navegador y sigue ahí aunque cierres la página, y la página no envía nada a ningún sitio, así que en GitHub no se ve ningún nombre.</p>
+    <p class="meta" id="guardado"></p>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-t="lista" aria-selected="true"><span class="n">1</span>Lista de clase</button>
+    <button class="tab" role="tab" data-t="quitar" aria-selected="false"><span class="n">2</span>Quitar nombres</button>
+    <button class="tab" role="tab" data-t="poner" aria-selected="false"><span class="n">3</span>Devolver nombres</button>
+  </nav>
+
+  <!-- 1 LISTA -->
+  <section id="p-lista">
+    <div class="card">
+      <div class="row" style="justify-content:space-between"><label for="selLista">Lista que estás usando</label><span class="toast" id="tLista"></span></div>
+      <div class="row"><select id="selLista" style="flex:1;min-width:180px"></select><button class="b g" id="btnRenombrar">Cambiar nombre</button><button class="b d" id="btnVaciar">Vaciar lista</button><button class="b d" id="btnBorrarLista">Borrar lista</button></div>
+      <div class="row" id="filaRenombrar" hidden><input type="text" id="nombreNuevo" style="flex:1;min-width:180px"><button class="b" id="btnGuardarNombre">Guardar nombre</button></div>
+      <div class="row"><input type="text" id="nombreLista" placeholder="Nombre de la lista nueva (por ejemplo, Deportes)" style="flex:1;min-width:180px"><button class="b" id="btnNuevaLista">Crear lista</button></div>
+      <p class="note">Cada lista tiene sus propios códigos. Antes de quitar o devolver nombres, comprueba que está elegida la lista de esa clase.</p>
+    </div>
+    <div class="card">
+      <label for="moodle">Cargar la lista de Moodle</label>
+      <p class="note">En Moodle entra en el curso, ve a Participantes, marca la casilla de arriba para seleccionarlos a todos y, en «Con los usuarios seleccionados…», elige «Descargar datos de la tabla como» Excel o CSV. Sube aquí ese archivo y entrarán todos los estudiantes de golpe.</p>
+      <input type="file" id="moodle" accept=".csv,.xlsx,.xls,.ods,.txt">
+      <div class="row"><button class="b" id="btnMoodle">Cargar alumnos de Moodle</button><span class="toast" id="tMoodle"></span></div>
+    </div>
+    <div class="card">
+      <label for="nuevos">O añádelos a mano, un nombre completo por línea</label>
+      <textarea id="nuevos" style="min-height:110px" placeholder="Lucía Fernández Ruiz&#10;Álvaro Martín Sanz"></textarea>
+      <div class="row"><button class="b" id="btnAdd">Añadir a la lista</button><span class="toast" id="tAdd"></span></div>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between"><span class="lbl">Tu clave</span><span class="meta" id="cuenta"></span></div>
+      <div class="tw"><table><thead><tr><th>Código</th><th>Alumno</th><th></th></tr></thead><tbody id="tabla"></tbody></table></div>
+      <div id="vacio" class="empty">Todavía no hay alumnos. Pega arriba la lista de la clase y cada uno recibirá un código fijo (ALU-01, ALU-02…).</div>
+    </div>
+    <div class="card">
+      <span class="lbl">Copia de seguridad</span>
+      <p class="note">Las listas viven en este navegador. Si borras los datos del navegador o cambias de ordenador se pierden, así que copia la clave y guárdala en un documento tuyo. La clave lleva todas tus listas. Para recuperarlas, pégala aquí y pulsa restaurar.</p>
+      <textarea id="clave" style="min-height:90px" placeholder="Pega aquí una clave guardada"></textarea>
+      <div class="row"><button class="b g" id="btnCopiarClave">Copiar clave</button><button class="b g" id="btnRestaurar">Restaurar desde la clave pegada</button><span class="toast" id="tClave"></span></div>
+    </div>
+  </section>
+
+  <!-- 2 QUITAR -->
+  <section id="p-quitar" hidden>
+    <p class="meta" data-usando></p>
+    <div class="card">
+      <label for="archivos">Sube los ejercicios o el zip de entregas de Moodle, puedes elegir varios</label>
+      <input type="file" id="archivos" multiple>
+      <p class="note" id="explicaRenombrar">Cada archivo se queda tal cual, solo cambia su nombre por el código del alumno (ALU-01.docx, ALU-02.mp3…). Al alumno lo reconozco por el nombre del archivo o de la carpeta de Moodle.</p>
+      <label class="row" style="text-transform:none;letter-spacing:0;font-weight:400;font-size:14px;color:var(--ink)"><input type="checkbox" id="dentro"> Cambiar también los nombres que aparecen dentro del ejercicio</label>
+      <div id="opcDentro" hidden style="display:flex;flex-direction:column;gap:10px">
+      <span class="meta">O pega un texto suelto</span>
+      <textarea id="suelto" placeholder="Pega aquí el ejercicio"></textarea>
+      <label class="row" style="text-transform:none;letter-spacing:0;font-weight:400;font-size:14px;color:var(--ink)"><input type="checkbox" id="sueltos" checked> Quitar también nombres y apellidos sueltos (si solo pone «Lucía» o «Fernández»)</label>
+      </div>
+      <div class="row"><button class="b" id="btnQuitar">Cambiar nombres</button><span class="toast" id="tQuitar"></span></div>
+    </div>
+    <div class="files" id="resultados"></div>
+    <div class="row" id="filaZip" hidden><button class="b" id="btnZip">Descargar todos en un zip</button><span class="toast" id="tZip"></span></div>
+    <div class="row" id="filaTodo" hidden><button class="b" id="btnCopiarTodo">Copiar todos los textos para Claude</button><button class="b" id="btnBajarTodo">Descargar todos los audios y vídeos</button><span class="toast" id="tTodo"></span></div>
+  </section>
+
+  <!-- 3 PONER -->
+  <section id="p-poner" hidden>
+    <p class="meta" data-usando></p>
+    <div class="card">
+      <label for="correccion">Pega la corrección que te ha dado Claude</label>
+      <div id="correccion" class="doc pegar" contenteditable="true" data-ph="Pega aquí la corrección. Se mantienen los cuadros, las negritas y las listas."></div>
+      <div class="row"><button class="b" id="btnPoner">Devolver nombres</button><button class="b g" id="btnLimpiar">Vaciar</button></div>
+    </div>
+    <div class="card" id="cardPuesto" hidden>
+      <div class="row" style="justify-content:space-between"><span class="lbl">Corrección con nombres</span><span class="meta" id="mPuesto"></span></div>
+      <div class="doc" id="puesto"></div>
+      <div class="row"><button class="b" id="btnCopiarPuesto">Copiar con formato</button><button class="b g" id="btnWord">Descargar en Word</button><span class="toast" id="tPuesto"></span></div>
+      <p class="note">«Copiar con formato» sirve para pegarlo en Word, Google Docs, Moodle o un correo con el cuadro tal cual.</p>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+const KEY='anonimizador-listas-v4', VIEJA='anonimizador-alumnos-v1';
+let db={listas:{},actual:''};
+try{const s=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(VIEJA)||'null');
+  if(s&&s.listas&&typeof s.listas==='object') db=s;
+  else if(s&&Array.isArray(s.alumnos)) db={listas:{'Mi clase':s},actual:'Mi clase'};
+}catch(e){}
+if(!Object.keys(db.listas).length) db={listas:{'Mi clase':{alumnos:[],next:1}},actual:'Mi clase'};
+if(!db.listas[db.actual]) db.actual=Object.keys(db.listas)[0];
+let st=db.listas[db.actual];
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){}}
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
+const codeOf=n=>'ALU-'+String(n).padStart(2,'0');
+function toast(id,msg){const el=$(id);el.textContent=msg;clearTimeout(el._t);el._t=setTimeout(()=>el.textContent='',2500);}
+async function copy(text,tid){try{await navigator.clipboard.writeText(text);toast(tid,'Copiado');}catch(e){const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();try{document.execCommand('copy');toast(tid,'Copiado');}catch(_){toast(tid,'Selecciona el texto y cópialo a mano');}t.remove();}}
+
+/* pestañas */
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x===b));
+  ['lista','quitar','poner'].forEach(t=>$('p-'+t).hidden=t!==b.dataset.t);
+});
+
+/* lista */
+let pendienteBorrar=null;
+function render(){
+  const tb=$('tabla');tb.innerHTML='';
+  st.alumnos.forEach(a=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><span class="code">${a.id}</span></td><td><input type="text" id="n-${a.id}" value="${esc(a.nombre)}"></td><td style="text-align:right"><button class="b d">${pendienteBorrar===a.id?'¿Seguro?':'Quitar'}</button></td>`;
+    tr.querySelector('input').onchange=e=>{a.nombre=e.target.value.trim()||a.nombre;save();};
+    tr.querySelector('button').onclick=()=>{
+      if(pendienteBorrar===a.id){st.alumnos=st.alumnos.filter(x=>x!==a);pendienteBorrar=null;save();}
+      else pendienteBorrar=a.id;
+      render();
+    };
+    tb.appendChild(tr);
+  });
+  $('vacio').hidden=st.alumnos.length>0;
+  $('cuenta').textContent=st.alumnos.length?st.alumnos.length+' alumnos':'';
+  const nl=Object.keys(db.listas).length,tot=Object.values(db.listas).reduce((n,l)=>n+l.alumnos.length,0);
+  $('guardado').innerHTML=tot?`<span class="ok">✓ ${tot} alumnos guardados en este navegador`+(nl>1?` en ${nl} listas`:'')+`</span>`:'';
+  $('selLista').innerHTML=Object.keys(db.listas).map(k=>`<option ${k===db.actual?'selected':''}>${esc(k)}</option>`).join('');
+  [...$('selLista').options].forEach((o,i)=>o.value=Object.keys(db.listas)[i]);
+  $('btnVaciar').textContent=confirmar==='vaciar'?'¿Seguro? Pulsa otra vez':'Vaciar lista';
+  $('btnBorrarLista').textContent=confirmar==='borrar'?'¿Seguro? Pulsa otra vez':'Borrar lista';
+  $('btnBorrarLista').hidden=nl<2;
+  document.querySelectorAll('[data-usando]').forEach(e=>e.innerHTML=`Usando la lista <strong>${esc(db.actual)}</strong> (${st.alumnos.length} alumnos). Para cambiarla, ve a la pestaña 1.`);
+}
+let confirmar=null;
+function cambiarA(nombre){db.actual=nombre;st=db.listas[nombre];pendienteBorrar=null;confirmar=null;$('filaRenombrar').hidden=true;save();render();}
+$('selLista').onchange=e=>cambiarA(e.target.value);
+$('btnNuevaLista').onclick=()=>{
+  const n=$('nombreLista').value.replace(/\s+/g,' ').trim();
+  if(!n){toast('tLista','Escribe el nombre de la lista nueva');return;}
+  if(db.listas[n]){toast('tLista','Ya tienes una lista con ese nombre');return;}
+  db.listas[n]={alumnos:[],next:1};$('nombreLista').value='';cambiarA(n);toast('tLista','Lista «'+n+'» creada');
+};
+$('btnRenombrar').onclick=()=>{const f=$('filaRenombrar');f.hidden=!f.hidden;$('nombreNuevo').value=db.actual;};
+$('btnGuardarNombre').onclick=()=>{
+  const n=$('nombreNuevo').value.replace(/\s+/g,' ').trim();
+  if(!n||n===db.actual){$('filaRenombrar').hidden=true;return;}
+  if(db.listas[n]){toast('tLista','Ya tienes una lista con ese nombre');return;}
+  const nuevo={};Object.keys(db.listas).forEach(k=>nuevo[k===db.actual?n:k]=db.listas[k]);db.listas=nuevo;cambiarA(n);
+};
+$('btnVaciar').onclick=()=>{
+  if(confirmar!=='vaciar'){confirmar='vaciar';render();return;}
+  st.alumnos=[];st.next=1;confirmar=null;pendienteBorrar=null;save();render();toast('tLista','Lista vaciada');
+};
+$('btnBorrarLista').onclick=()=>{
+  if(confirmar!=='borrar'){confirmar='borrar';render();return;}
+  const viejo=db.actual;delete db.listas[viejo];cambiarA(Object.keys(db.listas)[0]);toast('tLista','Lista «'+viejo+'» borrada');
+};
+function anadir(nombres){
+  const ya=new Set(st.alumnos.map(a=>norm(a.nombre)));let n=0;
+  nombres.map(s=>String(s).replace(/\s+/g,' ').trim()).filter(Boolean).forEach(nom=>{
+    if(ya.has(norm(nom)))return; ya.add(norm(nom));
+    st.alumnos.push({id:codeOf(st.next++),nombre:nom});n++;
+  });
+  save();render();return n;
+}
+$('btnAdd').onclick=()=>{
+  const n=anadir($('nuevos').value.split('\n'));
+  $('nuevos').value='';toast('tAdd',n?`${n} añadidos`:'No había nombres nuevos');
+};
+/* importar de Moodle */
+function nombresDeMoodle(filas){
+  const h=filas.findIndex(f=>f.some(c=>/^(nombre|first ?name)$/i.test(norm(String(c))))&&f.some(c=>/apellido|surname|last ?name/i.test(norm(String(c)))));
+  if(h<0){
+    const h2=filas.findIndex(f=>f.some(c=>/nombre completo|full ?name/i.test(norm(String(c)))));
+    if(h2<0)return null;
+    const col=filas[h2].findIndex(c=>/nombre completo|full ?name/i.test(norm(String(c))));
+    return filas.slice(h2+1).map(f=>f[col]).filter(Boolean);
+  }
+  const cab=filas[h].map(c=>norm(String(c)));
+  const cN=cab.findIndex(c=>/^(nombre|first ?name)$/.test(c)), cA=cab.findIndex(c=>/apellido|surname|last ?name/.test(c));
+  const cR=cab.findIndex(c=>/^roles?$/.test(c));
+  return filas.slice(h+1)
+    .filter(f=>cR<0||!f[cR]||/estudiante|student|alumno/i.test(String(f[cR])))
+    .map(f=>((f[cN]||'')+' '+(f[cA]||'')).trim()).filter(Boolean);
+}
+$('btnMoodle').onclick=async()=>{
+  const f=$('moodle').files[0];
+  if(!f){toast('tMoodle','Elige primero el archivo de Moodle');return;}
+  try{
+    const wb=/\.(csv|txt)$/i.test(f.name)?XLSX.read((await f.text()).replace(/^﻿/,''),{type:'string'}):XLSX.read(await f.arrayBuffer(),{type:'array'});
+    const filas=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
+    const nombres=nombresDeMoodle(filas);
+    if(!nombres){toast('tMoodle','No encuentro las columnas de nombre y apellidos en ese archivo');return;}
+    const n=anadir(nombres);
+    toast('tMoodle',n?(n===1?"1 alumno cargado":`${n} alumnos cargados`):'Ya estaban todos en la lista');
+    $('moodle').value='';
+  }catch(e){toast('tMoodle','No he podido leer ese archivo');}
+};
+$('btnCopiarClave').onclick=()=>copy(JSON.stringify(db),'tClave');
+$('btnRestaurar').onclick=()=>{
+  try{const s=JSON.parse($('clave').value);
+    if(s&&s.listas&&typeof s.listas==='object'){Object.entries(s.listas).forEach(([k,v])=>{if(v&&Array.isArray(v.alumnos))db.listas[k]=v;});if(s.actual&&db.listas[s.actual])db.actual=s.actual;}
+    else if(s&&Array.isArray(s.alumnos)){db.listas[db.actual]=s;}
+    else throw 0;
+    st=db.listas[db.actual];pendienteBorrar=null;save();render();$('clave').value='';toast('tClave','Listas restauradas');}
+  catch(e){toast('tClave','Esa clave no es válida, cópiala entera');}
+};
+
+/* motor de sustitución */
+const VAR={a:'aáàäâ',e:'eéèëê',i:'iíìïî',o:'oóòöô',u:'uúùüû',n:'nñ',c:'cç'};
+function pat(phrase){
+  return norm(phrase).split(/\s+/).map(tok=>[...tok].map(ch=>VAR[ch]?'['+VAR[ch]+VAR[ch].toUpperCase()+']':ch.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('')).join('[\\s\\u00a0]+');
+}
+const PART=new Set(['de','del','la','las','los','y','i','da','do','van','von']);
+function candidatos(sueltos){
+  const lista=[],cuenta={};
+  st.alumnos.forEach(a=>{
+    const t=a.nombre.split(/\s+/).filter(Boolean);
+    lista.push({txt:a.nombre,id:a.id});
+    const sig=t.filter(x=>!PART.has(norm(x)));
+    if(sig.length>=3){lista.push({txt:sig[0]+' '+sig[1],id:a.id});lista.push({txt:sig.slice(1).join(' '),id:a.id});}
+    if(sueltos) sig.filter(x=>norm(x).length>=3).forEach(x=>{cuenta[norm(x)]=(cuenta[norm(x)]||new Set()).add(a.id);lista.push({txt:x,id:a.id,suelto:true});});
+  });
+  return lista.filter(c=>!c.suelto||cuenta[norm(c.txt)].size===1).sort((x,y)=>y.txt.length-x.txt.length);
+}
+function anonimizar(texto,sueltos){
+  let out=texto;const marcas=[];const hits={};
+  let correos=0,dnis=0;
+  out=out.replace(/[\w.+-]+@[\w-]+\.[\w.]+/g,()=>{correos++;return '[correo]';});
+  out=out.replace(/\b\d{8}[ -]?[A-Za-z]\b/g,()=>{dnis++;return '[DNI]';});
+  candidatos(sueltos).forEach(c=>{
+    const re=new RegExp('(?<![\\p{L}\\p{N}])'+pat(c.txt)+'(?![\\p{L}\\p{N}])','giu');
+    out=out.replace(re,()=>{hits[c.id]=(hits[c.id]||0)+1;marcas.push(c.id);return '\u0001'+(marcas.length-1)+'\u0002';});
+  });
+  out=out.replace(/\u0001(\d+)\u0002/g,(m,i)=>marcas[+i]);
+  return {texto:out,hits,correos,dnis};
+}
+function adivinar(hits,fname){
+  if(fname){const f=norm(fname.replace(/\.[^.]+$/,'').replace(/[_\-.]+/g,' '));
+    const porNombre=st.alumnos.filter(a=>a.nombre.split(/\s+/).filter(t=>t.length>=3&&!PART.has(norm(t))).filter(t=>new RegExp('(^|\\s)'+norm(t)+'(\\s|$)').test(f)).length>=2);
+    if(porNombre.length===1)return porNombre[0].id;}
+  const orden=Object.entries(hits).sort((a,b)=>b[1]-a[1]);
+  return orden.length?orden[0][0]:'';
+}
+
+/* quitar */
+let resultados=[];
+const esMedia=f=>/^(audio|video)\//.test(f.type)||/\.(mp3|m4a|wav|ogg|aac|mp4|mov|webm|mkv|avi)$/i.test(f.name);
+const ext=n=>(n.match(/\.[^.]+$/)||[''])[0].toLowerCase();
+async function leer(f){
+  if(/\.docx$/i.test(f.name)){const r=await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});return r.value;}
+  return await f.text();
+}
+/* imágenes: lee el texto con OCR y tapa los nombres en la propia imagen */
+const TESS='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/';
+let ocr=null;
+function cargarOcr(){
+  if(ocr)return ocr;
+  ocr=new Promise((ok,ko)=>{const sc=document.createElement('script');sc.src=TESS+'tesseract.min.js';sc.onload=ok;sc.onerror=ko;document.head.appendChild(sc);})
+   .then(()=>Tesseract.createWorker('spa',1,{workerPath:TESS+'worker.min.js',corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1/',langPath:'https://cdn.jsdelivr.net/npm/@tesseract.js-data/spa/4.0.0_best_int/'}))
+   .catch(e=>{ocr=null;throw e;});
+  return ocr;
+}
+const esImagen=f=>/^image\//.test(f.type)||/\.(png|jpe?g|webp|gif|bmp)$/i.test(f.name);
+function tokensNombre(){
+  const t=new Set();
+  st.alumnos.forEach(a=>a.nombre.split(/\s+/).filter(x=>!PART.has(norm(x))&&norm(x).length>=3).forEach(x=>t.add(norm(x))));
+  return t;
+}
+async function leerImagen(f){
+  const w=await cargarOcr();
+  const img=await createImageBitmap(f);
+  const {data}=await w.recognize(f,{},{text:true,blocks:true});
+  const cv=document.createElement('canvas');cv.width=img.width;cv.height=img.height;
+  const cx=cv.getContext('2d');cx.drawImage(img,0,0);cx.fillStyle='#000';
+  const toks=tokensNombre();let tapados=0;
+  const palabras=[];(data.blocks||[]).forEach(b=>(b.paragraphs||[]).forEach(p=>(p.lines||[]).forEach(l=>(l.words||[]).forEach(w=>palabras.push(w)))));
+  palabras.forEach(w=>{
+    const limpio=norm(w.text.replace(/^[^\p{L}\p{N}@]+|[^\p{L}\p{N}]+$/gu,''));
+    const pareceCorreo=/@/.test(w.text)||/\S+\.(es|com|org|net|edu|eu)\b/i.test(w.text);
+    const lleva=[...toks].some(t=>t.length>=4&&limpio.includes(t));
+    if(toks.has(limpio)||pareceCorreo||lleva){const b=w.bbox,m=3;cx.fillRect(b.x0-m,b.y0-m,b.x1-b.x0+2*m,b.y1-b.y0+2*m);tapados++;}
+  });
+  const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
+  const texto=(data.text||'').replace(/\S*[\p{L}\p{N}]\S*\.(es|com|org|net|edu|eu)\b/giu,'[correo]');
+  return {texto,blob,tapados};
+}
+/* html: saca el texto que se ve, los datos guardados dentro y los audios y vídeos incrustados */
+function dataABlob(u){
+  const m=u.match(/^data:([^;,]+)(;base64)?,(.*)$/s);if(!m)return null;
+  let bytes;if(m[2]){const bin=atob(m[3]);bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);}else bytes=new TextEncoder().encode(decodeURIComponent(m[3]));
+  return new Blob([bytes],{type:m[1]});
+}
+const extDe=t=>({'audio/mpeg':'.mp3','audio/mp3':'.mp3','audio/wav':'.wav','audio/x-wav':'.wav','audio/webm':'.webm','audio/ogg':'.ogg','audio/mp4':'.m4a','audio/x-m4a':'.m4a','audio/aac':'.aac','video/mp4':'.mp4','video/webm':'.webm','video/quicktime':'.mov','video/ogg':'.ogv'}[t.split(';')[0]]||(/^video/.test(t)?'.mp4':'.mp3'));
+function leerHtml(src){
+  const doc=new DOMParser().parseFromString(src,'text/html');
+  const medias=[],vistos=new Set();
+  const guardaMedia=u=>{if(typeof u!=='string'||!/^data:(audio|video)\//.test(u)||vistos.has(u))return;vistos.add(u);const b=dataABlob(u);if(b)medias.push(b);};
+  doc.querySelectorAll('[src]').forEach(el=>guardaMedia(el.getAttribute('src')));
+  const datos=[];
+  const limpio=s=>new DOMParser().parseFromString(s,'text/html').body.textContent.replace(/\s+/g,' ').trim();
+  const recorre=(v,k)=>{
+    if(typeof v==='string'){if(/^data:/.test(v)){guardaMedia(v);return;}if(/^(blob:|https?:)/.test(v)||v.length>20000)return;const t=/<[a-z][\s\S]*>/i.test(v)?limpio(v):v.trim();if(t)datos.push((k&&isNaN(k)?k+': ':'')+t);}
+    else if(Array.isArray(v))v.forEach(x=>recorre(x));
+    else if(v&&typeof v==='object')Object.entries(v).forEach(([kk,x])=>recorre(x,kk));
+  };
+  doc.querySelectorAll('script[type="application/json"]').forEach(s=>{try{recorre(JSON.parse(s.textContent));}catch(e){}});
+  const body=doc.body;
+  body.querySelectorAll('script,style,noscript,template').forEach(x=>x.remove());
+  body.querySelectorAll('p,div,h1,h2,h3,h4,h5,h6,li,blockquote,figcaption,section,article,header,footer,tr,br,nav').forEach(el=>el.after(doc.createTextNode('\n')));
+  let texto=[doc.title?doc.title.trim():'',body.textContent].join('\n').replace(/[ \t ]+/g,' ').replace(/ *\n */g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+  if(datos.length)texto+='\n\n'+datos.join('\n');
+  return {texto,medias};
+}
+$('btnQuitar').onclick=async()=>{
+  $('btnQuitar').disabled=true;try{await quitar();}finally{$('btnQuitar').disabled=false;}
+};
+$('dentro').onchange=()=>{const d=$('dentro').checked;$('opcDentro').hidden=!d;$('explicaRenombrar').hidden=d;};
+/* solo cambiar el nombre del archivo */
+async function sinAutor(f,nombre){
+  /* en los Word quita también el autor guardado dentro del archivo */
+  if(!/\.docx$/i.test(nombre)||typeof JSZip==='undefined')return f;
+  try{
+    const z=await JSZip.loadAsync(f);const c=z.file('docProps/core.xml');if(!c)return f;
+    const x=(await c.async('string')).replace(/<dc:creator>[\s\S]*?<\/dc:creator>/,'<dc:creator></dc:creator>').replace(/<cp:lastModifiedBy>[\s\S]*?<\/cp:lastModifiedBy>/,'<cp:lastModifiedBy></cp:lastModifiedBy>');
+    z.file('docProps/core.xml',x);return await z.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+  }catch(e){return f;}
+}
+async function expandir(files){
+  const out=[];
+  for(const f of files){
+    if(/\.zip$/i.test(f.name)&&typeof JSZip!=='undefined'){
+      try{const z=await JSZip.loadAsync(f);
+        for(const e of Object.values(z.files)){if(e.dir||/(^|\/)(__MACOSX|\.DS_Store)/.test(e.name))continue;out.push({ruta:e.name,nombre:e.name.split('/').pop(),blob:await e.async('blob')});}
+      }catch(e){out.push({ruta:f.name,nombre:f.name,blob:f,error:true});}
+    } else out.push({ruta:f.name,nombre:f.name,blob:f});
+  }
+  return out;
+}
+function nombresSalida(){
+  const total={},vistos={};
+  resultados.forEach(r=>{if(r.renombrar&&r.alumno)total[r.alumno]=(total[r.alumno]||0)+1;});
+  resultados.forEach(r=>{if(!r.renombrar)return;if(!r.alumno){r.salida='';return;}
+    vistos[r.alumno]=(vistos[r.alumno]||0)+1;r.salida=r.alumno+(total[r.alumno]>1?'_'+vistos[r.alumno]:'')+ext(r.nombre);});
+}
+async function renombrar(){
+  resultados=[];
+  const lista=await expandir($('archivos').files);
+  for(const x of lista){
+    const r={renombrar:true,origen:x.ruta,nombre:x.nombre,error:x.error,alumno:adivinar({},x.ruta)};
+    r.blob=x.error?null:await sinAutor(x.blob,x.nombre);
+    resultados.push(r);
+  }
+  if(!resultados.length){toast('tQuitar','Sube algún archivo');return;}
+  pintar();
+}
+function guardarBlob(blob,nombre){const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=nombre;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);}
+$('btnZip').onclick=async()=>{
+  nombresSalida();const ok=resultados.filter(r=>r.renombrar&&r.salida&&r.blob);
+  if(!ok.length){toast('tZip','Asigna primero los alumnos');return;}
+  const z=new JSZip();ok.forEach(r=>z.file(r.salida,r.blob));
+  guardarBlob(await z.generateAsync({type:'blob'}),'ejercicios_sin_nombres.zip');
+  const faltan=resultados.filter(r=>r.renombrar&&!r.salida).length;
+  toast('tZip',faltan?`Descargado, pero faltan ${faltan} sin asignar (no van en el zip)`:'Descargado');
+};
+async function quitar(){
+  resultados.forEach(r=>r.url&&URL.revokeObjectURL(r.url));
+  if(!st.alumnos.length){toast('tQuitar','Primero añade la lista de clase en la pestaña 1');return;}
+  if(!$('dentro').checked){await renombrar();return;}
+  const sueltos=$('sueltos').checked;resultados=[];
+  for(const f of $('archivos').files){
+    if(esMedia(f)){resultados.push({media:true,file:f,url:URL.createObjectURL(f),texto:'',hits:{},origen:f.name,alumno:adivinar({},f.name)});continue;}
+    if(esImagen(f)){
+      try{
+        toast('tQuitar','Leyendo '+f.name+'… la primera imagen tarda un poco más');
+        const {texto,blob,tapados}=await leerImagen(f);const r=anonimizar(texto,sueltos);const al=adivinar(r.hits,f.name);
+        resultados.push({...r,origen:f.name,alumno:al,ocr:true});
+        const nom=f.name.replace(/\.[^.]+$/,'')+' · imagen.png';
+        resultados.push({media:true,imagen:true,tapados,file:new File([blob],nom,{type:'image/png'}),url:URL.createObjectURL(blob),texto:'',hits:{},origen:nom,alumno:al});
+      }catch(e){resultados.push({texto:'',hits:{},origen:f.name,error:true,alumno:''});}
+      continue;
+    }
+    if(/\.html?$/i.test(f.name)){
+      try{
+        const {texto,medias}=leerHtml(await f.text());const r=anonimizar(texto,sueltos);const al=adivinar(r.hits,f.name);
+        resultados.push({...r,origen:f.name,alumno:al});
+        medias.forEach((b,k)=>{const nom=f.name.replace(/\.html?$/i,'')+' · '+(/^video/.test(b.type)?'vídeo':'audio')+' '+(k+1)+extDe(b.type);resultados.push({media:true,file:new File([b],nom,{type:b.type}),url:URL.createObjectURL(b),texto:'',hits:{},origen:nom,alumno:al});});
+      }catch(e){resultados.push({texto:'',hits:{},origen:f.name,error:true,alumno:''});}
+      continue;
+    }
+    try{const t=await leer(f);const r=anonimizar(t,sueltos);resultados.push({...r,origen:f.name,alumno:adivinar(r.hits,f.name)});}
+    catch(e){resultados.push({texto:'',hits:{},origen:f.name,error:true,alumno:''});}
+  }
+  if($('suelto').value.trim()){const r=anonimizar($('suelto').value,sueltos);resultados.push({...r,origen:'Texto pegado',alumno:adivinar(r.hits)});}
+  resultados=resultados.filter(Boolean);
+  if(!resultados.length){toast('tQuitar','Sube algún archivo o pega un texto');return;}
+  pintar();
+};
+function bloque(r){return `=== Ejercicio de ${r.alumno||'ALUMNO SIN IDENTIFICAR'} ===\n${r.texto.trim()}`;}
+function pintar(){
+  const box=$('resultados');box.innerHTML='';
+  nombresSalida();
+  resultados.forEach((r,i)=>{
+    const d=document.createElement('div');d.className='card';
+    const opts='<option value="">Sin asignar</option>'+st.alumnos.map(a=>`<option value="${a.id}" ${a.id===r.alumno?'selected':''}>${a.id} · ${esc(a.nombre)}</option>`).join('');
+    if(r.renombrar){
+      const estado=r.error?'<span class="warn">No he podido abrir este archivo</span>':r.salida?`<span class="ok">Se descargará como <span class="code">${esc(r.salida)}</span></span>`:'<span class="warn">No reconozco al alumno por el nombre del archivo, elígelo en el desplegable</span>';
+      d.innerHTML=`<div class="row" style="justify-content:space-between"><strong style="word-break:break-all">${esc(r.origen)}</strong><select>${opts}</select></div><div class="meta">${estado}</div><div class="row"><button class="b g">Descargar este</button><span class="toast" id="t-${i}"></span></div>`;
+      d.querySelector('select').onchange=e=>{r.alumno=e.target.value;pintar();};
+      d.querySelector('button').onclick=()=>{if(!r.salida||!r.blob){toast('t-'+i,'Elige primero de qué alumno es');return;}guardarBlob(r.blob,r.salida);toast('t-'+i,'Descargado como '+r.salida);};
+      box.appendChild(d);return;
+    }
+    if(r.media){
+      const video=/^video\//.test(r.file.type)||/\.(mp4|mov|webm|mkv|avi)$/i.test(r.origen);
+      d.innerHTML=`<div class="row" style="justify-content:space-between"><strong style="word-break:break-all">${esc(r.origen)}</strong><select id="sel-${i}">${opts}</select></div><div class="meta">${r.alumno?'<span class="ok">Se descargará con el código en vez del nombre</span>':'<span class="warn">No reconozco al alumno por el nombre del archivo, elígelo en el desplegable</span>'}</div>${r.imagen?`<div class="meta">${r.tapados?`<span class="ok">${r.tapados} nombres tapados en negro</span>`:'<span class="warn">No he encontrado nombres en la imagen, mírala antes de subirla</span>'}</div><img src="${r.url}" alt="" style="width:100%;max-height:420px;object-fit:contain;border:1px solid var(--line);border-radius:6px">`:video?`<video controls preload="metadata" src="${r.url}" style="width:100%;max-height:260px;border-radius:6px"></video>`:`<audio controls preload="metadata" src="${r.url}" style="width:100%"></audio>`}<div class="row"><button class="b g">Descargar sin nombre</button><span class="toast" id="t-${i}"></span></div>`;
+      d.querySelector('select').onchange=e=>{r.alumno=e.target.value;pintar();};
+      d.querySelector('button').onclick=()=>bajar(r,'t-'+i);
+      box.appendChild(d);return;
+    }
+    const total=Object.values(r.hits).reduce((s,x)=>s+x,0);
+    if(r.ocr&&!r.error&&!r.texto.trim()){r.error=true;}
+    const aviso=r.error?'<span class="warn">No he podido leer este archivo</span>'
+      :(total?`<span class="ok">${total} nombres cambiados</span>`:'<span class="warn">No he encontrado ningún nombre de la lista, revísalo antes de subirlo</span>')
+      +(r.correos?` · ${r.correos} correos quitados`:'')+(r.dnis?` · ${r.dnis} DNI quitados`:'');
+    const html=esc(r.texto).replace(/ALU-\d{2,3}/g,m=>`<span class="code">${m}</span>`);
+    d.innerHTML=`<div class="row" style="justify-content:space-between"><strong style="word-break:break-all">${esc(r.origen)}</strong><select id="sel-${i}">${opts}</select></div><div class="meta">${aviso}</div><div class="out">${html}</div><div class="row"><button class="b g">Copiar este</button><span class="toast" id="t-${i}"></span></div>`;
+    d.querySelector('select').onchange=e=>{r.alumno=e.target.value;};
+    d.querySelector('button').onclick=()=>copy(bloque(r),'t-'+i);
+    box.appendChild(d);
+  });
+  $('filaZip').hidden=!resultados.some(r=>r.renombrar);
+  const textos=resultados.filter(r=>!r.media&&!r.error&&!r.renombrar).length, medias=resultados.filter(r=>r.media).length;
+  $('btnCopiarTodo').hidden=textos<2; $('btnBajarTodo').hidden=medias<2;
+  $('filaTodo').hidden=textos<2&&medias<2;
+}
+$('btnCopiarTodo').onclick=()=>copy(resultados.filter(r=>!r.error&&!r.media).map(bloque).join('\n\n'),'tTodo');
+function bajar(r,tid){
+  if(!r.alumno){toast(tid,'Elige primero de qué alumno es');return;}
+  const a=document.createElement('a');a.href=r.url;a.download=r.alumno+ext(r.origen);document.body.appendChild(a);a.click();a.remove();
+  toast(tid,'Descargado como '+r.alumno+ext(r.origen));
+}
+$('btnBajarTodo').onclick=()=>{const m=resultados.filter(r=>r.media&&r.alumno);m.forEach((r,k)=>setTimeout(()=>bajar(r,'tTodo'),k*400));if(m.length<resultados.filter(r=>r.media).length)toast('tTodo','Faltan alumnos por asignar');};
+
+/* poner: conserva cuadros y formato */
+const PERMITIDAS=new Set(['TABLE','THEAD','TBODY','TFOOT','TR','TD','TH','P','BR','STRONG','B','EM','I','U','UL','OL','LI','H1','H2','H3','H4','H5','H6','BLOCKQUOTE','HR','CODE','PRE','SPAN','DIV','A','SUB','SUP']);
+function limpiarHtml(html){
+  const doc=new DOMParser().parseFromString(html,'text/html');
+  const ir=n=>{[...n.childNodes].forEach(c=>{
+    if(c.nodeType===1){
+      if(/^(SCRIPT|STYLE|META|LINK|TITLE|BUTTON|SVG|IMG|INPUT)$/.test(c.tagName)){c.remove();return;}
+      ir(c);
+      if(!PERMITIDAS.has(c.tagName)){c.replaceWith(...c.childNodes);return;}
+      [...c.attributes].forEach(a=>{if(!/^(colspan|rowspan)$/.test(a.name)&&!(c.tagName==='A'&&a.name==='href'))c.removeAttribute(a.name);});
+    } else if(c.nodeType===8)c.remove();
+  });};
+  ir(doc.body);return doc.body.innerHTML;
+}
+function enLinea(t){return esc(t).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>').replace(/`([^`]+)`/g,'<code>$1</code>');}
+function mdAHtml(md){
+  const L=md.replace(/\r/g,'').split('\n');let out='',i=0;
+  const celdas=l=>l.trim().replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+  while(i<L.length){
+    const l=L[i];
+    if(/^\s*\|.*\|\s*$/.test(l)&&i+1<L.length&&/^\s*\|?\s*:?-{2,}/.test(L[i+1])){
+      out+='<table><thead><tr>'+celdas(l).map(c=>'<th>'+enLinea(c)+'</th>').join('')+'</tr></thead><tbody>';i+=2;
+      while(i<L.length&&/^\s*\|.*\|\s*$/.test(L[i])){out+='<tr>'+celdas(L[i]).map(c=>'<td>'+enLinea(c).replace(/&lt;br\s*\/?&gt;/g,'<br>')+'</td>').join('')+'</tr>';i++;}
+      out+='</tbody></table>';continue;
+    }
+    let m;
+    if((m=l.match(/^(#{1,4})\s+(.*)/))){out+=`<h${m[1].length}>${enLinea(m[2])}</h${m[1].length}>`;i++;continue;}
+    if(/^\s*[-*•]\s+/.test(l)){out+='<ul>';while(i<L.length&&/^\s*[-*•]\s+/.test(L[i])){out+='<li>'+enLinea(L[i].replace(/^\s*[-*•]\s+/,''))+'</li>';i++;}out+='</ul>';continue;}
+    if(/^\s*\d+[.)]\s+/.test(l)){out+='<ol>';while(i<L.length&&/^\s*\d+[.)]\s+/.test(L[i])){out+='<li>'+enLinea(L[i].replace(/^\s*\d+[.)]\s+/,''))+'</li>';i++;}out+='</ol>';continue;}
+    if(/^\s*(-{3,}|\*{3,})\s*$/.test(l)){out+='<hr>';i++;continue;}
+    if(!l.trim()){i++;continue;}
+    const par=[];while(i<L.length&&L[i].trim()&&!/^(#{1,4}\s|\s*[-*•]\s|\s*\d+[.)]\s|\s*\|)/.test(L[i])){par.push(enLinea(L[i]));i++;}
+    if(par.length)out+='<p>'+par.join('<br>')+'</p>';else{out+='<p>'+enLinea(l)+'</p>';i++;}
+  }
+  return out;
+}
+$('correccion').addEventListener('paste',e=>{
+  e.preventDefault();const cd=e.clipboardData;const h=cd.getData('text/html'),t=cd.getData('text/plain');
+  const html=h&&/<(table|p|li|h\d|strong|b|div)\b/i.test(h)?limpiarHtml(h):mdAHtml(t);
+  document.execCommand('insertHTML',false,html)||($('correccion').innerHTML+=html);
+});
+$('btnLimpiar').onclick=()=>{$('correccion').innerHTML='';$('cardPuesto').hidden=true;};
+$('btnPoner').onclick=()=>{
+  const mapa=Object.fromEntries(st.alumnos.map(a=>[a.id,a.nombre]));let n=0,desconocidos=new Set();
+  const caja=$('puesto');caja.innerHTML=$('correccion').innerHTML;
+  const w=document.createTreeWalker(caja,NodeFilter.SHOW_TEXT);const nodos=[];while(w.nextNode())nodos.push(w.currentNode);
+  nodos.forEach(t=>{t.nodeValue=t.nodeValue.replace(/ALU-\d{2,3}/g,m=>{if(mapa[m]){n++;return mapa[m];}desconocidos.add(m);return m;});});
+  $('cardPuesto').hidden=false;
+  $('mPuesto').textContent=`${n} códigos cambiados`+(desconocidos.size?` · sin dueño en tu lista: ${[...desconocidos].join(', ')}`:'');
+};
+const ESTILO_WORD='<style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%}td,th{border:1px solid #888;padding:5px;vertical-align:top}th{background:#eee}</style>';
+$('btnCopiarPuesto').onclick=async()=>{
+  const html=$('puesto').innerHTML.replace(/<table>/g,'<table border="1" cellpadding="5" style="border-collapse:collapse">'),txt=$('puesto').innerText;
+  try{await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([txt],{type:'text/plain'})})]);toast('tPuesto','Copiado con formato');}
+  catch(e){const r=document.createRange();r.selectNodeContents($('puesto'));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);try{document.execCommand('copy');toast('tPuesto','Copiado con formato');}catch(_){toast('tPuesto','Está seleccionado, cópialo con Ctrl+C');}}
+};
+$('btnWord').onclick=()=>{
+  const doc='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8">'+ESTILO_WORD+'</head><body>'+$('puesto').innerHTML+'</body></html>';
+  guardarBlob(new Blob(['\ufeff'+doc],{type:'application/msword'}),'correccion.doc');toast('tPuesto','Descargado correccion.doc');
+};
+
+render();
+</script>
+</body>
+</html>
