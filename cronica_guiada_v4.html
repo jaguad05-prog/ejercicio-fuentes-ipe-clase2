@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crónica guiada</title>
+<style>
+  :root{ --dark:#1b1b1f; --card:#2b2b30; --red:#c8102e; --gold:#e8b54a; --pink:#fbf1f2; --light:#f4f4f6; --grey:#6b6b72; --silver:#c9c9ce; --line:#e3e3e8; --green:#2e7d4f; }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ margin:0; background:#fff; color:var(--dark); font-family:Calibri,Carlito,"Segoe UI",system-ui,-apple-system,Roboto,sans-serif; font-size:16px; line-height:1.5; border-left:8px solid var(--red); min-height:100vh; }
+  header{ background:var(--dark); color:#fff; padding:22px 28px 20px; position:relative; overflow:hidden; }
+  header .k{ color:var(--gold); font-weight:700; font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
+  header h1{ margin:6px 0 4px; font-size:34px; line-height:1.1; letter-spacing:.01em; text-transform:uppercase; }
+  header .bar{ width:56px; height:5px; background:var(--red); margin:10px 0 10px; }
+  header p{ margin:0; color:var(--silver); font-size:15px; max-width:640px; }
+  header .pen{ position:absolute; right:26px; top:22px; width:54px; height:54px; border-radius:50%; background:var(--red); display:grid; place-items:center; box-shadow:0 3px 10px rgba(0,0,0,.35); }
+
+  nav.steps{ position:sticky; top:0; z-index:5; background:#fff; border-bottom:1px solid var(--line); display:flex; gap:6px; padding:10px 20px; overflow-x:auto; }
+  nav.steps a{ flex:0 0 auto; display:flex; align-items:center; gap:7px; padding:6px 12px 6px 6px; border-radius:20px; background:var(--light); color:var(--dark); text-decoration:none; font-size:14px; font-weight:700; white-space:nowrap; }
+  nav.steps a .n{ width:24px; height:24px; border-radius:50%; background:var(--dark); color:#fff; display:grid; place-items:center; font-size:13px; }
+  nav.steps a.done .n{ background:var(--green); }
+  nav.steps a.done .n::after{ content:"✓"; }
+  nav.steps a.done .n span{ display:none; }
+
+  main{ max-width:1180px; margin:0 auto; padding:24px 24px 60px; }
+  .who{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:22px; }
+  label.f{ display:block; font-weight:700; font-size:13px; color:var(--grey); text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px; }
+  input[type=text], textarea{ width:100%; font:inherit; color:var(--dark); border:1px solid var(--silver); border-radius:6px; padding:10px 12px; background:#fff; }
+  input[type=text]:focus, textarea:focus{ outline:none; border-color:var(--red); box-shadow:0 0 0 3px rgba(200,16,46,.12); }
+  textarea{ resize:vertical; min-height:150px; line-height:1.55; }
+  #titular{ font-size:22px; font-weight:700; }
+  #subtitulo{ font-size:17px; }
+
+  section.block{ display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:22px; background:var(--light); border-top:5px solid var(--dark); box-shadow:0 2px 8px rgba(0,0,0,.08); padding:22px 24px; margin:0 0 26px; scroll-margin-top:64px; }
+  section.block.zero{ background:var(--pink); border-top-color:var(--red); }
+  .bh{ display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+  .bh .num{ font-size:40px; font-weight:800; color:var(--red); line-height:1; }
+  .bh h2{ margin:0; font-size:24px; }
+  .what{ margin:0 0 14px; color:var(--grey); }
+  .count{ font-size:13px; color:var(--grey); margin-top:5px; text-align:right; }
+  .count b{ color:var(--dark); }
+  .field + .field{ margin-top:14px; }
+
+  .guide{ background:var(--dark); color:#fff; padding:18px 18px 16px; border-top:5px solid var(--gold); align-self:start; font-size:15px; }
+  .guide h3{ margin:0 0 10px; color:var(--gold); font-size:13px; letter-spacing:.08em; text-transform:uppercase; }
+  .ex{ border-radius:4px; padding:10px 12px; margin-bottom:10px; }
+  .ex .t{ font-size:12px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; display:flex; align-items:center; gap:7px; margin-bottom:4px; }
+  .ex .t i{ font-style:normal; width:20px; height:20px; border-radius:50%; display:grid; place-items:center; font-size:12px; color:#fff; }
+  .ex q{ display:block; font-style:italic; quotes:"“" "”"; }
+  .ex ul{ margin:6px 0 0; padding-left:18px; font-size:14px; }
+  .no{ background:var(--pink); color:var(--dark); }
+  .no .t{ color:var(--red); } .no .t i{ background:var(--red); }
+  .si{ background:var(--card); color:#fff; border:1px solid #3a3a40; }
+  .si .t{ color:#6fc993; } .si .t i{ background:var(--green); }
+  .rule{ background:var(--red); color:#fff; font-weight:700; padding:10px 12px; margin-top:4px; font-size:15px; }
+  .checks{ margin-top:14px; display:grid; gap:6px; }
+  .checks label{ display:flex; gap:9px; align-items:flex-start; font-size:15px; cursor:pointer; }
+  .checks input{ width:18px; height:18px; margin-top:3px; accent-color:var(--red); flex:0 0 auto; }
+  details.more{ margin-top:10px; }
+  details.more summary{ cursor:pointer; color:var(--gold); font-weight:700; font-size:14px; }
+  table.jt{ width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; }
+  table.jt td{ border-top:1px solid #3a3a40; padding:6px 4px; vertical-align:top; }
+  table.jt td:first-child{ color:var(--gold); font-weight:700; white-space:nowrap; }
+  table.jt td:nth-child(3){ font-style:italic; color:#e6e6ea; }
+
+  .seq{ display:grid; gap:12px; }
+  .pz{ background:#fff; border:1px solid var(--line); border-left:5px solid var(--dark); padding:12px 14px; }
+  .pz.fixed{ border-left-color:var(--red); }
+  .pz.t-jug{ border-left-color:var(--dark); } .pz.t-gol{ border-left-color:var(--gold); } .pz.t-pla{ border-left-color:var(--green); }
+  .pz .ph{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .pz .tag{ font-size:12px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--dark); }
+  .pz .hint{ font-size:13px; color:var(--grey); margin:0 0 8px; }
+  .pz textarea{ min-height:96px; }
+  .pz .tools{ margin-left:auto; display:flex; gap:4px; }
+  .pz .tools button{ padding:4px 9px; font-size:13px; background:var(--light); color:var(--dark); border:1px solid var(--line); }
+  .pz .tools button.del{ color:var(--red); }
+  .adders{ background:var(--dark); padding:12px 14px; color:#fff; }
+  .adders p{ margin:0 0 8px; font-size:14px; color:var(--silver); }
+  .adders .row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .adders button{ padding:9px 14px; font-size:14px; background:#fff; color:var(--dark); }
+  .adders button i{ font-style:normal; display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; }
+  .empty{ font-size:14px; color:var(--grey); font-style:italic; padding:4px 2px; }
+  .final{ background:var(--dark); color:#fff; padding:24px; border-top:5px solid var(--red); }
+  .final h2{ margin:0 0 4px; font-size:24px; }
+  .final p{ margin:0 0 14px; color:var(--silver); }
+  .final .grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px 26px; }
+  .final label{ display:flex; gap:9px; align-items:flex-start; cursor:pointer; }
+  .final input{ width:18px; height:18px; margin-top:3px; accent-color:var(--gold); flex:0 0 auto; }
+  .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
+  button{ font:inherit; font-weight:700; border:0; border-radius:6px; padding:12px 18px; cursor:pointer; }
+  .b1{ background:var(--red); color:#fff; } .b2{ background:#fff; color:var(--dark); } .b3{ background:transparent; color:var(--silver); border:1px solid #4a4a50; }
+  .total{ margin-left:auto; align-self:center; color:var(--gold); font-weight:700; }
+  .toast{ position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:var(--dark); color:#fff; padding:10px 18px; border-radius:6px; border-left:5px solid var(--gold); opacity:0; transition:opacity .3s; pointer-events:none; z-index:20; }
+  .toast.on{ opacity:1; }
+
+  .notice{ display:none; background:var(--card); border-left:5px solid var(--gold); padding:10px 14px; margin-top:16px; font-size:15px; color:#fff; }
+  .notice.on{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .notice button{ padding:7px 12px; font-size:14px; }
+  .modal{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; z-index:30; overflow:auto; padding:30px 14px; }
+  .modal.on{ display:block; }
+  .sheet{ max-width:760px; margin:0 auto; background:#fff; box-shadow:0 10px 40px rgba(0,0,0,.4); }
+  .sheet .close{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; background:var(--dark); padding:10px 12px; color:var(--silver); font-size:14px; }
+  .sheet .close span{ margin-right:auto; }
+  .sheet .close button{ padding:7px 12px; font-size:14px; }
+  .paper{ background:#f4f4f6; padding:0 0 24px; font-family:Georgia,"Times New Roman",serif; }
+  .paper .top{ background:#fff; border-bottom:3px solid #1b1b1f; padding:12px 22px; display:flex; justify-content:space-between; align-items:center; font-family:Calibri,Carlito,system-ui,sans-serif; }
+  .paper .top b{ font-family:Georgia,serif; font-size:21px; } .paper .top span{ font-size:13px; color:#6b6b72; }
+  .paper article{ background:#fff; margin:20px; padding:26px 30px 32px; box-shadow:0 2px 10px rgba(0,0,0,.08); }
+  .paper .cat{ font-family:Calibri,Carlito,system-ui,sans-serif; color:#c8102e; font-weight:700; font-size:13px; letter-spacing:.08em; text-transform:uppercase; }
+  .paper h1{ font-size:32px; line-height:1.15; margin:8px 0 10px; } .paper h2{ font-weight:normal; color:#55555c; font-size:19px; line-height:1.35; margin:0 0 14px; }
+  .paper .by{ font-family:Calibri,Carlito,system-ui,sans-serif; font-size:14px; color:#6b6b72; border-top:1px solid #e3e3e8; border-bottom:1px solid #e3e3e8; padding:7px 0; margin-bottom:18px; }
+  .paper .body p, .paper .body div{ font-size:18px; line-height:1.65; margin:0 0 15px; }
+  .paper [contenteditable]{ outline:none; border-radius:3px; transition:background .2s; }
+  .paper [contenteditable]:hover, .paper [contenteditable]:focus{ background:#fffbe9; box-shadow:0 0 0 6px #fffbe9; }
+
+  @media (max-width:860px){
+    section.block{ grid-template-columns:1fr; padding:18px; }
+    .who, .final .grid{ grid-template-columns:1fr; }
+    main{ padding:18px 14px 50px; }
+    body{ border-left-width:5px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="pen"><svg width="28" height="28" viewBox="0 0 24 24" fill="#e8b54a"><path d="M14.7 3.3l6 6-9.9 9.9c-.5.5-1.1.8-1.8.9l-5.6.9.9-5.6c.1-.7.4-1.3.9-1.8L14.7 3.3zm-6.6 9.8a2 2 0 102.8 2.8 2 2 0 00-2.8-2.8z"/></svg></div>
+  <div class="k">Periodismo deportivo · Clase 5</div>
+  <h1>Crónica guiada</h1>
+  <div class="bar"></div>
+  <p>Escribe tu crónica pieza a pieza. Cada bloque lleva al lado su guía con lo que funciona y lo que no. Lo que escribes se guarda solo en este navegador.</p>
+</header>
+
+<nav class="steps" id="steps">
+  <a href="#b0" data-b="0"><span class="n"><span>0</span></span>Idea-fuerza</a>
+  <a href="#b1" data-b="1"><span class="n"><span>1</span></span>Titular y subtítulo</a>
+  <a href="#b2" data-b="2"><span class="n"><span>2</span></span>Primer párrafo</a>
+  <a href="#b3" data-b="3"><span class="n"><span>3</span></span>Alineaciones</a>
+  <a href="#b4" data-b="4"><span class="n"><span>4</span></span>Desarrollo</a>
+  <a href="#b5" data-b="5"><span class="n"><span>5</span></span>Cierre</a>
+  <a href="#fin" data-b="6"><span class="n"><span>✔</span></span>Entregar</a>
+</nav>
+
+<main>
+  <div class="who">
+    <div><label class="f" for="nombre">Tu nombre</label><input type="text" id="nombre" data-k="nombre" placeholder="Nombre y apellido"></div>
+    <div><label class="f" for="partido">Partido</label><input type="text" id="partido" data-k="partido" placeholder="Equipo A - Equipo B"></div>
+  </div>
+
+  <!-- 0 IDEA-FUERZA -->
+  <section class="block zero" id="b0">
+    <div>
+      <div class="bh"><span class="num">0</span><h2>Encuentra la idea-fuerza</h2></div>
+      <p class="what">Antes de escribir, responde a una pregunta. ¿Qué ha pasado de verdad hoy? Esa respuesta, en una frase, es la clave del partido. Te sirve de brújula y no aparece en la crónica.</p>
+      <div class="field">
+        <label class="f" for="idea">Mi idea-fuerza en una frase</label>
+        <input type="text" id="idea" data-k="idea" placeholder="Ejemplo: el colista dejó al descubierto las dudas del líder">
+      </div>
+    </div>
+    <aside class="guide">
+      <h3>De la idea-fuerza cuelga todo</h3>
+      <table class="jt">
+        <tr><td>Titular</td><td>la resume</td></tr>
+        <tr><td>Primer párrafo</td><td>la desarrolla</td></tr>
+        <tr><td>Cuerpo</td><td>la demuestra con jugadas elegidas, jugadores destacados y contexto</td></tr>
+        <tr><td>Cierre</td><td>la remata</td></tr>
+      </table>
+      <div class="rule" style="margin-top:12px">Si las partes de tu crónica no defienden la misma idea, algo falla.</div>
+    </aside>
+  </section>
+
+  <!-- 1 TITULAR Y SUBTÍTULO -->
+  <section class="block" id="b1">
+    <div>
+      <div class="bh"><span class="num">1</span><h2>Titular y subtítulo</h2></div>
+      <p class="what">El titular condensa la idea-fuerza en pocas palabras y con mirada. El subtítulo lo amplía sin repetirlo y aporta contexto y matiz.</p>
+      <div class="field">
+        <label class="f" for="titular">Titular</label>
+        <input type="text" id="titular" data-k="titular" placeholder="El titular de tu crónica">
+        <div class="count" data-c="titular"></div>
+      </div>
+      <div class="field">
+        <label class="f" for="subtitulo">Subtítulo</label>
+        <input type="text" id="subtitulo" data-k="subtitulo" placeholder="Amplía el titular, sin repetirlo">
+        <div class="count" data-c="subtitulo"></div>
+      </div>
+      <div class="checks">
+        <label><input type="checkbox" data-k="ck1a"> Mi titular tiene mirada y va más allá del resultado</label>
+        <label><input type="checkbox" data-k="ck1b"> El subtítulo aporta contexto y no repite palabras del titular</label>
+      </div>
+    </div>
+    <aside class="guide">
+      <h3>Guía · titular y subtítulo</h3>
+      <div class="ex no"><div class="t"><i>✕</i>Así no</div><q>El líder empata contra el colista</q><ul><li>Es genérico y solo dice el resultado.</li><li>No hay punto de vista.</li></ul></div>
+      <div class="ex si"><div class="t"><i>✓</i>Así sí</div><q>El colista retrata la flaqueza del líder</q><ul><li>Tiene mirada y resume una idea del partido.</li></ul></div>
+      <div class="ex si"><div class="t"><i>✓</i>Subtítulo</div><q>El líder conserva el primer puesto, pero deja dudas ante un rival que fue mejor y se adelantó dos veces</q><ul><li>Amplía el titular y aporta contexto y consecuencia.</li></ul></div>
+      <div class="rule">Titular y subtítulo se leen juntos. El segundo contextualiza al primero.</div>
+    </aside>
+  </section>
+
+  <!-- 2 PRIMER PÁRRAFO -->
+  <section class="block" id="b2">
+    <div>
+      <div class="bh"><span class="num">2</span><h2>Primer párrafo</h2></div>
+      <p class="what">El partido explicado en el arranque. Tienes que contarlo y mostrar tu punto de vista, desarrollando la idea del titular.</p>
+      <div class="field">
+        <label class="f" for="p1">Primer párrafo</label>
+        <textarea id="p1" data-k="p1" placeholder="Empieza por la idea, cuenta qué ha pasado y por qué importa…"></textarea>
+        <div class="count" data-c="p1"></div>
+      </div>
+      <div class="checks">
+        <label><input type="checkbox" data-k="ck2a"> Desarrolla la idea del titular</label>
+        <label><input type="checkbox" data-k="ck2b"> Se entiende el partido aunque el lector deje de leer aquí</label>
+      </div>
+    </div>
+    <aside class="guide">
+      <h3>Guía · primer párrafo</h3>
+      <div class="ex no"><div class="t"><i>✕</i>Así no</div><q>Los equipos empataron 2-2 en un partido disputado. Los goles fueron de X e Y</q><ul><li>Es un acta arbitral que enumera hechos.</li><li>No interpreta nada.</li></ul></div>
+      <div class="ex si"><div class="t"><i>✓</i>Así sí</div><q>El equipo X sigue líder, porque lo dicen la tabla y los puntos, pero ahora tiene una sombra de incertidumbre que antes no tenía. Se dejó la seguridad y dos puntos en el campo de un colista…</q><ul><li>Desarrolla la idea del titular y explica el partido.</li></ul></div>
+      <div class="rule">Regla de oro: el primer párrafo debe poder leerse sin necesidad de seguir leyendo.</div>
+    </aside>
+  </section>
+
+  <!-- 3 ALINEACIONES -->
+  <section class="block" id="b3">
+    <div>
+      <div class="bh"><span class="num">3</span><h2>Alineaciones y planteamiento</h2></div>
+      <p class="what">Las alineaciones y el plan de partido, interpretados. Cuenta qué cambió o qué se mantuvo, por qué, quién entra y cómo funcionó.</p>
+      <div class="field">
+        <label class="f" for="p2">Alineaciones y planteamiento</label>
+        <textarea id="p2" data-k="p2" placeholder="¿Qué decidió cada entrenador y qué consecuencias tuvo?"></textarea>
+        <div class="count" data-c="p2"></div>
+      </div>
+      <div class="checks">
+        <label><input type="checkbox" data-k="ck3a"> Explico por qué importa la alineación</label>
+        <label><input type="checkbox" data-k="ck3b"> Lo conecto con lo que pasó después</label>
+      </div>
+    </div>
+    <aside class="guide">
+      <h3>Guía · alineaciones</h3>
+      <div class="ex no"><div class="t"><i>✕</i>Así no</div><q>El entrenador salió con portero, lateral, central…</q><ul><li>Es una lista sin interpretación.</li><li>El lector ya la vio en la app.</li></ul></div>
+      <div class="ex si"><div class="t"><i>✓</i>Así sí</div><q>Las decepciones recientes empujaron al técnico a tocar el once: dejó fuera a dos titulares y apostó por un plan que no terminó de funcionar. En la banda derecha tiene un problema y por más vueltas que le dé, no lo soluciona</q><ul><li>Introduce análisis y conecta con lo que pasó después.</li></ul></div>
+      <div class="rule">La alineación se interpreta. Qué cambió, por qué, quién entra y cómo funciona.</div>
+    </aside>
+  </section>
+
+  <!-- 4 DESARROLLO -->
+  <section class="block" id="b4">
+    <div>
+      <div class="bh"><span class="num">4</span><h2>Desarrollo</h2></div>
+      <p class="what">Las jugadas que demuestran tu idea, con análisis. El comienzo y el final del partido son fijos. Entre los dos, añade los párrafos que necesites y elige de qué tipo es cada uno, en el orden que mejor cuente tu partido.</p>
+      <div class="seq">
+        <div class="pz fixed"><div class="ph"><span class="tag">Comienzo del partido</span></div>
+          <p class="hint">Cómo arrancó el partido, quién mandó en el primer tramo y qué planteaba cada equipo.</p>
+          <textarea id="devIni" data-k="devIni" placeholder="El partido empezó…"></textarea></div>
+        <div id="mid" class="seq"></div>
+        <div class="adders">
+          <p>Añade un párrafo. Por ejemplo, jugadas y análisis, un gol, un jugador, otra vez jugadas y análisis…</p>
+          <div class="row">
+            <button type="button" data-add="jug"><i style="background:#c9c9ce"></i>+ Jugadas y análisis</button>
+            <button type="button" data-add="gol"><i style="background:#e8b54a"></i>+ Goles</button>
+            <button type="button" data-add="pla"><i style="background:#2e7d4f"></i>+ Jugada y jugadores</button>
+          </div>
+        </div>
+        <div class="pz fixed"><div class="ph"><span class="tag">Final del partido</span></div>
+          <p class="hint">Cómo se resolvieron los últimos minutos y con qué sensación terminó cada equipo.</p>
+          <textarea id="devFin" data-k="devFin" placeholder="En los últimos minutos…"></textarea></div>
+      </div>
+      <div class="count" data-c="dev"></div>
+      <div class="checks">
+        <label><input type="checkbox" data-k="ck4a"> Cada jugada que cuento explica algo del partido</label>
+        <label><input type="checkbox" data-k="ck4b"> He resistido el minuto a minuto</label>
+        <label><input type="checkbox" data-k="ck4c"> Me detengo en algún jugador y cuento qué le da a su equipo</label>
+        <label><input type="checkbox" data-k="ck4d"> El texto queda hilado</label>
+      </div>
+    </div>
+    <aside class="guide">
+      <h3>Guía · desarrollo</h3>
+      <div class="ex no"><div class="t"><i>✕</i>Así no</div><q>En el minuto 23 hubo un disparo fuera. En el 30, otra ocasión…</q><ul><li>Cronología vacía, sin lectura del juego.</li></ul></div>
+      <div class="ex si"><div class="t"><i>✓</i>Así sí</div><q>El visitante no se intimidó: arriesgó desde atrás y encontró espacios ante un rival desordenado, sostenido solo por su portero. En el minuto 23 hizo la parada más espectacular del partido, quizá de su carrera</q><ul><li>Selecciona jugadas, explica comportamientos y une acción y significado.</li></ul></div>
+      <details class="more">
+        <summary>De la jugada a la crónica</summary>
+        <table class="jt">
+          <tr><td>23'</td><td>Parada de Llorente a un cabezazo</td><td>Llorente hizo la parada más espectacular del partido, quizá de su carrera.</td></tr>
+          <tr><td>46'</td><td>El líder adelanta líneas y tira al palo</td><td>Algo debió ocurrir en el descanso. El primer disparo fue al palo. Era el anuncio de un pequeño asedio.</td></tr>
+          <tr><td>70'</td><td>Gol de cabeza en un córner, 2-2</td><td>Solo encontró el gol cuando el juego se detuvo.</td></tr>
+        </table>
+      </details>
+      <details class="more">
+        <summary>Detenerse en un jugador</summary>
+        <p style="margin:8px 0 0;font-size:14px">Cuenta qué ha hecho hoy, qué hace siempre y qué significa para el equipo. La jugada es la excusa y el párrafo cuenta quién es el jugador y qué le da a su equipo.</p>
+      </details>
+      <div class="rule" style="margin-top:12px">Hay que contar solo lo importante y decir qué significa.</div>
+    </aside>
+  </section>
+
+  <!-- 5 CIERRE -->
+  <section class="block" id="b5">
+    <div>
+      <div class="bh"><span class="num">5</span><h2>Cierre</h2></div>
+      <p class="what">La interpretación final, que conecta con el titular y deja una idea en la cabeza del lector. Mejor corto.</p>
+      <div class="field">
+        <label class="f" for="p4">Cierre</label>
+        <textarea id="p4" data-k="p4" style="min-height:110px" placeholder="La última frase es la que el lector se va a llevar…"></textarea>
+        <div class="count" data-c="p4"></div>
+      </div>
+      <div class="checks">
+        <label><input type="checkbox" data-k="ck5a"> Conecta con el titular</label>
+        <label><input type="checkbox" data-k="ck5b"> Deja una idea en la cabeza del lector</label>
+      </div>
+    </div>
+    <aside class="guide">
+      <h3>Guía · cierre</h3>
+      <div class="ex no"><div class="t"><i>✕</i>Así no</div><q>El partido terminó en empate y ambos equipos sumaron un punto</q><ul><li>No aporta nada y podría no estar.</li></ul></div>
+      <div class="ex si"><div class="t"><i>✓</i>Así sí</div><q>El empate dio ánimos al colista, pero el líder, el equipo sólido del inicio, se marchó con la sensación de que ha perdido la red y se le ha quedado cara de susto</q><ul><li>Interpreta, conecta con el titular y deja una idea.</li></ul></div>
+      <div class="rule">La última frase es la que el lector va a llevarse.</div>
+    </aside>
+  </section>
+
+  <!-- ENTREGAR -->
+  <section class="final" id="fin">
+    <h2>Antes de entregar</h2>
+    <p>Repasa la lista y marca lo que ya cumples.</p>
+    <div class="grid">
+      <label><input type="checkbox" data-k="f1"> ¿Se puede resumir mi crónica en una frase, la idea-fuerza?</label>
+      <label><input type="checkbox" data-k="f2"> ¿El titular condensa esa idea sin limitarse al resultado?</label>
+      <label><input type="checkbox" data-k="f3"> ¿El subtítulo amplía sin repetir?</label>
+      <label><input type="checkbox" data-k="f4"> ¿El primer párrafo se sostiene solo?</label>
+      <label><input type="checkbox" data-k="f5"> ¿Cada jugada que cuento tiene sentido y explica algo?</label>
+      <label><input type="checkbox" data-k="f6"> ¿He resistido el minuto a minuto y los tópicos?</label>
+      <label><input type="checkbox" data-k="f7"> ¿El cierre deja una idea?</label>
+      <label><input type="checkbox" data-k="f8"> ¿Aporto algo que el espectador no tenía?</label>
+    </div>
+    <div class="actions">
+      <button class="b1" id="ver">Ver y corregir mi crónica</button>
+      <button class="b2" id="bword">Descargar en Word</button>
+      <button class="b2" id="bajar">Descargar en HTML</button>
+      <button class="b3" id="copiar">Copiar texto</button>
+      <button class="b3" id="borrar">Empezar de nuevo</button>
+      <span class="total" id="total"></span>
+    </div>
+    <div class="notice" id="notice">Has retocado la crónica en la vista final. Lo que cambies ahora en los bloques ya no entra en ella. <button class="b2" id="rehacer">Rehacer desde los bloques</button></div>
+  </section>
+</main>
+
+<div class="modal" id="modal"><div class="sheet">
+  <div class="close"><span>Puedes corregir el texto aquí mismo. Los cambios se guardan solos.</span><button class="b1" id="mword">Descargar en Word</button><button class="b2" id="mhtml">Descargar en HTML</button><button class="b3" id="cerrar">Cerrar</button></div>
+  <div class="paper"><div class="top"><b>EL DEPORTIVO</b><span>Fútbol · Baloncesto · Motor · Más deportes</span></div>
+    <article><div class="cat" id="vcat"></div><h1 id="vt" contenteditable="true"></h1><h2 id="vs" contenteditable="true"></h2><div class="by" id="vby"></div><div class="body" id="vb" contenteditable="true"></div></article></div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = "cronica_guiada_v4";
+let st = {};
+try { st = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { st = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
+const $ = (s) => document.querySelector(s);
+const words = (t) => (t || "").trim().split(/\s+/).filter(Boolean).length;
+
+document.querySelectorAll("[data-k]").forEach((el) => {
+  const k = el.dataset.k;
+  if (el.type === "checkbox") { el.checked = !!st[k]; el.addEventListener("change", () => { st[k] = el.checked; save(); refresh(); }); }
+  else { el.value = st[k] || ""; el.addEventListener("input", () => { st[k] = el.value; save(); refresh(); }); }
+});
+
+const TYPES = {
+  jug: ["Jugadas y análisis", "Elige una jugada o un tramo importante y explica qué significa para el partido."],
+  gol: ["Goles", "Cuenta cómo llegó el gol y qué cambió en el partido a partir de ahí."],
+  pla: ["Jugada y jugadores", "Detente en un jugador. Qué ha hecho hoy, qué hace siempre y qué significa para su equipo."],
+};
+if (!Array.isArray(st.dev)) st.dev = [];
+function drawMid() {
+  const mid = $("#mid"); mid.innerHTML = "";
+  if (!st.dev.length) { mid.innerHTML = '<div class="empty">Todavía no has añadido párrafos entre el comienzo y el final.</div>'; }
+  st.dev.forEach((pz, i) => {
+    const d = document.createElement("div"); d.className = "pz t-" + pz.t;
+    d.innerHTML = '<div class="ph"><span class="tag">' + TYPES[pz.t][0] + '</span><span class="tools">' +
+      '<button type="button" title="Subir" data-m="up">↑</button><button type="button" title="Bajar" data-m="down">↓</button>' +
+      '<button type="button" class="del" title="Quitar" data-m="del">✕</button></span></div><p class="hint">' + TYPES[pz.t][1] + '</p><textarea></textarea>';
+    const ta = d.querySelector("textarea"); ta.value = pz.v || "";
+    ta.addEventListener("input", () => { pz.v = ta.value; save(); refresh(); });
+    d.querySelectorAll("[data-m]").forEach((bt) => bt.onclick = () => {
+      const m = bt.dataset.m;
+      if (m === "del") { if ((pz.v || "").trim() && !confirm("¿Quitar este párrafo? Se borrará lo que has escrito en él.")) return; st.dev.splice(i, 1); }
+      if (m === "up" && i > 0) [st.dev[i - 1], st.dev[i]] = [st.dev[i], st.dev[i - 1]];
+      if (m === "down" && i < st.dev.length - 1) [st.dev[i + 1], st.dev[i]] = [st.dev[i], st.dev[i + 1]];
+      save(); drawMid(); refresh();
+    });
+    mid.appendChild(d);
+  });
+}
+document.querySelectorAll("[data-add]").forEach((b) => b.onclick = () => {
+  st.dev.push({ t: b.dataset.add, v: "" }); save(); drawMid(); refresh();
+  const all = $("#mid").querySelectorAll("textarea"); all[all.length - 1].focus();
+});
+drawMid();
+const devAll = () => [st.devIni, ...st.dev.map((x) => x.v), st.devFin];
+const BLOCKS = { 0: ["idea"], 1: ["titular", "subtitulo"], 2: ["p1"], 3: ["p2"], 4: ["devIni", "devFin"], 5: ["p4"] };
+function refresh() {
+  document.querySelectorAll("[data-c]").forEach((c) => { const n = c.dataset.c === "dev" ? devAll().reduce((a, x) => a + words(x), 0) : words(st[c.dataset.c]); c.innerHTML = "<b>" + n + "</b> " + (n === 1 ? "palabra" : "palabras"); });
+  for (const b in BLOCKS) { const done = BLOCKS[b].every((k) => (st[k] || "").trim().length > 0); document.querySelector('nav a[data-b="' + b + '"]').classList.toggle("done", done); }
+  const tot = [st.titular, st.subtitulo, st.p1, st.p2, ...devAll(), st.p4].reduce((a, x) => a + words(x), 0);
+  $("#total").textContent = tot + " palabras en total";
+}
+refresh();
+
+function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.add("on"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 2200); }
+const esc = (s) => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const paras = (s) => (s || "").split(/\n\s*\n|\n/).map((x) => x.trim()).filter(Boolean);
+
+function fromBlocks() { return { titular: st.titular || "", subtitulo: st.subtitulo || "", paras: [st.p1, st.p2, ...devAll(), st.p4].flatMap(paras) }; }
+function finalData() { return st.fe || fromBlocks(); }
+function fecha() { return new Date().toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }); }
+function noticeRefresh() { $("#notice").classList.toggle("on", !!st.fe); }
+noticeRefresh();
+$("#rehacer").onclick = () => { if (!confirm("Se perderán los retoques que hiciste en la vista final. ¿Seguir?")) return; delete st.fe; save(); noticeRefresh(); toast("Crónica rehecha desde los bloques"); };
+
+function articleHTML() {
+  const f = finalData();
+  const body = f.paras.map((p) => "<p>" + esc(p) + "</p>").join("\n");
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(f.titular || "Crónica")}</title>
+<style>body{margin:0;background:#f4f4f6;font-family:Georgia,"Times New Roman",serif;color:#1b1b1f}
+.top{background:#fff;border-bottom:3px solid #1b1b1f;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;font-family:Calibri,Carlito,system-ui,sans-serif}
+.top b{font-family:Georgia,serif;font-size:22px;letter-spacing:.02em}.top span{font-size:13px;color:#6b6b72}
+article{max-width:720px;margin:24px auto;background:#fff;padding:30px 36px 40px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.cat{font-family:Calibri,Carlito,system-ui,sans-serif;color:#c8102e;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+h1{font-size:36px;line-height:1.15;margin:8px 0 10px}h2{font-weight:normal;color:#55555c;font-size:20px;line-height:1.35;margin:0 0 16px}
+.by{font-family:Calibri,Carlito,system-ui,sans-serif;font-size:14px;color:#6b6b72;border-top:1px solid #e3e3e8;border-bottom:1px solid #e3e3e8;padding:8px 0;margin-bottom:20px}
+.by b{color:#1b1b1f}p{font-size:18px;line-height:1.65;margin:0 0 16px}</style></head><body>
+<div class="top"><b>EL DEPORTIVO</b><span>Fútbol · Baloncesto · Motor · Más deportes</span></div>
+<article><div class="cat">Crónica${st.partido ? " · " + esc(st.partido) : ""}</div>
+<h1>${esc(f.titular || "Sin titular")}</h1>${f.subtitulo ? "<h2>" + esc(f.subtitulo) + "</h2>" : ""}
+<div class="by"><b>${esc(st.nombre || "Sin nombre")}</b> · ${fecha()}</div>
+${body || "<p><i>Todavía no has escrito el cuerpo de la crónica.</i></p>"}</article></body></html>`;
+}
+
+// Vista final editable
+function openView() {
+  const f = finalData();
+  $("#vcat").textContent = "Crónica" + (st.partido ? " · " + st.partido : "");
+  $("#vt").textContent = f.titular; $("#vs").textContent = f.subtitulo;
+  $("#vby").innerHTML = "<b>" + esc(st.nombre || "Sin nombre") + "</b> · " + fecha();
+  $("#vb").innerHTML = f.paras.length ? f.paras.map((p) => "<p>" + esc(p) + "</p>").join("") : "<p></p>";
+  $("#modal").classList.add("on");
+}
+function readView() {
+  const ps = [...$("#vb").childNodes].map((n) => (n.innerText !== undefined ? n.innerText : n.textContent) || "").flatMap((x) => x.split(/\n+/)).map((x) => x.trim()).filter(Boolean);
+  st.fe = { titular: $("#vt").innerText.replace(/\s+/g, " ").trim(), subtitulo: $("#vs").innerText.replace(/\s+/g, " ").trim(), paras: ps };
+  save(); noticeRefresh();
+}
+["#vt", "#vs", "#vb"].forEach((s) => $(s).addEventListener("input", readView));
+["#vt", "#vs"].forEach((s) => $(s).addEventListener("keydown", (e) => { if (e.key === "Enter") e.preventDefault(); }));
+$("#vb").addEventListener("paste", (e) => { e.preventDefault(); const txt = (e.clipboardData || window.clipboardData).getData("text/plain"); document.execCommand("insertText", false, txt); });
+$("#ver").onclick = openView;
+$("#cerrar").onclick = () => $("#modal").classList.remove("on");
+$("#modal").onclick = (e) => { if (e.target.id === "modal") $("#modal").classList.remove("on"); };
+
+// Descargas
+function slug() { return (st.nombre || "alumno").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9]+/g, "_").replace(/^_|_$/g, "").toLowerCase(); }
+function needName() { if ((st.nombre || "").trim()) return false; toast("Escribe tu nombre antes de descargar"); $("#modal").classList.remove("on"); $("#nombre").focus(); return true; }
+function give(blob, name) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); toast("Crónica descargada. Envíala al profesor"); }
+function dlHTML() { if (needName()) return; give(new Blob([articleHTML()], { type: "text/html;charset=utf-8" }), "cronica_" + slug() + ".html"); }
+
+// Word (.docx) sin librerías: ZIP sin compresión
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(b) { let c = 0xffffffff; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; }
+function zip(files) {
+  const enc = new TextEncoder(), parts = [], cd = []; let off = 0;
+  const u16 = (v) => [v & 255, (v >>> 8) & 255], u32 = (v) => [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255];
+  for (const [name, txt] of files) {
+    const nb = enc.encode(name), db = enc.encode(txt), c = crc32(db);
+    const lh = new Uint8Array([...u32(0x04034b50), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(c), ...u32(db.length), ...u32(db.length), ...u16(nb.length), ...u16(0)]);
+    parts.push(lh, nb, db);
+    cd.push(new Uint8Array([...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(c), ...u32(db.length), ...u32(db.length), ...u16(nb.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(off)]), nb);
+    off += lh.length + nb.length + db.length;
+  }
+  const cdLen = cd.reduce((a, x) => a + x.length, 0);
+  const end = new Uint8Array([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length), ...u32(cdLen), ...u32(off), ...u16(0)]);
+  return new Blob([...parts, ...cd, end], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+}
+function docx() {
+  const f = finalData(), x = (s) => esc(s).replace(/"/g, "&quot;");
+  const run = (txt, o = {}) => `<w:r><w:rPr><w:rFonts w:ascii="${o.font || "Georgia"}" w:hAnsi="${o.font || "Georgia"}"/>${o.b ? "<w:b/>" : ""}${o.i ? "<w:i/>" : ""}${o.color ? `<w:color w:val="${o.color}"/>` : ""}<w:sz w:val="${o.sz || 24}"/></w:rPr><w:t xml:space="preserve">${x(txt)}</w:t></w:r>`;
+  const par = (runs, after = 200, line = 360) => `<w:p><w:pPr><w:spacing w:after="${after}" w:line="${line}" w:lineRule="auto"/></w:pPr>${runs}</w:p>`;
+  let body = par(run("EL DEPORTIVO · CRÓNICA" + (st.partido ? " · " + st.partido.toUpperCase() : ""), { font: "Calibri", b: 1, color: "C8102E", sz: 18 }), 120);
+  body += par(run(f.titular || "Sin titular", { b: 1, sz: 44 }), 160, 280);
+  if (f.subtitulo) body += par(run(f.subtitulo, { color: "55555C", sz: 28 }), 200, 300);
+  body += par(run(st.nombre || "Sin nombre", { font: "Calibri", b: 1, sz: 20 }) + run(" · " + fecha(), { font: "Calibri", color: "6B6B72", sz: 20 }), 300);
+  f.paras.forEach((p) => body += par(run(p)));
+  const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1418" w:right="1418" w:bottom="1418" w:left="1418" w:header="709" w:footer="709" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+  return zip([
+    ["[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`],
+    ["_rels/.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`],
+    ["word/document.xml", doc],
+  ]);
+}
+function dlWord() { if (needName()) return; give(docx(), "cronica_" + slug() + ".docx"); }
+$("#bajar").onclick = dlHTML; $("#mhtml").onclick = dlHTML;
+$("#bword").onclick = dlWord; $("#mword").onclick = dlWord;
+$("#copiar").onclick = async () => {
+  const f = finalData();
+  const txt = [f.titular, f.subtitulo, "", ...f.paras].filter((x) => x !== undefined).join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
+  try { await navigator.clipboard.writeText(txt); toast("Texto copiado"); }
+  catch (e) { const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); toast("Texto copiado"); }
+};
+$("#borrar").onclick = () => {
+  if (!confirm("¿Seguro que quieres borrar todo lo que has escrito?")) return;
+  st = { dev: [] }; save(); drawMid(); noticeRefresh();
+  document.querySelectorAll("[data-k]").forEach((el) => { if (el.type === "checkbox") el.checked = false; else el.value = ""; });
+  refresh(); window.scrollTo(0, 0);
+};
+</script>
+</body>
+</html>
