@@ -141,7 +141,7 @@ function loadModel(){ $('rec').disabled=true; $('title').textContent='Cargando W
 /* ---------- Texto ---------- */
 const JUNK=/(amara\.org|subt[ií]tulos (realizados|por)|gracias por ver|suscr[ií]bete|¡?gracias\.?!?$)/i;
 function clean(t){
-  t=(t||'').replace(/\s+/g,' ').trim();
+  t=(t||'').replace(/\[[^\]]*\]|\([^)]*m[úu]sica[^)]*\)/gi,' ').replace(/\s+/g,' ').trim();
   if(!t || JUNK.test(t) || /^[\s.,…¿?¡!-]*$/.test(t)) return '';
   return t.charAt(0).toUpperCase()+t.slice(1);
 }
@@ -222,8 +222,8 @@ function stop(){
   if(a.length>SR*2){ lastAudio=a; lastOffset=sessionStart; offerWhisper(a.length/SR); }
 }
 function offerWhisper(secs){
-  const m=Math.max(1,Math.round(secs*1.6/60));
-  $('msg').innerHTML='<div class="info"><b>¿Lo pasamos a limpio?</b> Whisper vuelve a transcribir lo que acabas de grabar ('+fmt(secs)+'), con mejor calidad y puntuación, y sustituye este texto. Tardará unos '+m+' min. '+
+  const m=Math.max(1,Math.round(secs*($('model').value.includes('small')?2:1)/60+0.5));
+  $('msg').innerHTML='<div class="info"><b>¿Lo pasamos a limpio?</b> Whisper vuelve a transcribir lo que acabas de grabar ('+fmt(secs)+'), con mejor calidad y puntuación, y sustituye este texto. Tardará unos '+m+' min (con «Whisper rápido», la mitad). '+
     '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button id="wgo" class="wbtn">Pasar a limpio con Whisper</button><button id="wwav" class="wbtn">Descargar el audio</button><button id="wno" class="wbtn">No, así está bien</button></div></div>';
   $('wgo').onclick=()=>runWhisperOnSession();
   $('wwav').onclick=()=>downloadWav(lastAudio);
