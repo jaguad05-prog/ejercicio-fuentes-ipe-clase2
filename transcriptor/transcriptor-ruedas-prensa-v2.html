@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="coi-sw.js"></script>
 <title>Transcriptor de ruedas de prensa · v2 (Whisper)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
@@ -90,11 +91,12 @@ const SR=16000;
 const workerSrc=`
 import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3';
 env.allowLocalModels=false;
+try{ if(self.crossOriginIsolated) env.backends.onnx.wasm.numThreads=Math.max(2,Math.min(8,(navigator.hardwareConcurrency||4)-2)); }catch(e){}
 let asr=null, current=null;
 async function load(model){
   if(asr && current===model) return;
   asr=await pipeline('automatic-speech-recognition', model, { dtype:'q8', device:'wasm', progress_callback:p=>postMessage({type:'progress',p}) });
-  current=model; postMessage({type:'ready',device:'wasm'});
+  current=model; postMessage({type:'ready',device:self.crossOriginIsolated?'multi':'wasm'});
 }
 onmessage=async e=>{
   const d=e.data;
@@ -119,7 +121,7 @@ worker.onmessage=e=>{
       $('sub').textContent='Descargando el modelo… '+Math.round(l/t*100)+'% (solo la primera vez)'; }
   } else if(d.type==='ready'){
     $('rec').disabled=false; setUI();
-    toast(d.device==='webgpu'?'Whisper listo (tarjeta gráfica)':'Whisper listo');
+    toast(d.device==='multi'?'Whisper listo (varios núcleos)':'Whisper listo');
   } else if(d.type==='text'){
     busy=false;
     if(d.chunks && d.chunks.length){ d.chunks.forEach(c=>addFinal(c.text,(d.offset||0)+(c.timestamp?.[0]||0))); fileDone(); }
