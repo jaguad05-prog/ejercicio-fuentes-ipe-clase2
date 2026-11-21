@@ -17,6 +17,7 @@
     --card:#152036; --interim:#6F7C97; --quote:#7A6A10; --ok:#4CC27F; }
 }
 *,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Archivo",system-ui,sans-serif}
 header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:14px 16px 12px}
 .top{display:flex;align-items:center;gap:14px;max-width:820px;margin:0 auto}
@@ -92,14 +93,8 @@ env.allowLocalModels=false;
 let asr=null, current=null;
 async function load(model){
   if(asr && current===model) return;
-  let device='wasm';
-  try{ if(navigator.gpu && await navigator.gpu.requestAdapter()) device='webgpu'; }catch(e){}
-  const opts={ progress_callback:p=>postMessage({type:'progress',p}) };
-  if(device==='webgpu'){ opts.device='webgpu'; opts.dtype={encoder_model:'fp32',decoder_model_merged:'q8'}; }
-  else { opts.dtype='q8'; }
-  try{ asr=await pipeline('automatic-speech-recognition', model, opts); }
-  catch(e){ if(device==='webgpu'){ asr=await pipeline('automatic-speech-recognition', model, {dtype:'q8',progress_callback:opts.progress_callback}); device='wasm'; } else throw e; }
-  current=model; postMessage({type:'ready',device});
+  asr=await pipeline('automatic-speech-recognition', model, { dtype:'q8', device:'wasm', progress_callback:p=>postMessage({type:'progress',p}) });
+  current=model; postMessage({type:'ready',device:'wasm'});
 }
 onmessage=async e=>{
   const d=e.data;
