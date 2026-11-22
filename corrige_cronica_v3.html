@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corrige la crónica de tu compañero</title>
+<style>
+:root{--red:#C8102E;--dark:#1B1B1F;--ink:#2B2B30;--gold:#E8B54A;--muted:#6B6B72;--border:#D8D8DC;--green:#1E7A45;--bg:#F5F5F7;--paper:#FFFDF8}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column}
+.topbar{background:var(--dark);color:#fff;padding:10px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;flex:none}
+.tt{font-size:15px;font-weight:800;letter-spacing:.04em}
+.ts{font-size:11px;color:var(--gold);letter-spacing:.06em}
+.tbtns{display:flex;gap:8px;flex-wrap:wrap}
+.tbtn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;padding:8px 13px;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:700}
+.tbtn.red{background:var(--red);border-color:var(--red)}
+.wrap{max-width:820px;margin:24px auto;padding:0 16px 40px;width:100%}
+.panel{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.ph{background:var(--dark);color:#fff;padding:10px 16px;font-size:12.5px;font-weight:800;letter-spacing:.06em;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;flex:none}
+.ph span{color:var(--gold)}
+.pb{padding:18px}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}
+input,textarea{width:100%;border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;font-size:15.5px;font-family:inherit;color:var(--ink);background:#fff}
+textarea{resize:vertical;line-height:1.45}
+input:focus,textarea:focus{outline:none;border-color:var(--dark)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.btn{border:none;padding:12px 18px;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
+.b-red{background:var(--red);color:#fff}.b-out{background:#fff;border:2px dashed var(--border);color:var(--muted)}
+.hint{font-size:14px;color:var(--muted);line-height:1.5}
+.err{color:var(--red);font-weight:700;margin-top:10px;min-height:18px}
+/* las dos columnas */
+.board{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px}
+.col{display:flex;flex-direction:column;min-height:0;background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.scroll{flex:1;min-height:0;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.cab{background:var(--paper);border:1px solid #EEE7D8;border-radius:10px;padding:14px 16px}
+.cab h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(20px,2.2vw,27px);line-height:1.15;color:var(--dark)}
+.cab p{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:14.5px;color:#444;margin-top:6px;line-height:1.4}
+.cronica p{font-family:Georgia,"Times New Roman",serif;font-size:15.5px;line-height:1.6;margin-bottom:12px;-webkit-user-select:text;user-select:text}
+.cronica p::selection,.cab ::selection{background:#FCE7A6}
+.hueco{border:2px solid var(--border);border-radius:12px;padding:10px 12px;background:#FAFAFB;display:flex;flex-direction:column;gap:8px}
+.hueco.lleno{border-color:var(--dark);background:#fff}
+.hh{display:flex;align-items:center;gap:9px}
+.hh .n{width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none}
+.hh .lb{font-weight:800;font-size:14.5px;color:var(--dark);flex:1}
+.hh .x{border:none;background:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:0 4px}
+.hueco textarea.copia{font-family:Georgia,"Times New Roman",serif;font-size:14.5px;min-height:80px;background:#fff}
+.cambia{font-size:12.5px;font-weight:800;color:var(--red);letter-spacing:.03em}
+.hueco textarea.cambio{font-size:14px;min-height:44px;border-color:#F0C9CF;background:#FFF8F9}
+.llevar{align-self:flex-start;border:1px solid var(--border);background:#fff;border-radius:7px;padding:5px 10px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--muted)}
+.llevar:hover{border-color:var(--dark);color:var(--dark)}
+.grupo{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-top:4px}
+@media(max-width:820px){ body{height:auto} .board{grid-template-columns:1fr} .col,.scroll{overflow:visible} .g2{grid-template-columns:1fr} }
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--dark);color:#fff;padding:11px 16px;border-radius:10px;font-weight:700;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9;max-width:90vw;text-align:center}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="topbar"><div><div class="tt">CORRIGE LA CRÓNICA DE TU COMPAÑERO</div><div class="ts">COPIA CADA PARTE EN SU HUECO Y DI QUÉ CAMBIARÍAS</div></div><div class="tbtns" id="tbtns"></div></div>
+<div id="main" style="flex:1;min-height:0;display:flex;flex-direction:column"></div>
+<div id="toast"></div>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const lsGet = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch(e){ return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch(e){} };
+function toast(t){ const el = $("toast"); el.textContent = t; el.classList.add("show"); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("show"), 2600); }
+
+// Huecos de la crónica: primer párrafo, alineaciones, desarrollo (3 para empezar, se pueden añadir) y final
+function huecosIniciales(){
+  return [
+    { tipo: "idea", copia: "", cambio: "" },
+    { tipo: "alin", copia: "", cambio: "" },
+    { tipo: "des", copia: "", cambio: "" },
+    { tipo: "des", copia: "", cambio: "" },
+    { tipo: "des", copia: "", cambio: "" },
+    { tipo: "fin", copia: "", cambio: "" }
+  ];
+}
+const NOMBRES = { idea: "Primer párrafo · idea del titular", alin: "Alineaciones comentadas y contexto", des: "Desarrollo", fin: "Final" };
+function etiqueta(i){
+  const h = D.huecos[i];
+  if (h.tipo !== "des") return NOMBRES[h.tipo];
+  const n = D.huecos.slice(0, i + 1).filter(x => x.tipo === "des").length;
+  return "Desarrollo " + n;
+}
+
+let D = { autor: "", titulo: "", subtitulo: "", texto: "", empezado: false, huecos: huecosIniciales(), cTitulo: "", cGeneral: "" };
+try { const g = JSON.parse(lsGet("corrige_v3", "null")); if (g && typeof g === "object") D = Object.assign(D, g); } catch(e){}
+const guardar = () => lsSet("corrige_v3", JSON.stringify(D));
+
+function pintarDatos(){
+  $("tbtns").innerHTML = "";
+  $("main").innerHTML = `<div class="wrap"><div class="panel"><div class="ph">PEGA LA CRÓNICA DE TU COMPAÑERO</div><div class="pb">
+    <p class="hint">Pega el titular, el subtítulo y el texto tal como los escribió tu compañero. Después la verás a la izquierda y a la derecha tendrás los huecos de cada parte para ir copiando sus frases o párrafos.</p>
+    <label for="iAut">¿A quién corriges? (autor de la crónica)</label><input id="iAut" value="${esc(D.autor)}">
+    <label for="iTit">Titular</label><input id="iTit" value="${esc(D.titulo)}">
+    <label for="iSub">Subtítulo</label><textarea id="iSub" rows="2">${esc(D.subtitulo)}</textarea>
+    <label for="iTex">Texto de la crónica</label><textarea id="iTex" rows="14" placeholder="Pega aquí el texto…">${esc(D.texto)}</textarea>
+    <div style="margin-top:14px"><button class="btn b-red" id="bEmp">Empezar a corregir</button></div>
+    <div class="err" id="err"></div></div></div></div>`;
+  $("bEmp").onclick = () => {
+    const n = { autor: $("iAut").value.trim(), titulo: $("iTit").value.trim(), subtitulo: $("iSub").value.trim(), texto: $("iTex").value.trim() };
+    if (!n.autor) return $("err").textContent = "Escribe a quién corriges";
+    if (n.texto.length < 40) return $("err").textContent = "Pega el texto de la crónica";
+    Object.assign(D, n, { empezado: true }); guardar(); pintarCorreccion();
+  };
+}
+
+function pintarCorreccion(){
+  $("tbtns").innerHTML = `<button class="tbtn" id="bEdit">Cambiar la crónica</button><button class="tbtn" id="bOtra">Corregir otra</button><button class="tbtn red" id="bWord">Descargar en Word</button>`;
+  $("bEdit").onclick = () => pintarDatos();
+  $("bOtra").onclick = () => { if (!confirm("¿Empezar con otra crónica? Se borra esta corrección de la página (descárgala antes).")) return;
+    D = { autor: "", titulo: "", subtitulo: "", texto: "", empezado: false, huecos: huecosIniciales(), cTitulo: "", cGeneral: "" }; guardar(); pintarDatos(); };
+  $("bWord").onclick = descargarWord;
+  const pars = D.texto.split(/\n+/).map(s => s.trim()).filter(Boolean);
+  $("main").innerHTML = `<div class="board">
+    <div class="col"><div class="ph">LA CRÓNICA DE ${esc(D.autor.toUpperCase())} <span>selecciona y copia</span></div><div class="scroll">
+      <div class="cab"><h1>${esc(D.titulo || "Sin titular")}</h1>${D.subtitulo ? `<p>${esc(D.subtitulo)}</p>` : ""}</div>
+      <div class="cronica">${pars.map(p => `<p>${esc(p)}</p>`).join("")}</div></div></div>
+    <div class="col"><div class="ph">LOS HUECOS <span>copia cada parte en su hueco</span></div><div class="scroll" id="huecos"></div></div>
+  </div>`;
+  pintarHuecos();
+}
+
+function pintarHuecos(){
+  const H = D.huecos;
+  let html = `<div class="hueco${D.cTitulo ? " lleno" : ""}"><div class="hh"><span class="n">T</span><span class="lb">Titular y subtítulo</span></div>
+    <div class="cambia">¿QUÉ CAMBIARÍAS?</div><textarea class="cambio" id="cTit" rows="2">${esc(D.cTitulo)}</textarea></div>`;
+  H.forEach((h, i) => {
+    const primeroDes = h.tipo === "des" && (i === 0 || H[i - 1].tipo !== "des");
+    if (primeroDes) html += `<div class="grupo">Desarrollo</div>`;
+    const quitable = h.tipo === "des" && H.filter(x => x.tipo === "des").length > 1;
+    html += `<div class="hueco${h.copia.trim() ? " lleno" : ""}" data-h="${i}"><div class="hh"><span class="n">${i + 1}</span><span class="lb">${esc(etiqueta(i))}</span>${quitable ? `<button class="x" data-q="${i}" title="Quitar este hueco">×</button>` : ""}</div>
+      <textarea class="copia" data-i="${i}" placeholder="Pega aquí lo que hayas copiado de la crónica">${esc(h.copia)}</textarea>
+      <button class="llevar" data-l="${i}">➜ Traer lo que he seleccionado en la crónica</button>
+      <div class="cambia">¿QUÉ CAMBIARÍAS?</div><textarea class="cambio" data-c="${i}" rows="2">${esc(h.cambio)}</textarea></div>`;
+    const ultimoDes = h.tipo === "des" && (i === H.length - 1 || H[i + 1].tipo !== "des");
+    if (ultimoDes) html += `<button class="btn b-out" id="bMas">+ Añadir otro hueco de desarrollo</button>`;
+  });
+  html += `<div class="hueco${D.cGeneral ? " lleno" : ""}"><div class="hh"><span class="n">✎</span><span class="lb">Comentario general para tu compañero</span></div><textarea class="cambio" id="cGen" rows="3">${esc(D.cGeneral)}</textarea></div>
+    <button class="btn b-red" id="bWord2">Descargar la corrección en Word</button>`;
+  $("huecos").innerHTML = html;
+  $("huecos").querySelectorAll("textarea.copia").forEach(t => t.oninput = () => { D.huecos[+t.dataset.i].copia = t.value; t.closest(".hueco").classList.toggle("lleno", !!t.value.trim()); guardar(); });
+  $("huecos").querySelectorAll("textarea.cambio[data-c]").forEach(t => t.oninput = () => { D.huecos[+t.dataset.c].cambio = t.value; guardar(); });
+  $("cTit").oninput = e => { D.cTitulo = e.target.value; guardar(); };
+  $("cGen").oninput = e => { D.cGeneral = e.target.value; guardar(); };
+  $("bMas").onclick = () => {
+    const ult = D.huecos.map(h => h.tipo).lastIndexOf("des");
+    D.huecos.splice(ult + 1, 0, { tipo: "des", copia: "", cambio: "" }); guardar();
+    const y = $("huecos").scrollTop; pintarHuecos(); $("huecos").scrollTop = y;
+  };
+  $("huecos").querySelectorAll(".x").forEach(b => b.onclick = () => {
+    const i = +b.dataset.q, h = D.huecos[i];
+    if ((h.copia.trim() || h.cambio.trim()) && !confirm("Este hueco tiene texto. ¿Quitarlo?")) return;
+    D.huecos.splice(i, 1); guardar(); const y = $("huecos").scrollTop; pintarHuecos(); $("huecos").scrollTop = y;
+  });
+  // Traer la selección: el botón no quita la selección al pulsarlo
+  $("huecos").querySelectorAll(".llevar").forEach(b => {
+    b.onmousedown = e => e.preventDefault();
+    b.onclick = () => {
+      const sel = String(getSelection() || "").trim();
+      if (!sel) return toast("Selecciona antes un trozo de la crónica, a la izquierda");
+      const i = +b.dataset.l, t = $("huecos").querySelector(`textarea.copia[data-i="${i}"]`);
+      D.huecos[i].copia = (D.huecos[i].copia.trim() ? D.huecos[i].copia.replace(/\s+$/, "") + "\n" : "") + sel;
+      t.value = D.huecos[i].copia; t.closest(".hueco").classList.add("lleno"); guardar(); toast("Copiado en «" + etiqueta(i) + "»");
+    };
+  });
+  $("bWord2").onclick = descargarWord;
+}
+
+// ── Word (.docx) hecho aquí mismo, sin servicios de fuera ──
+const xmlEsc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+function wP(texto, o){
+  o = o || {};
+  const rpr = `<w:rPr>${o.b ? "<w:b/>" : ""}${o.i ? "<w:i/>" : ""}${o.color ? `<w:color w:val="${o.color}"/>` : ""}<w:sz w:val="${o.sz || 22}"/></w:rPr>`;
+  const ppr = `<w:pPr><w:spacing w:after="${o.after ?? 120}"/>${o.shade ? `<w:shd w:val="clear" w:color="auto" w:fill="${o.shade}"/>` : ""}${o.ind ? `<w:ind w:left="${o.ind}"/>` : ""}</w:pPr>`;
+  const runs = String(texto ?? "").split("\n").map((l, k) => `${k ? "<w:r><w:br/></w:r>" : ""}<w:r>${rpr}<w:t xml:space="preserve">${xmlEsc(l)}</w:t></w:r>`).join("");
+  return `<w:p>${ppr}${runs}</w:p>`;
+}
+const COLORES = { 1: "C8102E", 2: "1F5FA8", 3: "1E7A45", 4: "7A3FA0", 0: "6B6B72" };
+function documentoXML(){
+  const hoy = new Date().toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
+  let b = "";
+  b += wP("Corrección de la crónica", { b: true, sz: 36, after: 60 });
+  b += wP(`Crónica de ${D.autor} · ${hoy}`, { color: "6B6B72", sz: 20, after: 240 });
+  b += wP(D.titulo || "Sin titular", { b: true, sz: 30, after: 60 });
+  if (D.subtitulo) b += wP(D.subtitulo, { i: true, sz: 22, after: 120 });
+  b += wP("Qué cambiaría: " + (D.cTitulo.trim() || "Nada"), { sz: 21, color: "C8102E", shade: "FDECEB", after: 280 });
+  D.huecos.forEach((h, i) => {
+    b += wP(`${i + 1}. ${etiqueta(i)}`, { b: true, sz: 24, after: 60 });
+    b += wP(h.copia.trim() || "(Vacío)", { sz: 22, after: 80, color: h.copia.trim() ? "" : "6B6B72", i: !h.copia.trim() });
+    b += wP("Qué cambiaría: " + (h.cambio.trim() || "Nada"), { sz: 21, color: "C8102E", shade: "FDECEB", after: 260 });
+  });
+  if (D.cGeneral.trim()){ b += wP("Comentario general", { b: true, sz: 24, after: 80 }); b += wP(D.cGeneral.trim(), { sz: 22 }); }
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${b}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1418" w:right="1418" w:bottom="1418" w:left="1418" w:header="709" w:footer="709" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+}
+// zip sin compresión
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++){ let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u){ let c = 0xFFFFFFFF; for (let i = 0; i < u.length; i++) c = CRC[(c ^ u[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function zip(files){
+  const enc = new TextEncoder(), partes = [], central = []; let off = 0;
+  files.forEach(f => {
+    const nom = enc.encode(f.name), dat = enc.encode(f.data), crc = crc32(dat);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+    lh.setUint32(14, crc, true); lh.setUint32(18, dat.length, true); lh.setUint32(22, dat.length, true); lh.setUint16(26, nom.length, true);
+    partes.push(new Uint8Array(lh.buffer), nom, dat);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true);
+    ch.setUint32(16, crc, true); ch.setUint32(20, dat.length, true); ch.setUint32(24, dat.length, true); ch.setUint16(28, nom.length, true); ch.setUint32(42, off, true);
+    central.push(new Uint8Array(ch.buffer), nom);
+    off += 30 + nom.length + dat.length;
+  });
+  const tam = central.reduce((s, u) => s + u.length, 0), fin = new DataView(new ArrayBuffer(22));
+  fin.setUint32(0, 0x06054b50, true); fin.setUint16(8, files.length, true); fin.setUint16(10, files.length, true); fin.setUint32(12, tam, true); fin.setUint32(16, off, true);
+  return new Blob([...partes, ...central, new Uint8Array(fin.buffer)], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+}
+function descargarWord(){
+  const blob = zip([
+    { name: "[Content_Types].xml", data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>' },
+    { name: "_rels/.rels", data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>' },
+    { name: "word/document.xml", data: documentoXML() }
+  ]);
+  const limpio = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = `correccion-cronica-${limpio(D.autor) || "companero"}.docx`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast("Corrección descargada");
+}
+
+if (D.empezado) pintarCorreccion(); else pintarDatos();
+</script>
+</body>
+</html>
