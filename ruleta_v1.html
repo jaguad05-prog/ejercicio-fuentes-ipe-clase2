@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ruleta de clase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Kalam:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --papel: #FBFCFE;
+    --linea: #DCE4F2;
+    --margen: #E0525A;
+    --tinta: #1F3A93;
+    --texto: #1B2033;
+    --suave: #5B647D;
+    --ok: #1E7A4C;
+    --error: #B3261E;
+    --campo: #FFFFFF;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+    color: var(--texto);
+    background:
+      linear-gradient(90deg, transparent 3.2rem, var(--margen) 3.2rem, var(--margen) calc(3.2rem + 2px), transparent calc(3.2rem + 2px)),
+      repeating-linear-gradient(var(--papel) 0 2.1rem, var(--linea) 2.1rem calc(2.1rem + 1px));
+    display: grid;
+    grid-template-columns: 1fr 22rem;
+    gap: 1.5rem;
+    padding: 1.2rem 1.5rem 1.2rem 4.5rem;
+  }
+  h1 { font-family: "Kalam", cursive; color: var(--tinta); font-size: 2.4rem; margin: 0; transform: rotate(-1.5deg); transform-origin: left; }
+  .escenario { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 0; position: relative; }
+  .rueda { position: relative; width: min(84vh, 100%); aspect-ratio: 1; }
+  canvas { width: 100%; height: 100%; display: block; cursor: pointer; filter: drop-shadow(0 10px 22px rgba(31,58,147,.25)); }
+  .flecha {
+    position: absolute; top: -.6rem; left: 50%; transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 1.4rem solid transparent; border-right: 1.4rem solid transparent;
+    border-top: 2.8rem solid var(--margen);
+    filter: drop-shadow(0 3px 3px rgba(0,0,0,.3)); z-index: 2;
+  }
+  .centro {
+    position: absolute; inset: 0; margin: auto; width: 17%; aspect-ratio: 1; border-radius: 50%;
+    background: var(--papel); border: .35rem solid var(--tinta);
+    display: grid; place-items: center; font-weight: 700; color: var(--tinta); font-size: clamp(.9rem, 2vw, 1.4rem);
+    cursor: pointer; user-select: none;
+  }
+  .vacia { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: var(--suave); font-size: 1.3rem; padding: 3rem; pointer-events: none; }
+
+  aside { display: flex; flex-direction: column; gap: .9rem; min-height: 0; }
+  label { font-weight: 700; font-size: .95rem; display: block; margin-bottom: .25rem; }
+  select, input {
+    width: 100%; font: inherit; padding: .55rem .7rem; border: 2px solid var(--linea); border-radius: .5rem; background: var(--campo); color: var(--texto);
+  }
+  select:focus, input:focus { outline: none; border-color: var(--tinta); }
+  button {
+    font: inherit; font-weight: 700; border: 0; border-radius: .6rem; padding: .7rem 1rem; cursor: pointer;
+    background: var(--tinta); color: #fff;
+  }
+  button:disabled { opacity: .5; cursor: default; }
+  .sec { background: transparent; color: var(--tinta); border: 2px solid var(--tinta); }
+  .fila { display: flex; gap: .5rem; }
+  .fila > * { flex: 1; }
+  .girar { font-size: 1.5rem; padding: 1rem; background: var(--margen); }
+  .estado { font-size: .95rem; color: var(--suave); min-height: 1.3em; margin: 0; }
+  .estado.error { color: var(--error); font-weight: 700; }
+  .estado.ok { color: var(--ok); font-weight: 700; }
+  .check { display: flex; align-items: center; gap: .5rem; font-size: .95rem; }
+  .check input { width: auto; }
+  .listas { overflow: auto; flex: 1; min-height: 6rem; border-top: 2px solid var(--linea); padding-top: .6rem; }
+  .listas h2 { font-size: 1rem; margin: .2rem 0 .4rem; color: var(--tinta); }
+  .listas ol, .listas ul { margin: 0 0 .8rem; padding-left: 1.4rem; font-size: .95rem; }
+  .listas li { margin: .15rem 0; }
+  .listas ul li { cursor: pointer; }
+  .listas ul li:hover { text-decoration: line-through; color: var(--error); }
+  .ayuda { font-size: .82rem; color: var(--suave); margin: 0; }
+
+  .resultado {
+    position: fixed; inset: 0; background: rgba(20,25,37,.55); display: none; place-items: center; z-index: 10;
+  }
+  .resultado.visible { display: grid; }
+  .tarjeta {
+    background: var(--papel); border-radius: 1.2rem; padding: 2.5rem 3.5rem; text-align: center; max-width: 90vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,.35); border-top: .6rem solid var(--margen);
+  }
+  .tarjeta p { margin: 0; color: var(--suave); font-size: 1.3rem; }
+  .tarjeta .nombre { font-family: "Kalam", cursive; color: var(--tinta); font-size: clamp(3rem, 8vw, 6.5rem); line-height: 1.1; margin: .6rem 0 1.5rem; }
+  @media (prefers-reduced-motion: no-preference) {
+    .resultado.visible .tarjeta { animation: salta .45s cubic-bezier(.2,1.6,.4,1); }
+    @keyframes salta { from { transform: scale(.6); opacity: 0; } }
+  }
+  @media (max-width: 900px) {
+    body { grid-template-columns: 1fr; padding-left: 4rem; }
+    .rueda { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<main class="escenario">
+  <div class="rueda">
+    <div class="flecha"></div>
+    <canvas id="lienzo" aria-label="Ruleta con los nombres de los alumnos"></canvas>
+    <div class="centro" id="centro">GIRAR</div>
+    <div class="vacia" id="vacia">Elige la clase y pulsa «Cargar firmas de hoy»</div>
+  </div>
+</main>
+
+<aside>
+  <h1>La ruleta</h1>
+
+  <div>
+    <label for="grupo">Clase</label>
+    <select id="grupo"></select>
+  </div>
+  <div>
+    <label for="clave">Clave del profesor</label>
+    <input id="clave" type="password" autocomplete="off">
+  </div>
+  <div class="fila">
+    <button id="cargar">Cargar firmas de hoy</button>
+  </div>
+  <p class="estado" id="estado" role="status" aria-live="polite"></p>
+
+  <button class="girar" id="girar" disabled>Girar</button>
+  <label class="check"><input type="checkbox" id="quitar" checked> Quitar de la ruleta a quien ya ha salido</label>
+
+  <div class="listas">
+    <h2 id="tituloSalidos">Han salido</h2>
+    <ol id="salidos"></ol>
+    <h2 id="tituloEnRuleta">En la ruleta</h2>
+    <ul id="enRuleta"></ul>
+    <p class="ayuda">Pulsa un nombre de la lista para sacarlo de la ruleta. «Cargar firmas de hoy» vuelve a leer la hoja y suma a los que firmen tarde.</p>
+  </div>
+  <button class="sec" id="demo">Probar con nombres de ejemplo</button>
+</aside>
+
+<div class="resultado" id="resultado">
+  <div class="tarjeta">
+    <p>Pregunta para</p>
+    <div class="nombre" id="ganador"></div>
+    <button id="cerrar">Seguir</button>
+  </div>
+</div>
+
+<script>
+  // ===== CONFIGURACIÓN =====
+  const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbzSaReDw37io7mBXV6TsGqO8BbS7bHxA-PSDxFaYTx9CRv7Szh0l9eIiDo_3L6Tvp-NOQ/exec";
+  const GRUPOS = ["IPE", "Deportes"];
+  // =========================
+
+  const COLORES = ["#1F3A93", "#E0525A", "#F2B134", "#1E7A4C", "#5B6CC9", "#C2477A", "#2C9AA8", "#E07B39"];
+  const $ = id => document.getElementById(id);
+  const lienzo = $("lienzo"), ctx = lienzo.getContext("2d");
+
+  let nombres = [];      // los que están ahora en la ruleta
+  let salidos = [];      // los que ya han salido hoy
+  let angulo = 0;        // giro actual en radianes
+  let girando = false;
+
+  $("grupo").innerHTML = GRUPOS.map(g => `<option>${g}</option>`).join("");
+  try {
+    $("clave").value = localStorage.getItem("ruleta_clave") || "";
+    $("grupo").value = localStorage.getItem("ruleta_grupo") || GRUPOS[0];
+  } catch (e) {}
+
+  function estado(texto, tipo) {
+    $("estado").textContent = texto;
+    $("estado").className = "estado" + (tipo ? " " + tipo : "");
+  }
+
+  // Nombre corto para la rueda: nombre y primer apellido
+  function corto(n) {
+    const partes = n.split(" ");
+    return partes.length > 2 ? partes.slice(0, 2).join(" ") : n;
+  }
+
+  function ajustarLienzo() {
+    const r = lienzo.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    lienzo.width = Math.round(r.width * dpr);
+    lienzo.height = Math.round(r.height * dpr);
+    dibujar();
+  }
+
+  function dibujar() {
+    const W = lienzo.width, R = W / 2 - 6;
+    ctx.clearRect(0, 0, W, W);
+    ctx.save();
+    ctx.translate(W / 2, W / 2);
+
+    if (!nombres.length) {
+      ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2);
+      ctx.fillStyle = "#EEF2FA"; ctx.fill();
+      ctx.lineWidth = 6; ctx.strokeStyle = "#DCE4F2"; ctx.stroke();
+      ctx.restore();
+      $("vacia").style.display = "grid";
+      return;
+    }
+    $("vacia").style.display = "none";
+
+    const n = nombres.length, sector = Math.PI * 2 / n;
+    const tam = Math.max(11, Math.min(W * 0.045, (Math.PI * R * 0.9) / n * 0.75));
+    for (let i = 0; i < n; i++) {
+      const ini = angulo + i * sector - Math.PI / 2;
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, R, ini, ini + sector); ctx.closePath();
+      let color = COLORES[i % COLORES.length];
+      if (i === n - 1 && n % COLORES.length === 1 && n > 1) color = COLORES[3];
+      ctx.fillStyle = color; ctx.fill();
+      ctx.lineWidth = Math.max(1, W * 0.003); ctx.strokeStyle = "#FBFCFE"; ctx.stroke();
+
+      ctx.save();
+      ctx.rotate(ini + sector / 2);
+      ctx.textAlign = "right"; ctx.textBaseline = "middle";
+      ctx.fillStyle = color === "#F2B134" ? "#1B2033" : "#FFFFFF";
+      ctx.font = `700 ${tam}px "Atkinson Hyperlegible", system-ui, sans-serif`;
+      let texto = corto(nombres[i]);
+      const max = R * 0.68;
+      const ancho = ctx.measureText(texto).width;
+      if (ancho > max) ctx.font = `700 ${Math.max(tam * 0.72, tam * max / ancho)}px "Atkinson Hyperlegible", system-ui, sans-serif`;
+      while (ctx.measureText(texto).width > max && texto.length > 4) texto = texto.slice(0, -2) + "…";
+      ctx.fillText(texto, R - W * 0.03, 0);
+      ctx.restore();
+    }
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2);
+    ctx.lineWidth = W * 0.012; ctx.strokeStyle = "#1F3A93"; ctx.stroke();
+    ctx.restore();
+  }
+
+  function pintarListas() {
+    $("enRuleta").innerHTML = nombres.map((n, i) => `<li data-i="${i}">${escapar(n)}</li>`).join("");
+    $("salidos").innerHTML = salidos.map(n => `<li>${escapar(n)}</li>`).join("");
+    $("tituloEnRuleta").textContent = `En la ruleta (${nombres.length})`;
+    $("tituloSalidos").textContent = `Han salido (${salidos.length})`;
+    $("girar").disabled = girando || nombres.length < 1;
+  }
+
+  function escapar(t) {
+    return t.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  }
+
+  function ponerNombres(lista) {
+    // Suma los nuevos y respeta a los que ya han salido
+    const yaSalidos = new Set(salidos);
+    const nuevos = lista.filter(n => !yaSalidos.has(n) && !nombres.includes(n));
+    nombres = nombres.filter(n => lista.includes(n)).concat(nuevos);
+    pintarListas(); dibujar();
+    return nuevos.length;
+  }
+
+  $("enRuleta").addEventListener("click", ev => {
+    const li = ev.target.closest("li");
+    if (!li || girando) return;
+    nombres.splice(+li.dataset.i, 1);
+    pintarListas(); dibujar();
+  });
+
+  // ---- Cargar desde la hoja ----
+  $("cargar").addEventListener("click", async () => {
+    const grupo = $("grupo").value, clave = $("clave").value.trim();
+    if (!clave) return estado("Escribe la clave del profesor.", "error");
+    try { localStorage.setItem("ruleta_clave", clave); localStorage.setItem("ruleta_grupo", grupo); } catch (e) {}
+    $("cargar").disabled = true;
+    estado("Leyendo la hoja…");
+    try {
+      const url = URL_SCRIPT + "?" + new URLSearchParams({ accion: "ruleta", grupo, clave });
+      const r = await fetch(url);
+      const datos = await r.json();
+      if (!datos.ok) return estado(datos.error || "No se ha podido leer la lista.", "error");
+      if (!datos.nombres.length) { ponerNombres([]); return estado("Hoy todavía no ha firmado nadie en " + grupo + ".", "error"); }
+      const nuevos = ponerNombres(datos.nombres);
+      estado(`${datos.nombres.length} firmas en ${grupo} hoy` + (nuevos && salidos.length ? `, ${nuevos} nuevas` : "") + ".", "ok");
+    } catch (e) {
+      estado("No llega la respuesta del script. Comprueba que has publicado la versión nueva en Apps Script.", "error");
+    } finally {
+      $("cargar").disabled = false;
+    }
+  });
+
+  $("grupo").addEventListener("change", () => {
+    nombres = []; salidos = [];
+    pintarListas(); dibujar(); estado("");
+  });
+
+  $("demo").addEventListener("click", () => {
+    salidos = []; nombres = [];
+    ponerNombres(["Lucía Martín Gil", "Hugo Pérez Sanz", "Martina López Ruiz", "Pablo García Díaz", "Sofía Romero Cano",
+      "Daniel Torres Vega", "Valeria Navarro Ortiz", "Álvaro Jiménez Moreno", "Carla Ruiz Molina", "Mario Serrano Blanco",
+      "Elena Castro Rubio", "Adrián Ortega Marín", "Paula Delgado Prieto", "Javier Gómez Núñez", "Irene Vidal Herrera",
+      "Sergio Ramos Iglesias", "Noa Fernández Cruz", "Diego Morales León"]);
+    estado("Nombres de ejemplo cargados para probar.", "ok");
+  });
+
+  // ---- Girar ----
+  let audio;
+  function tic() {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.type = "triangle"; o.frequency.value = 900;
+      g.gain.setValueAtTime(0.12, audio.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.05);
+      o.connect(g).connect(audio.destination);
+      o.start(); o.stop(audio.currentTime + 0.05);
+    } catch (e) {}
+  }
+
+  function azar(max) {
+    const a = new Uint32Array(1); crypto.getRandomValues(a);
+    return a[0] / 4294967296 * max;
+  }
+
+  function girar() {
+    if (girando || !nombres.length) return;
+    girando = true; pintarListas();
+    const n = nombres.length, sector = Math.PI * 2 / n;
+    const elegido = Math.floor(azar(n));
+    // Ángulo final para que el centro (con algo de margen) del sector elegido quede bajo la flecha
+    const dentro = (0.15 + azar(0.7)) * sector;
+    const objetivoBase = -(elegido * sector + dentro);
+    const actual = ((angulo % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    let delta = (objetivoBase - actual) % (Math.PI * 2);
+    if (delta > 0) delta -= Math.PI * 2;
+    const reducir = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const vueltas = reducir ? 1 : 6 + Math.floor(azar(3));
+    const inicio = angulo, total = -(vueltas * Math.PI * 2) + delta;
+    const duracion = reducir ? 1200 : 5600;
+    const t0 = performance.now();
+    let ultimoSector = Math.floor(((-angulo % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2) / sector);
+
+    function paso(t) {
+      const p = Math.min(1, (t - t0) / duracion);
+      const e = 1 - Math.pow(1 - p, 4);
+      angulo = inicio + total * e;
+      const s = Math.floor(((-angulo % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2) / sector);
+      if (s !== ultimoSector) { ultimoSector = s; tic(); }
+      dibujar();
+      if (p < 1) requestAnimationFrame(paso);
+      else terminar(elegido);
+    }
+    requestAnimationFrame(paso);
+  }
+
+  function terminar(i) {
+    const nombre = nombres[i];
+    $("ganador").textContent = nombre;
+    $("resultado").classList.add("visible");
+    salidos.push(nombre);
+    girando = false;
+    pintarListas();
+    $("cerrar").focus();
+  }
+
+  $("cerrar").addEventListener("click", () => {
+    $("resultado").classList.remove("visible");
+    if ($("quitar").checked) {
+      const ultimo = salidos[salidos.length - 1];
+      nombres = nombres.filter(n => n !== ultimo);
+    }
+    pintarListas(); dibujar();
+  });
+
+  $("girar").addEventListener("click", girar);
+  $("centro").addEventListener("click", girar);
+  lienzo.addEventListener("click", girar);
+  document.addEventListener("keydown", ev => {
+    if (ev.target.tagName === "INPUT" || ev.target.tagName === "SELECT") return;
+    if (ev.code === "Space" || ev.code === "Enter") {
+      ev.preventDefault();
+      if ($("resultado").classList.contains("visible")) $("cerrar").click(); else girar();
+    }
+  });
+
+  window.addEventListener("resize", ajustarLienzo);
+  document.fonts && document.fonts.ready.then(dibujar);
+  ajustarLienzo(); pintarListas();
+</script>
+</body>
+</html>
