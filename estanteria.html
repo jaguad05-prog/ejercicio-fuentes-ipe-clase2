@@ -408,7 +408,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v29</span></h1>
+  <h1>Estantería de entregas <span class="version">v30</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -569,7 +569,8 @@ const TIPOS = {
   weba:'audio/webm',
   mp4:'video/mp4', webm:'video/webm', mov:'video/quicktime',
   m4v:'video/mp4', ogv:'video/ogg',
-  html:'text/html', htm:'text/html'
+  html:'text/html', htm:'text/html',
+  docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 };
 
 function tipoDe(nombre){
@@ -579,6 +580,7 @@ function tipoDe(nombre){
   if(EXT_AUD.includes(e)) return 'audio';
   if(EXT_VID.includes(e)) return 'video';
   if(EXT_WEB.includes(e)) return 'web';
+  if(e === 'docx') return 'docx';
   return null;
 }
 const ES_MEDIA = t => t === 'audio' || t === 'video';
@@ -749,7 +751,8 @@ function nuevaObra(alumno, archivo, blob, carpeta){
   const o = {
     alumno, archivo, blob, clave,
     carpeta: carpeta || '',
-    tipo: tipoDe(archivo) || 'img',
+    tipo: tipoDe(archivo) === 'docx' ? 'pdf' : (tipoDe(archivo) || 'img'),
+    word: tipoDe(archivo) === 'docx',
     url: URL.createObjectURL(blob),
     thumb: null, paginas: 1, duracion: 0,
     visto: !!(guardada && guardada.visto)
@@ -826,7 +829,7 @@ function pintarAvisos(){
   }
 
   $('avisoPie').textContent = descartados.length
-    ? 'Los de Word, Excel u ODT no se abren aquí, míralos aparte o pide que te los reenvíen en pdf.'
+    ? 'Los Word antiguos (.doc), Excel u ODT no se abren aquí, míralos aparte o pide que te los reenvíen en pdf o en .docx.'
     : 'Pide a esos alumnos que vuelvan a subir el archivo.';
   $('avisos').hidden = false;
 }
@@ -910,7 +913,124 @@ function metadatosMedia(o){
   });
 }
 
+/* ------------------------------------------------ Word (.docx)
+   El Word se dibuja aquí mismo, página a página, y se convierte en un PDF
+   para corregirlo igual que los demás. El documento no sale del ordenador
+   y el archivo original se descarga tal cual con «Descargar». */
+const LIB_DOCX = 'https://cdn.jsdelivr.net/npm/docx-preview@0.3.2/dist/docx-preview.min.js';
+const LIB_JSPDF = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+const guionesCargados = {};
+function cargarGuion(src){
+  if(!guionesCargados[src]) guionesCargados[src] = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = res;
+    s.onerror = () => {
+      delete guionesCargados[src];
+      rej(new Error('no se ha podido cargar el lector de Word, comprueba la conexión'));
+    };
+    document.head.appendChild(s);
+  });
+  return guionesCargados[src];
+}
+async function prepararWord(){
+  await cargarGuion(LIB_DOCX);
+  await cargarGuion(LIB_JSPDF);
+  if(typeof window.html2canvas !== 'function'){
+    const s = document.createElement('script');
+    s.textContent = document.getElementById('libDibujante').textContent;
+    document.head.appendChild(s);
+  }
+}
+async function wordAPdf(blob){
+  await prepararWord();
+  const caja = document.createElement('div');
+  caja.style.cssText = 'position:fixed;left:-30000px;top:0;background:#fff;color:#000';
+  document.body.appendChild(caja);
+  try{
+    await docx.renderAsync(blob, caja, null, {
+      inWrapper: false, breakPages: true, ignoreLastRenderedPageBreak: false,
+      experimental: true, useBase64URL: true
+    });
+    await new Promise(r => setTimeout(r, 150));
+    try{ await document.fonts.ready; }catch(err){}
+    let hojas = [...caja.querySelectorAll('section.docx')];
+    if(!hojas.length) hojas = [caja];
+    let pdf = null;
+    for(const h of hojas){
+      const c = await html2canvas(h, {backgroundColor: '#ffffff', scale: 2, useCORS: true, logging: false});
+      if(!c.width || !c.height) continue;
+      // Las hojas más largas que un A4 se parten en varias páginas,
+      // cortando entre párrafos o filas para no partir ninguna línea
+      const altoPag = Math.round(c.width * 297 / 210);
+      const trozos = [];   // [desde, hasta, margen de arriba]
+      if(c.height <= altoPag * 1.08){
+        trozos.push([0, c.height, 0]);
+      }else{
+        const est = getComputedStyle(h);
+        const k = c.width / h.getBoundingClientRect().width;
+        const padT = Math.round((parseFloat(est.paddingTop) || 40) * k);
+        const padB = Math.round((parseFloat(est.paddingBottom) || 40) * k);
+        const arriba = h.getBoundingClientRect().top;
+        const limites = [...h.querySelectorAll('p, li, tr, img, table, h1, h2, h3, h4, h5, h6')]
+          .filter(el => el.tagName === 'TR' || el.tagName === 'TABLE' || !el.closest('table'))
+          .map(el => Math.round((el.getBoundingClientRect().bottom - arriba) * k))
+          .sort((x, z) => x - z);
+        let y = 0;
+        while(y < c.height){
+          const margen = trozos.length ? padT : 0;
+          const cabe = altoPag - margen - padB;
+          if(c.height - y <= cabe + padB){ trozos.push([y, c.height, margen]); break; }
+          let corte = 0;
+          for(const l of limites) if(l > y + cabe * 0.4 && l <= y + cabe) corte = l;
+          if(!corte) corte = y + cabe;
+          trozos.push([y, corte, margen]);
+          y = corte;
+        }
+      }
+      for(const [desde, hasta, margen] of trozos){
+        const alto = trozos.length > 1 ? altoPag : hasta - desde;
+        const t = document.createElement('canvas');
+        t.width = c.width; t.height = alto;
+        const tc = t.getContext('2d');
+        tc.fillStyle = '#fff'; tc.fillRect(0, 0, t.width, t.height);
+        tc.drawImage(c, 0, desde, c.width, hasta - desde, 0, margen, c.width, hasta - desde);
+        const ancho = c.width / 2 * 0.75, altoPt = alto / 2 * 0.75;
+        const ori = ancho > altoPt ? 'l' : 'p';
+        if(!pdf) pdf = new jspdf.jsPDF({unit: 'pt', format: [ancho, altoPt], orientation: ori});
+        else pdf.addPage([ancho, altoPt], ori);
+        pdf.addImage(t.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, ancho, altoPt);
+      }
+    }
+    if(!pdf) throw new Error('el Word está vacío');
+    return pdf.output('blob');
+  }finally{
+    caja.remove();
+  }
+}
+function asegurarWord(o){
+  if(!o.word || o.original) return Promise.resolve();
+  if(!o._convirtiendo){
+    o._convirtiendo = wordAPdf(o.blob).then(pdf => {
+      o.original = o.blob;
+      o.blob = pdf;
+    }).catch(err => { o._convirtiendo = null; throw err; });
+  }
+  return o._convirtiendo;
+}
+
 async function portada(o){
+  if(o.word){
+    try{
+      await asegurarWord(o);
+    }catch(err){
+      o.thumb = null;
+      o.roto = true;
+      fallidos.push({alumno: o.alumno, archivo: o.archivo,
+                     motivo: 'no se ha podido leer el Word (' + (err.message || err) + ')'});
+      return;
+    }
+  }
   try{
     if(o.tipo === 'img'){
       o.thumb = o.url;
@@ -997,7 +1117,7 @@ function pintarEstantes(){
       tapa.appendChild(im);
     }else{
       tapa.innerHTML = '<span class="cargando">' +
-        ({pdf:'PDF', img:'imagen', audio:'audio', video:'vídeo', web:'ficha'}[o.tipo] || '') + '</span>';
+        ({pdf: o.word ? 'Word' : 'PDF', img:'imagen', audio:'audio', video:'vídeo', web:'ficha'}[o.tipo] || '') + '</span>';
     }
     const insignia = o.tipo === 'pdf' && o.paginas > 1
       ? o.paginas + ' pág.'
@@ -1326,6 +1446,7 @@ async function dibujarPagina(){
   }else{
     if(!pdfActual || pdfActual._obra !== vIdx){
       if(pdfActual) pdfActual.destroy();
+      await asegurarWord(o);
       const buf = await o.blob.arrayBuffer();
       pdfActual = await pdfjsLib.getDocument({data: buf}).promise;
       pdfActual._obra = vIdx;
