@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Estantería de entregas v31</title>
+<title>Estantería de entregas v32</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
@@ -408,7 +408,7 @@
 <body>
 
 <header>
-  <h1>Estantería de entregas <span class="version">v31</span></h1>
+  <h1>Estantería de entregas <span class="version">v32</span></h1>
   <span class="cuenta" id="cuenta">Todavía no has cargado nada</span>
   <div class="controles">
     <input type="search" id="buscar" placeholder="Buscar por nombre" aria-label="Buscar por nombre">
@@ -2313,10 +2313,8 @@ let handleDestino = null;
 // las correcciones a toda la clase de una vez en un zip.
 async function carpetaDeAlumno(o){
   if(!handleDestino) return null;
+  if(!await permisoDestino(true)) return null;
   try{
-    let per = await handleDestino.queryPermission({mode: 'readwrite'});
-    if(per !== 'granted') per = await handleDestino.requestPermission({mode: 'readwrite'});
-    if(per !== 'granted') return null;
     const raiz = await handleDestino.getDirectoryHandle(CARPETA_MOODLE, {create: true});
     const nombre = (o.carpeta || o.alumno).replace(/[\\/:*?"<>|]/g, '').trim();
     if(!nombre) return null;
@@ -2326,22 +2324,49 @@ async function carpetaDeAlumno(o){
 
 
 
+// Algunas carpetas recordadas dejan de responder (se movieron, se borraron
+// o Windows cambió algo) y el navegador se queda esperando para siempre.
+// Si no contesta en un par de segundos, se olvida y se pide otra.
+let destinoRoto = false;
+function conPlazo(promesa, ms){
+  return Promise.race([promesa, new Promise((_, rej) =>
+    setTimeout(() => rej(new Error('PLAZO')), ms))]);
+}
+function olvidarDestino(){
+  destinoRoto = true;
+  handleDestino = null;
+  borrarDe('config', 'destino').catch(() => {});
+  pintarDestino();
+}
+async function permisoDestino(pedir){
+  if(!handleDestino) return false;
+  try{
+    let per = await conPlazo(handleDestino.queryPermission({mode: 'readwrite'}), 2000);
+    if(per !== 'granted' && pedir){
+      per = await conPlazo(handleDestino.requestPermission({mode: 'readwrite'}), 60000);
+    }
+    return per === 'granted';
+  }catch(err){
+    if(err && err.message === 'PLAZO') olvidarDestino();
+    return false;
+  }
+}
 async function carpetaSalida(pedirPermiso){
   if(!handleDestino) return null;
+  if(!await permisoDestino(pedirPermiso)) return null;
   try{
-    let per = await handleDestino.queryPermission({mode: 'readwrite'});
-    if(per !== 'granted' && pedirPermiso){
-      per = await handleDestino.requestPermission({mode: 'readwrite'});
-    }
-    if(per !== 'granted') return null;
-    return await handleDestino.getDirectoryHandle(CARPETA_SALIDA, {create: true});
-  }catch(err){ return null; }
+    return await conPlazo(handleDestino.getDirectoryHandle(CARPETA_SALIDA, {create: true}), 4000);
+  }catch(err){
+    if(err && err.message === 'PLAZO') olvidarDestino();
+    return null;
+  }
 }
 
 async function elegirDestino(){
   try{
     handleDestino = await window.showDirectoryPicker({mode: 'readwrite'});
   }catch(err){ return; }
+  destinoRoto = false;
   try{ await guardarEn('config', 'destino', handleDestino); }catch(err){}
   pintarDestino();
   const dir = await carpetaSalida(true);
@@ -2518,7 +2543,9 @@ async function guardarCorregida(){
   }
   bajarSuelta(nombre, blob);
   await guardarFichaDe(o, vIdx, null, null);
-  avisoGuardado(handleDestino
+  avisoGuardado(destinoRoto
+    ? 'La carpeta de guardado que tenías ya no responde, así que esta corregida ha ido a Descargas.\nPulsa arriba «Carpeta de guardado» y elige la carpeta que contiene «trabajos clase».'
+    : handleDestino
     ? 'No he podido entrar en «' + handleDestino.name + '», así que la corregida ha ido a Descargas.\nPulsa el botón de arriba «Guardar en…» y vuelve a elegir la carpeta.'
     : 'La corregida ha ido a Descargas.');
 }
